@@ -2,6 +2,9 @@ using EPMS.Application.Interfaces;
 using EPMS.Application.Mappings;
 using EPMS.Application.Services;
 using EPMS.Application.Settings;
+using EPMS.Domain.Interfaces;
+using EPMS.Domain.Services;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +43,14 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IUserRoleService, UserRoleService>();
         services.AddScoped<INotificationService, NotificationService>();
+
+        // Domain Services
+        services.AddScoped<IKpiScoreCalculator, KpiScoreCalculator>();
+        services.AddScoped<KpiWeightValidator>();
+
+        // MediatR & FluentValidation
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ApplicationServiceRegistration).Assembly));
+        services.AddValidatorsFromAssembly(typeof(ApplicationServiceRegistration).Assembly);
 
         return services;
     }

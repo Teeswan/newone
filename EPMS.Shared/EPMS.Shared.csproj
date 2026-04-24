@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -10,6 +10,10 @@
     <Folder Include="Responses\" />
     <Folder Include="Requests\" />
     <Folder Include="SpResults\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EPMS.Domain\EPMS.Domain.csproj" />
   </ItemGroup>
 
 </Project>

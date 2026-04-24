@@ -3,11 +3,16 @@ using EPMS.Domain.Interfaces;
 using EPMS.Infrastructure.Contexts;
 using EPMS.Infrastructure.Repositories;
 using EPMS.Infrastructure.Authorization;
+using EPMS.Infrastructure.Cache;
+using EPMS.Infrastructure.DataAccess;
+using EPMS.Infrastructure.Services;
+using EPMS.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace EPMS.Infrastructure.DependencyInjection;
 
@@ -107,6 +112,14 @@ public static class InfrastructureServiceRegistration
         // Authorization
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+
+        // KPI Module
+        services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+        services.AddScoped<IKpiMasterRepository, KpiMasterRepository>();
+        services.AddScoped<IKpiAssignmentRepository, KpiAssignmentRepository>();
+        services.AddScoped<IKpiCacheService, KpiCacheService>();
+        services.AddScoped<IKpiQueryService, KpiQueryService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
 
         return services;
     }

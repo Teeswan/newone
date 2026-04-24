@@ -19,7 +19,5 @@ public partial class Position
 
     public virtual ICollection<PerformanceOutcome> PerformanceOutcomeOldPositions { get; set; } = new List<PerformanceOutcome>();
 
-    public virtual ICollection<PositionKpi> PositionKpis { get; set; } = new List<PositionKpi>();
-
     public virtual ICollection<PositionPermission> PositionPermissions { get; set; } = new List<PositionPermission>();
 }

@@ -28,17 +28,11 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Department> Departments { get; set; }
 
-    public virtual DbSet<DepartmentKpi> DepartmentKpis { get; set; }
-
     public virtual DbSet<Employee> Employees { get; set; }
 
     public virtual DbSet<EmployeeInfo> EmployeeInfos { get; set; }
 
-    public virtual DbSet<EmployeeKpi> EmployeeKpis { get; set; }
-
     public virtual DbSet<FormQuestion> FormQuestions { get; set; }
-
-    public virtual DbSet<Kpi> Kpis { get; set; }
 
     public virtual DbSet<Level> Levels { get; set; }
 
@@ -62,8 +56,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Position> Positions { get; set; }
 
-    public virtual DbSet<PositionKpi> PositionKpis { get; set; }
-
     public virtual DbSet<PositionPermission> PositionPermissions { get; set; }
 
     public virtual DbSet<RatingScale> RatingScales { get; set; }
@@ -72,7 +64,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Team> Teams { get; set; }
 
-    public virtual DbSet<TeamKpi> TeamKpis { get; set; }
+    public virtual DbSet<KpiMaster> KpiMasters { get; set; }
+    public virtual DbSet<EmployeeKpiAssignment> EmployeeKpiAssignments { get; set; }
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<User> Users { get; set; }
 
@@ -82,6 +75,8 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
         modelBuilder.Entity<ApplicationForm>(entity =>
         {
             entity.HasKey(e => e.FormId).HasName("PK__Applicat__FB05B7BD0CD83A1E");
@@ -162,33 +157,6 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_Departments_Departments_Parent");
         });
 
-        modelBuilder.Entity<DepartmentKpi>(entity =>
-        {
-            entity.HasKey(e => e.DeptKpiid).HasName("PK__Departme__8E9390E36A1B842D");
-
-            entity.ToTable("DepartmentKPIs");
-
-            entity.Property(e => e.DeptKpiid).HasColumnName("DeptKPIID");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.CycleId).HasColumnName("CycleID");
-            entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
-            entity.Property(e => e.DepartmentTarget).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.KpiMasterId).HasColumnName("KpiMasterID");
-            entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
-
-            entity.HasOne(d => d.Cycle).WithMany(p => p.DepartmentKpis)
-                .HasForeignKey(d => d.CycleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Departmen__Cycle__55F4C372");
-
-            entity.HasOne(d => d.Department).WithMany(p => p.DepartmentKpis)
-                .HasForeignKey(d => d.DepartmentId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Departmen__Depar__55009F39");
-        });
-
         modelBuilder.Entity<Employee>(entity =>
         {
             entity.HasKey(e => e.EmployeeId).HasName("PK__Employee__7AD04FF19EDAB7BE");
@@ -258,44 +226,6 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK__EmployeeI__Emplo__76619304");
         });
 
-        modelBuilder.Entity<EmployeeKpi>(entity =>
-        {
-            entity.HasKey(e => e.EmployeeKpiid).HasName("PK__Employee__2A52D969E98EFC1D");
-
-            entity.ToTable("EmployeeKPIs");
-
-            entity.Property(e => e.EmployeeKpiid).HasColumnName("EmployeeKPIID");
-            entity.Property(e => e.ActualValue)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.CycleId).HasColumnName("CycleID");
-            entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
-            entity.Property(e => e.KpiId).HasColumnName("KPI_ID");
-            entity.Property(e => e.SnapshotTarget).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.SnapshotWeight).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasDefaultValue("Draft");
-            entity.Property(e => e.TargetValue).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.VersionNo).HasDefaultValue(1);
-            entity.Property(e => e.WeightPercent).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.WeightedScore)
-                .HasComputedColumnSql("(CONVERT([decimal](18,2),([ActualValue]/nullif([TargetValue],(0)))*[WeightPercent]))", false)
-                .HasColumnType("decimal(18, 2)");
-
-            entity.HasOne(d => d.Cycle).WithMany(p => p.EmployeeKpis)
-                .HasForeignKey(d => d.CycleId)
-                .HasConstraintName("FK__EmployeeK__Cycle__5BE2A6F2");
-
-            entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeKpis)
-                .HasForeignKey(d => d.EmployeeId)
-                .HasConstraintName("FK__EmployeeK__Emplo__5AEE82B9");
-
-            entity.HasOne(d => d.Kpi).WithMany(p => p.EmployeeKpis)
-                .HasForeignKey(d => d.KpiId)
-                .HasConstraintName("FK__EmployeeK__KPI_I__5CD6CB2B");
-        });
-
         modelBuilder.Entity<FormQuestion>(entity =>
         {
             entity.HasNoKey();
@@ -310,20 +240,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Question).WithMany()
                 .HasForeignKey(d => d.QuestionId)
                 .HasConstraintName("FK__FormQuest__Quest__3F115E1A");
-        });
-
-        modelBuilder.Entity<Kpi>(entity =>
-        {
-            entity.HasKey(e => e.KpiId).HasName("PK__KPIs__CEC470B81F6CAF9E");
-
-            entity.ToTable("KPIs");
-
-            entity.Property(e => e.KpiId).HasColumnName("KPI_ID");
-            entity.Property(e => e.Category).HasMaxLength(100);
-            entity.Property(e => e.Kpiname)
-                .HasMaxLength(255)
-                .HasColumnName("KPIName");
-            entity.Property(e => e.Unit).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Level>(entity =>
@@ -550,29 +466,6 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK__Positions__Level__3C69FB99");
         });
 
-        modelBuilder.Entity<PositionKpi>(entity =>
-        {
-            entity.HasKey(e => e.PositionKpiid).HasName("PK__Position__37A298CB402655E1");
-
-            entity.ToTable("PositionKPIs");
-
-            entity.Property(e => e.PositionKpiid).HasColumnName("PositionKPIID");
-            entity.Property(e => e.DefaultWeightPercent).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.IsRequired).HasDefaultValue(true);
-            entity.Property(e => e.KpiId).HasColumnName("KPI_ID");
-            entity.Property(e => e.PositionId).HasColumnName("PositionID");
-
-            entity.HasOne(d => d.Kpi).WithMany(p => p.PositionKpis)
-                .HasForeignKey(d => d.KpiId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PositionKPIs_KPIs");
-
-            entity.HasOne(d => d.Position).WithMany(p => p.PositionKpis)
-                .HasForeignKey(d => d.PositionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PositionKPIs_Positions");
-        });
-
         modelBuilder.Entity<PositionPermission>(entity =>
         {
             entity.HasKey(e => new { e.PositionId, e.PermissionId });
@@ -645,30 +538,6 @@ public partial class AppDbContext : DbContext
                         j.IndexerProperty<int>("TeamId").HasColumnName("TeamID");
                         j.IndexerProperty<int>("EmployeeId").HasColumnName("EmployeeID");
                     });
-        });
-
-        modelBuilder.Entity<TeamKpi>(entity =>
-        {
-            entity.HasKey(e => e.TeamKpiid).HasName("PK__TeamKPIs__D3E705B1EA92EBAB");
-
-            entity.ToTable("TeamKPIs");
-
-            entity.Property(e => e.TeamKpiid).HasColumnName("TeamKPIID");
-            entity.Property(e => e.DeptKpiid).HasColumnName("DeptKPIID");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.TeamId).HasColumnName("TeamID");
-            entity.Property(e => e.TeamTarget).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
-
-            entity.HasOne(d => d.DeptKpi).WithMany(p => p.TeamKpis)
-                .HasForeignKey(d => d.DeptKpiid)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TeamKPIs__DeptKP__5AB9788F");
-
-            entity.HasOne(d => d.Team).WithMany(p => p.TeamKpis)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TeamKPIs__TeamID__59C55456");
         });
 
         modelBuilder.Entity<UserRole>(entity =>

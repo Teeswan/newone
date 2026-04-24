@@ -17,7 +17,5 @@ public partial class Team
 
     public virtual Employee? Manager { get; set; }
 
-    public virtual ICollection<TeamKpi> TeamKpis { get; set; } = new List<TeamKpi>();
-
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 }

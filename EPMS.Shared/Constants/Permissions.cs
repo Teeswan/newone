@@ -96,4 +96,10 @@ public static class Permissions
         public const string View = "Permissions.PerformanceOutcomes.View";
         public const string Manage = "Permissions.PerformanceOutcomes.Manage";
     }
+
+    public static class Kpis
+    {
+        public const string View = "Permissions.Kpis.View";
+        public const string Manage = "Permissions.Kpis.Manage";
+    }
 }

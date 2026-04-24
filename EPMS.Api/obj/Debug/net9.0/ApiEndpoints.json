@@ -817,6 +817,172 @@
     ]
   },
   {
+    "ContainingType": "EPMS.Api.Controllers.EmployeeKpiController",
+    "Method": "ActivateSnapshot",
+    "RelativePath": "api/employee-kpi/activate-cycle-snapshot",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiAssignment.Commands.ActivateCycleKpiSnapshotCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Object, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.EmployeeKpiController",
+    "Method": "AddAdHoc",
+    "RelativePath": "api/employee-kpi/ad-hoc",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiAssignment.Commands.AddAdHocKpiCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.EmployeeKpiController",
+    "Method": "GetAssignments",
+    "RelativePath": "api/employee-kpi/assignments/{employeeId}/{cycleId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "employeeId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "cycleId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Collections.Generic.IEnumerable\u00601[[EPMS.Shared.DTOs.EmployeeKpiAssignmentDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.EmployeeKpiController",
+    "Method": "EnterActual",
+    "RelativePath": "api/employee-kpi/enter-actual",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiAssignment.Commands.EnterActualValueCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[EPMS.Shared.DTOs.KpiScoreSummaryDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.EmployeeKpiController",
+    "Method": "Finalise",
+    "RelativePath": "api/employee-kpi/finalise",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiAssignment.Commands.FinaliseKpiAssignmentCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Object, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.EmployeeKpiController",
+    "Method": "GetScoreSummary",
+    "RelativePath": "api/employee-kpi/score-summary/{employeeId}/{cycleId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "employeeId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "cycleId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[EPMS.Shared.DTOs.KpiScoreSummaryDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "EPMS.Api.Controllers.EmployeesController",
     "Method": "GetAll",
     "RelativePath": "api/Employees",
@@ -1208,6 +1374,203 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "GetList",
+    "RelativePath": "api/kpi-master",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "PositionId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "IsActive",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "Category",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Collections.Generic.IEnumerable\u00601[[EPMS.Shared.DTOs.KpiMasterDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "Create",
+    "RelativePath": "api/kpi-master",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiMaster.Commands.CreateKpiMasterCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "GetById",
+    "RelativePath": "api/kpi-master/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[EPMS.Shared.DTOs.KpiMasterDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "Update",
+    "RelativePath": "api/kpi-master/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiMaster.Commands.UpdateKpiMasterCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Object, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "Deactivate",
+    "RelativePath": "api/kpi-master/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Object, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "BulkImport",
+    "RelativePath": "api/kpi-master/bulk-import",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "command",
+        "Type": "EPMS.Application.UseCases.KpiMaster.Commands.BulkImportKpiMasterCommand",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[EPMS.Shared.DTOs.BulkImportResultDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EPMS.Api.Controllers.KpiMasterController",
+    "Method": "GetByPosition",
+    "RelativePath": "api/kpi-master/by-position/{positionId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "positionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EPMS.Shared.Common.ApiResponse\u00601[[System.Collections.Generic.IEnumerable\u00601[[EPMS.Shared.DTOs.KpiMasterDto, EPMS.Shared, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "EPMS.Api.Controllers.LevelsController",

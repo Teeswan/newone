@@ -57,8 +57,6 @@ public partial class Employee
 
     public virtual ICollection<EmployeeInfo> EmployeeInfos { get; set; } = new List<EmployeeInfo>();
 
-    public virtual ICollection<EmployeeKpi> EmployeeKpis { get; set; } = new List<EmployeeKpi>();
-
     public virtual ICollection<Employee> InverseReportsToNavigation { get; set; } = new List<Employee>();
 
     public virtual ICollection<MeetingNote> MeetingNotes { get; set; } = new List<MeetingNote>();

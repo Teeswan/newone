@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EPMS.Blazor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6250c201b3b514cec42009459d21542a67c0356e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d5847bffaf57f649cc4da986df48d3eb8002911d")]
 [assembly: System.Reflection.AssemblyProductAttribute("EPMS.Blazor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EPMS.Blazor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

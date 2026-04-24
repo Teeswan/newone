@@ -15,24 +15,6 @@ C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Infras
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.pdb
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.genruntimeconfig.cache
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Infrastructure\obj\Debug\net9.0\ref\EPMS.Infrastructure.dll
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.deps.json
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.runtimeconfig.json
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.dll
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.pdb
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Domain.dll
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Domain.pdb
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.csproj.AssemblyReference.cache
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.AssemblyInfoInputs.cache
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.AssemblyInfo.cs
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.csproj.CoreCompileInputs.cache
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.sourcelink.json
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Inf.1BA370AE.Up2Date
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.dll
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\refint\EPMS.Infrastructure.dll
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.pdb
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.genruntimeconfig.cache
-C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\ref\EPMS.Infrastructure.dll
 D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.deps.json
 D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.runtimeconfig.json
 D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.dll
@@ -51,3 +33,44 @@ D:\OJT_21_C#\Final Project\EPMS.Infrastructure\obj\Debug\net9.0\refint\EPMS.Infr
 D:\OJT_21_C#\Final Project\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.pdb
 D:\OJT_21_C#\Final Project\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.genruntimeconfig.cache
 D:\OJT_21_C#\Final Project\EPMS.Infrastructure\obj\Debug\net9.0\ref\EPMS.Infrastructure.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.deps.json
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.runtimeconfig.json
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Infrastructure.pdb
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Domain.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Domain.pdb
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.AssemblyInfo.cs
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.sourcelink.json
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Inf.1BA370AE.Up2Date
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\refint\EPMS.Infrastructure.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.pdb
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\EPMS.Infrastructure.genruntimeconfig.cache
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\obj\Debug\net9.0\ref\EPMS.Infrastructure.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Black.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-BlackItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Bold.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-BoldItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraBold.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraBoldItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraLight.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraLightItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Italic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Light.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-LightItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Medium.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-MediumItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Regular.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-SemiBold.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-SemiBoldItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Thin.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ThinItalic.ttf
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\OFL.txt
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Application.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Shared.dll
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Application.pdb
+C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Shared.pdb
