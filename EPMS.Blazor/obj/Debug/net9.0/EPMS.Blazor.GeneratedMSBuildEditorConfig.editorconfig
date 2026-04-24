@@ -15,137 +15,137 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = browser
 build_property.RootNamespace = EPMS.Blazor
 build_property.RootNamespace = EPMS.Blazor
-build_property.ProjectDir = C:\Users\User\source\repos\EmployeePerformance\EPMS.Blazor\
+build_property.ProjectDir = D:\OJT_21_C#\Final Project\EPMS.Blazor\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = false
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\User\source\repos\EmployeePerformance\EPMS.Blazor
+build_property.MSBuildProjectDirectory = D:\OJT_21_C#\Final Project\EPMS.Blazor
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/App.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalCycles/Create.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalCycles/Create.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsQ3ljbGVzXENyZWF0ZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalCycles/Details.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalCycles/Details.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsQ3ljbGVzXERldGFpbHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalCycles/Edit.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalCycles/Edit.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsQ3ljbGVzXEVkaXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalCycles/Index.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalCycles/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsQ3ljbGVzXEluZGV4LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalForms/Create.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalForms/Create.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsRm9ybXNcQ3JlYXRlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalForms/Details.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalForms/Details.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsRm9ybXNcRGV0YWlscy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalForms/Edit.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalForms/Edit.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsRm9ybXNcRWRpdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalForms/Index.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalForms/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsRm9ybXNcSW5kZXgucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalQuestions/Create.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalQuestions/Create.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUXVlc3Rpb25zXENyZWF0ZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalQuestions/Details.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalQuestions/Details.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUXVlc3Rpb25zXERldGFpbHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalQuestions/Edit.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalQuestions/Edit.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUXVlc3Rpb25zXEVkaXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalQuestions/Index.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalQuestions/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUXVlc3Rpb25zXEluZGV4LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalResponses/Create.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalResponses/Create.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUmVzcG9uc2VzXENyZWF0ZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalResponses/Details.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalResponses/Details.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUmVzcG9uc2VzXERldGFpbHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalResponses/Edit.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalResponses/Edit.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUmVzcG9uc2VzXEVkaXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/AppraisalResponses/Index.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/AppraisalResponses/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBwcmFpc2FsUmVzcG9uc2VzXEluZGV4LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/Counter.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ291bnRlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/Home.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceEvaluations/Create.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceEvaluations/Create.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VFdmFsdWF0aW9uc1xDcmVhdGUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceEvaluations/Details.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceEvaluations/Details.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VFdmFsdWF0aW9uc1xEZXRhaWxzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceEvaluations/Edit.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceEvaluations/Edit.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VFdmFsdWF0aW9uc1xFZGl0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceEvaluations/Index.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceEvaluations/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VFdmFsdWF0aW9uc1xJbmRleC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceOutcomes/Create.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceOutcomes/Create.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VPdXRjb21lc1xDcmVhdGUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceOutcomes/Details.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceOutcomes/Details.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VPdXRjb21lc1xEZXRhaWxzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceOutcomes/Edit.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceOutcomes/Edit.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VPdXRjb21lc1xFZGl0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/PerformanceOutcomes/Index.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/PerformanceOutcomes/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGVyZm9ybWFuY2VPdXRjb21lc1xJbmRleC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Pages/Weather.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Pages/Weather.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcV2VhdGhlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/_Imports.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Layout/MainLayout.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-qstrndbnso
 
-[C:/Users/User/source/repos/EmployeePerformance/EPMS.Blazor/Layout/NavMenu.razor]
+[D:/OJT_21_C\#/Final Project/EPMS.Blazor/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdk1lbnUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-1zggs7lmqh

@@ -9,18 +9,6 @@ C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Domain
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Domain\obj\Debug\net9.0\refint\EPMS.Domain.dll
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.pdb
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Domain\obj\Debug\net9.0\ref\EPMS.Domain.dll
-D:\OJT_21_C#\Final Project\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.deps.json
-D:\OJT_21_C#\Final Project\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.dll
-D:\OJT_21_C#\Final Project\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.pdb
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.GeneratedMSBuildEditorConfig.editorconfig
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.AssemblyInfoInputs.cache
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.AssemblyInfo.cs
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.csproj.CoreCompileInputs.cache
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.sourcelink.json
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.dll
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\refint\EPMS.Domain.dll
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.pdb
-D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\ref\EPMS.Domain.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.deps.json
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.pdb
@@ -33,3 +21,15 @@ C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\refint\EPMS.Domain.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.pdb
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\ref\EPMS.Domain.dll
+D:\OJT_21_C#\Final Project\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.deps.json
+D:\OJT_21_C#\Final Project\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.dll
+D:\OJT_21_C#\Final Project\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.pdb
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.AssemblyInfoInputs.cache
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.AssemblyInfo.cs
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.csproj.CoreCompileInputs.cache
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.sourcelink.json
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.dll
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\refint\EPMS.Domain.dll
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.pdb
+D:\OJT_21_C#\Final Project\EPMS.Domain\obj\Debug\net9.0\ref\EPMS.Domain.dll

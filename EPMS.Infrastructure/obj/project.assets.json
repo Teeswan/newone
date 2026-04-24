@@ -4797,23 +4797,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\User\\.nuget\\packages\\": {},
+    "C:\\Users\\Admin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
+      "projectUniqueName": "D:\\OJT_21_C#\\Final Project\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
       "projectName": "EPMS.Infrastructure",
-      "projectPath": "c:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
-      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\obj\\",
+      "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4828,8 +4828,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
-              "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
+            "D:\\OJT_21_C#\\Final Project\\EPMS.Domain\\EPMS.Domain.csproj": {
+              "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Domain\\EPMS.Domain.csproj"
             }
           }
         }
@@ -4844,7 +4844,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net9.0": {
@@ -4918,7 +4918,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

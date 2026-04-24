@@ -420,13 +420,13 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/9.0.15": {
+      "Microsoft.NET.ILLink.Tasks/9.0.12": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.ILLink.Tasks.props": {}
         }
       },
-      "Microsoft.NET.Sdk.WebAssembly.Pack/10.0.6": {
+      "Microsoft.NET.Sdk.WebAssembly.Pack/10.0.2": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
@@ -863,13 +863,13 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/9.0.15": {
+      "Microsoft.NET.ILLink.Tasks/9.0.12": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.ILLink.Tasks.props": {}
         }
       },
-      "Microsoft.NET.Sdk.WebAssembly.Pack/10.0.6": {
+      "Microsoft.NET.Sdk.WebAssembly.Pack/10.0.2": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
@@ -1674,10 +1674,10 @@
         "microsoft.jsinterop.webassembly.nuspec"
       ]
     },
-    "Microsoft.NET.ILLink.Tasks/9.0.15": {
-      "sha512": "EejcbfCMR77Dthy77qxRbEShmzLApHZUPqXMBVQK+A0pNrRThkaHoGGMGvbq/gTkC/waKcDEgjBkbaejB58Wtw==",
+    "Microsoft.NET.ILLink.Tasks/9.0.12": {
+      "sha512": "StA3kyImQHqDo8A8ZHaSxgASbEuT5UIqgeCvK5SzUPj//xE1QSys421J9pEs4cYuIVwq7CJvWSKxtyH7aPr1LA==",
       "type": "package",
-      "path": "microsoft.net.illink.tasks/9.0.15",
+      "path": "microsoft.net.illink.tasks/9.0.12",
       "hasTools": true,
       "files": [
         ".nupkg.metadata",
@@ -1691,7 +1691,7 @@
         "build/Microsoft.NET.ILLink.Analyzers.props",
         "build/Microsoft.NET.ILLink.Tasks.props",
         "build/Microsoft.NET.ILLink.targets",
-        "microsoft.net.illink.tasks.9.0.15.nupkg.sha512",
+        "microsoft.net.illink.tasks.9.0.12.nupkg.sha512",
         "microsoft.net.illink.tasks.nuspec",
         "tools/net472/ILLink.Tasks.dll",
         "tools/net472/ILLink.Tasks.dll.config",
@@ -1725,10 +1725,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.NET.Sdk.WebAssembly.Pack/10.0.6": {
-      "sha512": "oFYqOGIx/6iD4IapqC6nk1MhjhdVMjLcMNoUbbwEt9zIGsUnJWQsUhSOoN+mY6HSIE35J3QVsxiCzkCMpLKM7A==",
+    "Microsoft.NET.Sdk.WebAssembly.Pack/10.0.2": {
+      "sha512": "ZDAtI9V2EQajyccTZ67JtJWMCIpK3ZFgwqNHyfMieossRdB90WJ+IbYVKObLOLIv9Vkc3eJcrJD2CeffsF/nUA==",
       "type": "package",
-      "path": "microsoft.net.sdk.webassembly.pack/10.0.6",
+      "path": "microsoft.net.sdk.webassembly.pack/10.0.2",
       "hasTools": true,
       "files": [
         ".nupkg.metadata",
@@ -1758,7 +1758,7 @@
         "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets",
         "build/Wasm.web.config",
         "build/browser.runtimeconfig.template.json",
-        "microsoft.net.sdk.webassembly.pack.10.0.6.nupkg.sha512",
+        "microsoft.net.sdk.webassembly.pack.10.0.2.nupkg.sha512",
         "microsoft.net.sdk.webassembly.pack.nuspec",
         "tools/net10.0/Microsoft.NET.Sdk.WebAssembly.Pack.Tasks.dll",
         "tools/net10.0/Microsoft.NET.WebAssembly.Webcil.dll",
@@ -1777,28 +1777,28 @@
       "EPMS.Shared >= 1.0.0",
       "Microsoft.AspNetCore.Components.WebAssembly >= 9.0.10",
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer >= 9.0.10",
-      "Microsoft.NET.ILLink.Tasks >= 9.0.15",
-      "Microsoft.NET.Sdk.WebAssembly.Pack >= 10.0.6"
+      "Microsoft.NET.ILLink.Tasks >= 9.0.12",
+      "Microsoft.NET.Sdk.WebAssembly.Pack >= 10.0.2"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\User\\.nuget\\packages\\": {},
+    "C:\\Users\\Admin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Blazor\\EPMS.Blazor.csproj",
+      "projectUniqueName": "D:\\OJT_21_C#\\Final Project\\EPMS.Blazor\\EPMS.Blazor.csproj",
       "projectName": "EPMS.Blazor",
-      "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Blazor\\EPMS.Blazor.csproj",
-      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Blazor\\obj\\",
+      "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Blazor\\EPMS.Blazor.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Blazor\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1811,11 +1811,10 @@
       },
       "frameworks": {
         "net9.0": {
-          "framework": "net9.0",
           "targetAlias": "net9.0",
           "projectReferences": {
-            "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj": {
-              "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj"
+            "D:\\OJT_21_C#\\Final Project\\EPMS.Shared\\EPMS.Shared.csproj": {
+              "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Shared\\EPMS.Shared.csproj"
             }
           }
         }
@@ -1830,11 +1829,10 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net9.0": {
-        "framework": "net9.0",
         "targetAlias": "net9.0",
         "dependencies": {
           "Microsoft.AspNetCore.Components.WebAssembly": {
@@ -1849,13 +1847,13 @@
           "Microsoft.NET.ILLink.Tasks": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "[9.0.15, )",
+            "version": "[9.0.12, )",
             "autoReferenced": true
           },
           "Microsoft.NET.Sdk.WebAssembly.Pack": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "[10.0.6, )",
+            "version": "[10.0.2, )",
             "autoReferenced": true
           }
         },
@@ -1873,7 +1871,7 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.NETCore.App.Runtime.Mono.browser-wasm",
-            "version": "[9.0.15, 9.0.15]"
+            "version": "[9.0.12, 9.0.12]"
           }
         ],
         "frameworkReferences": {
@@ -1881,7 +1879,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {

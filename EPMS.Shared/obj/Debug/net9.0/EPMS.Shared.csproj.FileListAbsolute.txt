@@ -9,18 +9,6 @@ C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Shared
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Shared\obj\Debug\net9.0\refint\EPMS.Shared.dll
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.pdb
 C:\Users\User\Downloads\Telegram Desktop\EPMS_Solution\EPMS_Solution\EPMS.Shared\obj\Debug\net9.0\ref\EPMS.Shared.dll
-D:\OJT_21_C#\Final Project\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.deps.json
-D:\OJT_21_C#\Final Project\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.dll
-D:\OJT_21_C#\Final Project\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.pdb
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.GeneratedMSBuildEditorConfig.editorconfig
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.AssemblyInfoInputs.cache
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.AssemblyInfo.cs
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.csproj.CoreCompileInputs.cache
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.sourcelink.json
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.dll
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\refint\EPMS.Shared.dll
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.pdb
-D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\ref\EPMS.Shared.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.deps.json
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.pdb
@@ -33,3 +21,15 @@ C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\obj\Debug\net9.0\EPMS
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\obj\Debug\net9.0\refint\EPMS.Shared.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.pdb
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Shared\obj\Debug\net9.0\ref\EPMS.Shared.dll
+D:\OJT_21_C#\Final Project\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.deps.json
+D:\OJT_21_C#\Final Project\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.dll
+D:\OJT_21_C#\Final Project\EPMS.Shared\bin\Debug\net9.0\EPMS.Shared.pdb
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.GeneratedMSBuildEditorConfig.editorconfig
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.AssemblyInfoInputs.cache
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.AssemblyInfo.cs
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.csproj.CoreCompileInputs.cache
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.sourcelink.json
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.dll
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\refint\EPMS.Shared.dll
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\EPMS.Shared.pdb
+D:\OJT_21_C#\Final Project\EPMS.Shared\obj\Debug\net9.0\ref\EPMS.Shared.dll

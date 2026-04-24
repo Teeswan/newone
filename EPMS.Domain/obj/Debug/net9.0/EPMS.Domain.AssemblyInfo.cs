@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EPMS.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+47c77aa645e78e158347f47f800566409d35ef7d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6250c201b3b514cec42009459d21542a67c0356e")]
 [assembly: System.Reflection.AssemblyProductAttribute("EPMS.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EPMS.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
