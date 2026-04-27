@@ -230,6 +230,9 @@
               },
               "D:\\OJT_21_C#\\Final Project\\EPMS.Domain\\EPMS.Domain.csproj": {
                 "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Domain\\EPMS.Domain.csproj"
+              },
+              "D:\\OJT_21_C#\\Final Project\\EPMS.Shared\\EPMS.Shared.csproj": {
+                "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Shared\\EPMS.Shared.csproj"
               }
             }
           }
@@ -379,6 +382,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[11.*, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

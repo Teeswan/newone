@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EPMS.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+307b6b18786486d121c0390e7ba635834da3f1f4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+56d9dd58f7f1c813770de7d9cb0dac25718be81c")]
 [assembly: System.Reflection.AssemblyProductAttribute("EPMS.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EPMS.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

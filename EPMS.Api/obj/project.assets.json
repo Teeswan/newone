@@ -2223,6 +2223,7 @@
           "Dapper": "2.1.35",
           "EPMS.Application": "1.0.0",
           "EPMS.Domain": "1.0.0",
+          "EPMS.Shared": "1.0.0",
           "MediatR": "14.1.0",
           "Microsoft.Data.SqlClient": "5.0.0",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.0",
@@ -2248,7 +2249,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
-          "EPMS.Domain": "1.0.0"
+          "EPMS.Domain": "1.0.0",
+          "FluentValidation": "11.0.0"
         },
         "compile": {
           "bin/placeholder/EPMS.Shared.dll": {}

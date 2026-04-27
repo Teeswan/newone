@@ -1961,7 +1961,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
-          "EPMS.Domain": "1.0.0"
+          "EPMS.Domain": "1.0.0",
+          "FluentValidation": "11.0.0"
         },
         "compile": {
           "bin/placeholder/EPMS.Shared.dll": {}
@@ -5251,6 +5252,7 @@
       "Dapper >= 2.1.35",
       "EPMS.Application >= 1.0.0",
       "EPMS.Domain >= 1.0.0",
+      "EPMS.Shared >= 1.0.0",
       "MediatR >= 14.1.0",
       "Microsoft.Data.SqlClient >= 5.*",
       "Microsoft.EntityFrameworkCore.Design >= 9.0.*",
@@ -5302,6 +5304,9 @@
             },
             "D:\\OJT_21_C#\\Final Project\\EPMS.Domain\\EPMS.Domain.csproj": {
               "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Domain\\EPMS.Domain.csproj"
+            },
+            "D:\\OJT_21_C#\\Final Project\\EPMS.Shared\\EPMS.Shared.csproj": {
+              "projectPath": "D:\\OJT_21_C#\\Final Project\\EPMS.Shared\\EPMS.Shared.csproj"
             }
           }
         }

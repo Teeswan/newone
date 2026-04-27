@@ -82,6 +82,47 @@ public class MappingProfile : Profile
                 return isWithinBuffer || isManagerAlreadyIn;
             }));
 
+        // Entity ? DTO
+        CreateMap<PipPlan, PipPlanDto>()
+            .ForMember(d => d.PipId, o => o.MapFrom(s => s.Pipid))
+            .ForMember(d => d.EmployeeName,
+                o => o.MapFrom(s => s.Employee != null
+                    ? s.Employee.FullName : string.Empty))
+            .ForMember(d => d.ManagerName,
+                o => o.MapFrom(s => s.Manager != null
+                    ? s.Manager.FullName : string.Empty))
+            .ForMember(d => d.CreatedAt,
+                o => o.MapFrom(s => s.CreatedAt ?? DateTime.MinValue));
+
+        CreateMap<PipObjective, PipObjectiveDto>()
+            .ForMember(d => d.PipId, o => o.MapFrom(s => s.Pipid ?? 0))
+            .ForMember(d => d.IsAchieved, o => o.MapFrom(s => s.IsAchieved ?? false));
+
+        CreateMap<PipMeeting, PipMeetingDto>()
+            .ForMember(d => d.PipId, o => o.MapFrom(s => s.Pipid ?? 0));
+
+        // Request ? Entity
+        CreateMap<CreatePipPlanRequest, PipPlan>()
+            .ForMember(d => d.Pipid, o => o.Ignore())
+            .ForMember(d => d.Status, o => o.MapFrom(_ => "Active"))
+            .ForMember(d => d.CreatedAt, o => o.Ignore())
+            .ForMember(d => d.PipObjectives, o => o.Ignore())
+            .ForMember(d => d.PipMeetings, o => o.Ignore())
+            .ForMember(d => d.Employee, o => o.Ignore())
+            .ForMember(d => d.Manager, o => o.Ignore());
+
+        CreateMap<CreatePipObjectiveRequest, PipObjective>()
+            .ForMember(d => d.ObjectiveId, o => o.Ignore())
+            .ForMember(d => d.Pipid, o => o.MapFrom(s => s.PipId))
+            .ForMember(d => d.IsAchieved, o => o.MapFrom(_ => false))
+            .ForMember(d => d.ReviewComments, o => o.Ignore())
+            .ForMember(d => d.Pip, o => o.Ignore());
+
+        CreateMap<CreatePipMeetingRequest, PipMeeting>()
+            .ForMember(d => d.PipMeetingId, o => o.Ignore())
+            .ForMember(d => d.Pipid, o => o.MapFrom(s => s.PipId))
+            .ForMember(d => d.Pip, o => o.Ignore());
+
         // Add more mappings as needed for other entities
     }
 }
