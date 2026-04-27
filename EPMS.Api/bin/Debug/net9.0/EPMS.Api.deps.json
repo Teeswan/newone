@@ -1531,9 +1531,6 @@
         }
       },
       "EPMS.Shared/1.0.0": {
-        "dependencies": {
-          "EPMS.Domain": "1.0.0"
-        },
         "runtime": {
           "EPMS.Shared.dll": {
             "assemblyVersion": "1.0.0.0",

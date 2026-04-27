@@ -74,3 +74,26 @@ C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Shared.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Application.pdb
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Shared.pdb
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Black.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-BlackItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Bold.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-BoldItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraBold.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraBoldItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraLight.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ExtraLightItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Italic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Light.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-LightItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Medium.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-MediumItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Regular.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-SemiBold.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-SemiBoldItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-Thin.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\Lato-ThinItalic.ttf
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\LatoFont\OFL.txt
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Application.dll
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Shared.dll
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Application.pdb
+D:\OJT_21_C#\Final Project\EPMS.Infrastructure\bin\Debug\net9.0\EPMS.Shared.pdb

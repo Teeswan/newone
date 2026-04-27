@@ -620,6 +620,7 @@
           "Microsoft.Extensions.Caching.Memory": "10.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.7",
           "Microsoft.Extensions.Logging": "9.0.15",
+          "System.Formats.Asn1": "9.0.15",
           "System.Text.Json": "10.0.0"
         },
         "runtime": {
@@ -1203,6 +1204,14 @@
           }
         }
       },
+      "System.Formats.Asn1/9.0.15": {
+        "runtime": {
+          "lib/net9.0/System.Formats.Asn1.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.1526.17522"
+          }
+        }
+      },
       "System.IdentityModel.Tokens.Jwt/8.14.0": {
         "dependencies": {
           "Microsoft.IdentityModel.JsonWebTokens": "8.14.0",
@@ -1340,9 +1349,6 @@
         }
       },
       "EPMS.Shared/1.0.0": {
-        "dependencies": {
-          "EPMS.Domain": "1.0.0"
-        },
         "runtime": {
           "EPMS.Shared.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -1854,6 +1860,13 @@
       "sha512": "sha512-Fu6AxFf9bHz/Q7DQmxKC0o+UgFes8bs2Xh+PH/x31yExRAOASTwlzjZsISTtqVU5gQshKHLZopxEBTaIyfv0wg==",
       "path": "system.diagnostics.diagnosticsource/10.0.7",
       "hashPath": "system.diagnostics.diagnosticsource.10.0.7.nupkg.sha512"
+    },
+    "System.Formats.Asn1/9.0.15": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bsNQMwCOI5koFqsp2DV4t92WHjUkKKG55vF7R+gwRspnD0H5UtGIcwy77VJsLQUsQsfTTIkGnOJRfJErFxjkhA==",
+      "path": "system.formats.asn1/9.0.15",
+      "hashPath": "system.formats.asn1.9.0.15.nupkg.sha512"
     },
     "System.IdentityModel.Tokens.Jwt/8.14.0": {
       "type": "package",
