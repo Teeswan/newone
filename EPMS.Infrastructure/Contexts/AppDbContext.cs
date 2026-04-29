@@ -112,6 +112,7 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.ResponseId).HasName("PK__Appraisa__1AAA640CD4C09945");
 
             entity.Property(e => e.ResponseId).HasColumnName("ResponseID");
+            entity.Property(e => e.RespondentRole).HasMaxLength(50).IsRequired();
             entity.Property(e => e.EvalId).HasColumnName("EvalID");
             entity.Property(e => e.IsAnonymous).HasDefaultValue(false);
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
@@ -228,16 +229,21 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<FormQuestion>(entity =>
         {
-            entity.HasNoKey();
+            entity.ToTable("FormQuestions");
+
+            entity.HasKey(e => new { e.FormId, e.QuestionId });
 
             entity.Property(e => e.FormId).HasColumnName("FormID");
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
+            entity.Property(e => e.SortOrder).HasColumnName("SortOrder"); 
 
-            entity.HasOne(d => d.Form).WithMany()
+            entity.HasOne(d => d.Form)
+                .WithMany(p => p.FormQuestions)
                 .HasForeignKey(d => d.FormId)
                 .HasConstraintName("FK__FormQuest__FormI__3E1D39E1");
 
-            entity.HasOne(d => d.Question).WithMany()
+            entity.HasOne(d => d.Question)
+                .WithMany(p => p.FormQuestions)
                 .HasForeignKey(d => d.QuestionId)
                 .HasConstraintName("FK__FormQuest__Quest__3F115E1A");
         });
@@ -330,8 +336,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EvalId).HasColumnName("EvalID");
             entity.Property(e => e.CycleId).HasColumnName("CycleID");
             entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
+
+            entity.Property(e => e.FormId).HasColumnName("FormID");
+
             entity.Property(e => e.FinalRatingScore).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.IsFinalized).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Form)
+                .WithMany(p => p.PerformanceEvaluations)
+                .HasForeignKey(d => d.FormId)
+                .HasConstraintName("FK_PerformanceEvaluation_ApplicationForm");
 
             entity.HasOne(d => d.Cycle).WithMany(p => p.PerformanceEvaluations)
                 .HasForeignKey(d => d.CycleId)
@@ -564,21 +578,16 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey<User>(d => d.EmployeeId)
                 .HasConstraintName("FK__Users__EmployeeI__47DBAE45");
 
-            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
+            entity.HasMany(d => d.Roles)
+                .WithMany(p => p.Users)
                 .UsingEntity<UserRole>(
-                    r => r.HasOne<Role>().WithMany()
-                        .HasForeignKey(ur => ur.RoleId)
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__UserRoles__RoleI__534D60F1"),
-                    l => l.HasOne<User>().WithMany()
-                        .HasForeignKey(ur => ur.UserId)
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__UserRoles__UserI__52593CB8"),
-                    j =>
-                    {
-                        j.HasKey(ur => new { ur.UserId, ur.RoleId }).HasName("PK__UserRole__AF27604F3519AECC");
-                        j.ToTable("UserRoles");
-                    });
+                      l => l.HasOne<Role>().WithMany().HasForeignKey(ur => ur.RoleId),
+                      r => r.HasOne<User>().WithMany().HasForeignKey(ur => ur.UserId),
+                      j =>
+            {
+                      j.HasKey(ur => new { ur.UserId, ur.RoleId });
+                      j.ToTable("UserRoles");
+                });
         });
 
         OnModelCreatingPartial(modelBuilder);
