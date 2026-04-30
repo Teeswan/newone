@@ -38,10 +38,7 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
         {
             new SqlParameter("@EmployeeID", ToDbValue(entity.EmployeeId)),
             new SqlParameter("@CycleID", ToDbValue(entity.CycleId)),
-            new SqlParameter("@SelfRating", ToDbValue(entity.SelfRating)),
-            new SqlParameter("@ManagerRating", ToDbValue(entity.ManagerRating)),
-            new SqlParameter("@SelfComments", ToDbValue(entity.SelfComments)),
-            new SqlParameter("@ManagerComments", ToDbValue(entity.ManagerComments)),
+                new SqlParameter("@FormID", entity.FormId),
             new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
             new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
             new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
@@ -60,11 +57,7 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
             new SqlParameter("@EvalID", entity.EvalId),
             new SqlParameter("@EmployeeID", ToDbValue(entity.EmployeeId)),
             new SqlParameter("@CycleID", ToDbValue(entity.CycleId)),
-            new SqlParameter("@SelfRating", ToDbValue(entity.SelfRating)),
-            new SqlParameter("@ManagerRating", ToDbValue(entity.ManagerRating)),
-            new SqlParameter("@SelfComments", ToDbValue(entity.SelfComments)),
-            new SqlParameter("@ManagerComments", ToDbValue(entity.ManagerComments)),
-            new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
+                new SqlParameter("@FormID", entity.FormId),
             new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
             new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
         };

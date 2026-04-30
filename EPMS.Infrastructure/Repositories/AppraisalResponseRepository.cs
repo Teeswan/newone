@@ -36,6 +36,7 @@ public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, lon
             new SqlParameter("@EvalID", ToDbValue(entity.EvalId)),
             new SqlParameter("@QuestionID", ToDbValue(entity.QuestionId)),
             new SqlParameter("@RespondentID", ToDbValue(entity.RespondentId)),
+            new SqlParameter("@RespondentRole", ToDbValue(entity.RespondentRole)),
             new SqlParameter("@AnswerText", ToDbValue(entity.AnswerText)),
             new SqlParameter("@RatingValue", ToDbValue(entity.RatingValue)),
             new SqlParameter("@IsAnonymous", ToDbValue(entity.IsAnonymous))
@@ -55,6 +56,7 @@ public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, lon
             new SqlParameter("@EvalID", ToDbValue(entity.EvalId)),
             new SqlParameter("@QuestionID", ToDbValue(entity.QuestionId)),
             new SqlParameter("@RespondentID", ToDbValue(entity.RespondentId)),
+            new SqlParameter("@RespondentRole", ToDbValue(entity.RespondentRole)),
             new SqlParameter("@AnswerText", ToDbValue(entity.AnswerText)),
             new SqlParameter("@RatingValue", ToDbValue(entity.RatingValue)),
             new SqlParameter("@IsAnonymous", ToDbValue(entity.IsAnonymous))
@@ -70,7 +72,14 @@ public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, lon
     }
 
     public Task<IEnumerable<AppraisalResponse>> GetByEvalIdAsync(int evalId)
-        => _sqlRepository.FromSqlAsync(AppraisalResponses_GetByEvalId, new SqlParameter("@EvalID", evalId));
+    {
+        if (evalId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(evalId));
+        }
+
+        return _sqlRepository.FromSqlAsync(AppraisalResponses_GetByEvalId, new SqlParameter("@EvalID", evalId));
+    }
 
     private static object ToDbValue<T>(T? value)
         => value is null ? DBNull.Value : value!;
