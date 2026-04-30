@@ -11,6 +11,8 @@ public partial class PerformanceOutcome
 
     public int? CycleId { get; set; }
 
+    public int? EvalId { get; set; }
+
     public string? RecommendationType { get; set; }
 
     public int? OldPositionId { get; set; }
@@ -28,6 +30,8 @@ public partial class PerformanceOutcome
     public virtual AppraisalCycle? Cycle { get; set; }
 
     public virtual Employee? Employee { get; set; }
+
+    public virtual PerformanceEvaluation? Evaluation { get; set; }
 
     public virtual Level? NewLevel { get; set; }
 

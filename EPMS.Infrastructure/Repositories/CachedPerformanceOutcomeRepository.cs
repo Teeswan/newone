@@ -10,28 +10,58 @@ public class CachedPerformanceOutcomeRepository : CachedBaseRepository<Performan
 {
     private readonly IPerformanceOutcomeRepository _innerRepository;
 
-    public CachedPerformanceOutcomeRepository(IPerformanceOutcomeRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration) 
+    public CachedPerformanceOutcomeRepository(IPerformanceOutcomeRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration)
         : base(innerRepository, cache, cacheDuration)
     {
         _innerRepository = innerRepository;
     }
 
+    public override async Task<PerformanceOutcome> CreateAsync(PerformanceOutcome entity)
+    {
+        var result = await base.CreateAsync(entity);
+        InvalidateRelatedCaches(result);
+        return result;
+    }
+
     public override async Task<PerformanceOutcome?> UpdateAsync(PerformanceOutcome entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+        var existing = await _innerRepository.GetByIdAsync(entity.OutcomeId);
         var result = await base.UpdateAsync(entity);
         if (result != null)
         {
             InvalidateItemCache(result.OutcomeId);
-            // Also invalidate custom list caches
-            _cache.Remove($"PerformanceOutcome_GetByEmployeeId_{result.EmployeeId}");
-            _cache.Remove($"PerformanceOutcome_GetByCycleId_{result.CycleId}");
+            InvalidateRelatedCaches(result);
+
+            if (existing != null)
+            {
+                if (existing.EmployeeId != result.EmployeeId && existing.EmployeeId.HasValue)
+                {
+                    _cache.Remove(GetEmployeeCacheKey(existing.EmployeeId.Value));
+                }
+                if (existing.CycleId != result.CycleId && existing.CycleId.HasValue)
+                {
+                    _cache.Remove(GetCycleCacheKey(existing.CycleId.Value));
+                }
+            }
         }
         return result;
     }
 
+    public override async Task<bool> DeleteAsync(int id)
+    {
+        var existing = await _innerRepository.GetByIdAsync(id);
+        var success = await base.DeleteAsync(id);
+        if (success && existing != null)
+        {
+            InvalidateRelatedCaches(existing);
+        }
+        return success;
+    }
+
     public async Task<IEnumerable<PerformanceOutcome>> GetByEmployeeIdAsync(int employeeId)
     {
-        string key = $"PerformanceOutcome_GetByEmployeeId_{employeeId}";
+        string key = GetEmployeeCacheKey(employeeId);
         if (!_cache.TryGetValue(key, out IEnumerable<PerformanceOutcome>? entities))
         {
             entities = await _innerRepository.GetByEmployeeIdAsync(employeeId);
@@ -42,7 +72,7 @@ public class CachedPerformanceOutcomeRepository : CachedBaseRepository<Performan
 
     public async Task<IEnumerable<PerformanceOutcome>> GetByCycleIdAsync(int cycleId)
     {
-        string key = $"PerformanceOutcome_GetByCycleId_{cycleId}";
+        string key = GetCycleCacheKey(cycleId);
         if (!_cache.TryGetValue(key, out IEnumerable<PerformanceOutcome>? entities))
         {
             entities = await _innerRepository.GetByCycleIdAsync(cycleId);
@@ -50,4 +80,19 @@ public class CachedPerformanceOutcomeRepository : CachedBaseRepository<Performan
         }
         return entities ?? new List<PerformanceOutcome>();
     }
+
+    private void InvalidateRelatedCaches(PerformanceOutcome outcome)
+    {
+        if (outcome.EmployeeId.HasValue)
+        {
+            _cache.Remove(GetEmployeeCacheKey(outcome.EmployeeId.Value));
+        }
+        if (outcome.CycleId.HasValue)
+        {
+            _cache.Remove(GetCycleCacheKey(outcome.CycleId.Value));
+        }
+    }
+
+    private static string GetEmployeeCacheKey(int employeeId) => $"PerformanceOutcome_GetByEmployeeId_{employeeId}";
+    private static string GetCycleCacheKey(int cycleId) => $"PerformanceOutcome_GetByCycleId_{cycleId}";
 }

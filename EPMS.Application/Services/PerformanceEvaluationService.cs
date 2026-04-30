@@ -45,10 +45,6 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         {
             EmployeeId = request.EmployeeId,
             CycleId = request.CycleId,
-            SelfRating = request.SelfRating,
-            ManagerRating = request.ManagerRating,
-            SelfComments = request.SelfComments,
-            ManagerComments = request.ManagerComments,
             FinalRatingScore = request.FinalRatingScore,
             IsFinalized = request.IsFinalized,
             FinalizedAt = request.FinalizedAt
@@ -65,10 +61,6 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             EvalId = evalId,
             EmployeeId = request.EmployeeId,
             CycleId = request.CycleId,
-            SelfRating = request.SelfRating,
-            ManagerRating = request.ManagerRating,
-            SelfComments = request.SelfComments,
-            ManagerComments = request.ManagerComments,
             FinalRatingScore = request.FinalRatingScore,
             IsFinalized = request.IsFinalized,
             FinalizedAt = request.FinalizedAt
@@ -90,10 +82,6 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             EvalId = entity.EvalId,
             EmployeeId = entity.EmployeeId,
             CycleId = entity.CycleId,
-            SelfRating = entity.SelfRating,
-            ManagerRating = entity.ManagerRating,
-            SelfComments = entity.SelfComments,
-            ManagerComments = entity.ManagerComments,
             FinalRatingScore = entity.FinalRatingScore,
             IsFinalized = entity.IsFinalized,
             FinalizedAt = entity.FinalizedAt

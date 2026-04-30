@@ -15,7 +15,7 @@ public class MeetingNoteRepository : IMeetingNoteRepository
 
     public MeetingNoteRepository(AppDbContext context)
     {
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     public async Task<IEnumerable<MeetingNote>> GetByMeetingIdAsync(int meetingId, CancellationToken cancellationToken)
@@ -28,6 +28,8 @@ public class MeetingNoteRepository : IMeetingNoteRepository
 
     public async Task AddAsync(MeetingNote meetingNote, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(meetingNote);
         await _context.MeetingNotes.AddAsync(meetingNote, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

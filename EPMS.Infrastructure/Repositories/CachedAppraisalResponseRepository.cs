@@ -10,22 +10,44 @@ public class CachedAppraisalResponseRepository : CachedBaseRepository<AppraisalR
 {
     private readonly IAppraisalResponseRepository _innerRepository;
 
-    public CachedAppraisalResponseRepository(IAppraisalResponseRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration) 
+    public CachedAppraisalResponseRepository(IAppraisalResponseRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration)
         : base(innerRepository, cache, cacheDuration)
     {
         _innerRepository = innerRepository;
     }
 
+    public override async Task<AppraisalResponse> CreateAsync(AppraisalResponse entity)
+    {
+        var result = await base.CreateAsync(entity);
+        _cache.Remove($"AppraisalResponse_GetByEvalId_{result.EvalId}");
+        return result;
+    }
+
     public override async Task<AppraisalResponse?> UpdateAsync(AppraisalResponse entity)
     {
+        var existing = await _innerRepository.GetByIdAsync(entity.ResponseId);
         var result = await base.UpdateAsync(entity);
         if (result != null)
         {
             InvalidateItemCache(result.ResponseId);
-            // Also invalidate custom list caches
             _cache.Remove($"AppraisalResponse_GetByEvalId_{result.EvalId}");
+            if (existing != null && existing.EvalId != result.EvalId)
+            {
+                _cache.Remove($"AppraisalResponse_GetByEvalId_{existing.EvalId}");
+            }
         }
         return result;
+    }
+
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        var existing = await _innerRepository.GetByIdAsync(id);
+        var success = await base.DeleteAsync(id);
+        if (success && existing != null)
+        {
+            _cache.Remove($"AppraisalResponse_GetByEvalId_{existing.EvalId}");
+        }
+        return success;
     }
 
     public async Task<IEnumerable<AppraisalResponse>> GetByEvalIdAsync(int evalId)

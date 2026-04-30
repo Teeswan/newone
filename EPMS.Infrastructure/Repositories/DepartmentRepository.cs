@@ -15,7 +15,7 @@ public class DepartmentRepository : BaseRepository<Department, int>, IDepartment
 
     public DepartmentRepository(AppDbContext context, ISqlRepository<Department, int> sqlRepository) : base(context)
     {
-        _sqlRepository = sqlRepository;
+        _sqlRepository = sqlRepository ?? throw new ArgumentNullException(nameof(sqlRepository));
     }
 
     public async Task<IEnumerable<Department>> GetDepartmentTreeAsync()

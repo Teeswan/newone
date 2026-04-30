@@ -366,6 +366,7 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue("Pending");
             entity.Property(e => e.CycleId).HasColumnName("CycleID");
             entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
+            entity.Property(e => e.EvalId).HasColumnName("EvalID");
             entity.Property(e => e.NewLevelId)
                 .HasMaxLength(10)
                 .HasColumnName("NewLevelID");
@@ -383,6 +384,10 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Employee).WithMany(p => p.PerformanceOutcomes)
                 .HasForeignKey(d => d.EmployeeId)
                 .HasConstraintName("FK__Performan__Emplo__2DE6D218");
+
+            entity.HasOne(d => d.Evaluation).WithMany(p => p.PerformanceOutcomes)
+                .HasForeignKey(d => d.EvalId)
+                .HasConstraintName("FK_PerformanceOutcome_PerformanceEvaluation");
 
             entity.HasOne(d => d.NewLevel).WithMany(p => p.PerformanceOutcomeNewLevels)
                 .HasForeignKey(d => d.NewLevelId)

@@ -3,6 +3,7 @@ namespace EPMS.Shared.DTOs;
 public class PerformanceOutcomeDto
 {
     public int OutcomeId { get; set; }
+    public int? EvalId { get; set; }
     public int? EmployeeId { get; set; }
     public int? CycleId { get; set; }
     public string? RecommendationType { get; set; }
