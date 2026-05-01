@@ -1,65 +1,68 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
 using EPMS.Infrastructure.Contexts;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using static EPMS.Infrastructure.StoredProcedures;
 
 namespace EPMS.Infrastructure.Repositories;
 
+/// <summary>
+/// Repository for appraisal responses, implemented with stored procedure support.
+/// </summary>
 public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, long>, IAppraisalResponseRepository
 {
     private readonly ISqlRepository<AppraisalResponse, long> _sqlRepository;
 
     public AppraisalResponseRepository(AppDbContext context, ISqlRepository<AppraisalResponse, long> sqlRepository) : base(context)
     {
-        _sqlRepository = sqlRepository;
+        _sqlRepository = sqlRepository ?? throw new ArgumentNullException(nameof(sqlRepository));
     }
 
-    public override async Task<IEnumerable<AppraisalResponse>> GetAllAsync()
-    {
-        return await _sqlRepository.FromSqlAsync(AppraisalResponses_GetAll);
-    }
+    public override Task<IEnumerable<AppraisalResponse>> GetAllAsync()
+        => _sqlRepository.FromSqlAsync(AppraisalResponses_GetAll);
 
-    public override async Task<AppraisalResponse?> GetByIdAsync(long responseId)
-    {
-        return await _sqlRepository.FromSqlFirstOrDefaultAsync(AppraisalResponses_GetById, new SqlParameter("@ResponseID", responseId));
-    }
+    public override Task<AppraisalResponse?> GetByIdAsync(long responseId)
+        => _sqlRepository.FromSqlFirstOrDefaultAsync(AppraisalResponses_GetById, new SqlParameter("@ResponseID", responseId));
 
     public override async Task<AppraisalResponse> CreateAsync(AppraisalResponse entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
-            new SqlParameter("@EvalID", (object?)entity.EvalId ?? DBNull.Value),
-            new SqlParameter("@QuestionID", (object?)entity.QuestionId ?? DBNull.Value),
-            new SqlParameter("@RespondentID", (object?)entity.RespondentId ?? DBNull.Value),
-            new SqlParameter("@AnswerText", (object?)entity.AnswerText ?? DBNull.Value),
-            new SqlParameter("@RatingValue", (object?)entity.RatingValue ?? DBNull.Value),
-            new SqlParameter("@IsAnonymous", (object?)entity.IsAnonymous ?? DBNull.Value)
+            new SqlParameter("@EvalID", ToDbValue(entity.EvalId)),
+            new SqlParameter("@QuestionID", ToDbValue(entity.QuestionId)),
+            new SqlParameter("@RespondentID", ToDbValue(entity.RespondentId)),
+            new SqlParameter("@RespondentRole", ToDbValue(entity.RespondentRole)),
+            new SqlParameter("@AnswerText", ToDbValue(entity.AnswerText)),
+            new SqlParameter("@RatingValue", ToDbValue(entity.RatingValue)),
+            new SqlParameter("@IsAnonymous", ToDbValue(entity.IsAnonymous))
         };
 
         var result = await _sqlRepository.FromSqlFirstOrDefaultAsync(AppraisalResponses_Create, parameters);
         return result ?? throw new InvalidOperationException("Failed to create appraisal response.");
     }
 
-    public override async Task<AppraisalResponse?> UpdateAsync(AppraisalResponse entity)
+    public override Task<AppraisalResponse?> UpdateAsync(AppraisalResponse entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
             new SqlParameter("@ResponseID", entity.ResponseId),
-            new SqlParameter("@EvalID", (object?)entity.EvalId ?? DBNull.Value),
-            new SqlParameter("@QuestionID", (object?)entity.QuestionId ?? DBNull.Value),
-            new SqlParameter("@RespondentID", (object?)entity.RespondentId ?? DBNull.Value),
-            new SqlParameter("@AnswerText", (object?)entity.AnswerText ?? DBNull.Value),
-            new SqlParameter("@RatingValue", (object?)entity.RatingValue ?? DBNull.Value),
-            new SqlParameter("@IsAnonymous", (object?)entity.IsAnonymous ?? DBNull.Value)
+            new SqlParameter("@EvalID", ToDbValue(entity.EvalId)),
+            new SqlParameter("@QuestionID", ToDbValue(entity.QuestionId)),
+            new SqlParameter("@RespondentID", ToDbValue(entity.RespondentId)),
+            new SqlParameter("@RespondentRole", ToDbValue(entity.RespondentRole)),
+            new SqlParameter("@AnswerText", ToDbValue(entity.AnswerText)),
+            new SqlParameter("@RatingValue", ToDbValue(entity.RatingValue)),
+            new SqlParameter("@IsAnonymous", ToDbValue(entity.IsAnonymous))
         };
 
-        return await _sqlRepository.FromSqlFirstOrDefaultAsync(AppraisalResponses_Update, parameters);
+        return _sqlRepository.FromSqlFirstOrDefaultAsync(AppraisalResponses_Update, parameters);
     }
 
     public override async Task<bool> DeleteAsync(long responseId)
@@ -68,8 +71,16 @@ public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, lon
         return rowsAffected > 0;
     }
 
-    public async Task<IEnumerable<AppraisalResponse>> GetByEvalIdAsync(int evalId)
+    public Task<IEnumerable<AppraisalResponse>> GetByEvalIdAsync(int evalId)
     {
-        return await _sqlRepository.FromSqlAsync(AppraisalResponses_GetByEvalId, new SqlParameter("@EvalID", evalId));
+        if (evalId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(evalId));
+        }
+
+        return _sqlRepository.FromSqlAsync(AppraisalResponses_GetByEvalId, new SqlParameter("@EvalID", evalId));
     }
+
+    private static object ToDbValue<T>(T? value)
+        => value is null ? DBNull.Value : value!;
 }

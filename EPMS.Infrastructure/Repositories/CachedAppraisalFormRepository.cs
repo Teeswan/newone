@@ -6,7 +6,7 @@ namespace EPMS.Infrastructure.Repositories;
 
 public class CachedAppraisalFormRepository : CachedBaseRepository<ApplicationForm, int>, IAppraisalFormRepository
 {
-    public CachedAppraisalFormRepository(IBaseRepository<ApplicationForm, int> innerRepository, IMemoryCache cache, TimeSpan cacheDuration) 
+    public CachedAppraisalFormRepository(IAppraisalFormRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration) 
         : base(innerRepository, cache, cacheDuration)
     {
     }

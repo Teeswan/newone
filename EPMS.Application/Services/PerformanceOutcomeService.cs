@@ -43,6 +43,7 @@ public class PerformanceOutcomeService : IPerformanceOutcomeService
     {
         var entity = new PerformanceOutcome
         {
+            EvalId = request.EvalId,
             EmployeeId = request.EmployeeId,
             CycleId = request.CycleId,
             RecommendationType = request.RecommendationType,
@@ -63,6 +64,7 @@ public class PerformanceOutcomeService : IPerformanceOutcomeService
         var entity = new PerformanceOutcome
         {
             OutcomeId = outcomeId,
+            EvalId = request.EvalId,
             EmployeeId = request.EmployeeId,
             CycleId = request.CycleId,
             RecommendationType = request.RecommendationType,
@@ -88,6 +90,7 @@ public class PerformanceOutcomeService : IPerformanceOutcomeService
         return new PerformanceOutcomeDto
         {
             OutcomeId = entity.OutcomeId,
+            EvalId = entity.EvalId,
             EmployeeId = entity.EmployeeId,
             CycleId = entity.CycleId,
             RecommendationType = entity.RecommendationType,

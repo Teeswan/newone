@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ public class PerformanceOutcomeRepository : BaseRepository<PerformanceOutcome, i
 
     public PerformanceOutcomeRepository(AppDbContext context, ISqlRepository<PerformanceOutcome, int> sqlRepository) : base(context)
     {
-        _sqlRepository = sqlRepository;
+        _sqlRepository = sqlRepository ?? throw new ArgumentNullException(nameof(sqlRepository));
     }
 
     public override async Task<IEnumerable<PerformanceOutcome>> GetAllAsync()
@@ -31,8 +32,11 @@ public class PerformanceOutcomeRepository : BaseRepository<PerformanceOutcome, i
 
     public override async Task<PerformanceOutcome> CreateAsync(PerformanceOutcome entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
+            new SqlParameter("@EvalID", (object?)entity.EvalId ?? DBNull.Value),
             new SqlParameter("@EmployeeID", (object?)entity.EmployeeId ?? DBNull.Value),
             new SqlParameter("@CycleID", (object?)entity.CycleId ?? DBNull.Value),
             new SqlParameter("@RecommendationType", (object?)entity.RecommendationType ?? DBNull.Value),
@@ -50,9 +54,12 @@ public class PerformanceOutcomeRepository : BaseRepository<PerformanceOutcome, i
 
     public override async Task<PerformanceOutcome?> UpdateAsync(PerformanceOutcome entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
             new SqlParameter("@OutcomeID", entity.OutcomeId),
+            new SqlParameter("@EvalID", (object?)entity.EvalId ?? DBNull.Value),
             new SqlParameter("@EmployeeID", (object?)entity.EmployeeId ?? DBNull.Value),
             new SqlParameter("@CycleID", (object?)entity.CycleId ?? DBNull.Value),
             new SqlParameter("@RecommendationType", (object?)entity.RecommendationType ?? DBNull.Value),

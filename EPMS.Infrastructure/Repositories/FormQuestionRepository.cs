@@ -17,8 +17,8 @@ public class FormQuestionRepository : IFormQuestionRepository
 
     public FormQuestionRepository(AppDbContext context, ISqlRepository<FormQuestion, object[]> sqlRepository)
     {
-        _context = context;
-        _sqlRepository = sqlRepository;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _sqlRepository = sqlRepository ?? throw new ArgumentNullException(nameof(sqlRepository));
     }
 
     public async Task<IEnumerable<FormQuestion>> GetAllAsync()
@@ -43,11 +43,13 @@ public class FormQuestionRepository : IFormQuestionRepository
 
     public async Task<FormQuestion> CreateAsync(FormQuestion entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
-            new SqlParameter("@FormID", (object?)entity.FormId ?? DBNull.Value),
-            new SqlParameter("@QuestionID", (object?)entity.QuestionId ?? DBNull.Value),
-            new SqlParameter("@SortOrder", (object?)entity.SortOrder ?? DBNull.Value)
+            new SqlParameter("@FormID", ToDbValue(entity.FormId)),
+            new SqlParameter("@QuestionID", ToDbValue(entity.QuestionId)),
+            new SqlParameter("@SortOrder", ToDbValue(entity.SortOrder))
         };
 
         var result = await _sqlRepository.FromSqlFirstOrDefaultAsync(FormQuestions_Create, parameters);
@@ -56,11 +58,13 @@ public class FormQuestionRepository : IFormQuestionRepository
 
     public async Task<FormQuestion?> UpdateAsync(FormQuestion entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
-            new SqlParameter("@FormID", (object?)entity.FormId ?? DBNull.Value),
-            new SqlParameter("@QuestionID", (object?)entity.QuestionId ?? DBNull.Value),
-            new SqlParameter("@SortOrder", (object?)entity.SortOrder ?? DBNull.Value)
+            new SqlParameter("@FormID", ToDbValue(entity.FormId)),
+            new SqlParameter("@QuestionID", ToDbValue(entity.QuestionId)),
+            new SqlParameter("@SortOrder", ToDbValue(entity.SortOrder))
         };
 
         return await _sqlRepository.FromSqlFirstOrDefaultAsync(FormQuestions_Update, parameters);
@@ -76,4 +80,7 @@ public class FormQuestionRepository : IFormQuestionRepository
         var rowsAffected = await _sqlRepository.ExecuteSqlAsync(FormQuestions_Delete, parameters);
         return rowsAffected > 0;
     }
+
+    private static object ToDbValue<T>(T? value)
+        => value is null ? DBNull.Value : value!;
 }

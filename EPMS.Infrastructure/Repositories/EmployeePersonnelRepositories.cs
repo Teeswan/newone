@@ -4,6 +4,7 @@ using EPMS.Domain.Interfaces;
 using EPMS.Infrastructure.Contexts;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Data;
 
 namespace EPMS.Infrastructure.Repositories;
@@ -14,7 +15,8 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
     public EmployeeRepository(AppDbContext context, IConfiguration configuration) : base(context)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+        ArgumentNullException.ThrowIfNull(configuration);
+        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
     }
 
     public override async Task<IEnumerable<Employee>> GetAllAsync()
@@ -56,6 +58,7 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
     public async Task<Employee?> GetByCodeAsync(string employeeCode)
     {
+        ArgumentNullException.ThrowIfNull(employeeCode);
         using IDbConnection db = new SqlConnection(_connectionString);
         string sql = "SELECT TOP 1 * FROM Employees WHERE EmployeeCode = @EmployeeCode";
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { EmployeeCode = employeeCode });
@@ -73,7 +76,8 @@ public class PositionRepository : BaseRepository<Position, int>, IPositionReposi
 
     public PositionRepository(AppDbContext context, IConfiguration configuration) : base(context)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+        ArgumentNullException.ThrowIfNull(configuration);
+        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
     }
 
     public async Task<IEnumerable<Position>> GetPositionsByLevelAsync(string levelId)

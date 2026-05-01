@@ -17,7 +17,7 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
 
     public PerformanceEvaluationRepository(AppDbContext context, ISqlRepository<PerformanceEvaluation, int> sqlRepository) : base(context)
     {
-        _sqlRepository = sqlRepository;
+        _sqlRepository = sqlRepository ?? throw new ArgumentNullException(nameof(sqlRepository));
     }
 
     public override async Task<IEnumerable<PerformanceEvaluation>> GetAllAsync()
@@ -32,17 +32,16 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
 
     public override async Task<PerformanceEvaluation> CreateAsync(PerformanceEvaluation entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
-            new SqlParameter("@EmployeeID", (object?)entity.EmployeeId ?? DBNull.Value),
-            new SqlParameter("@CycleID", (object?)entity.CycleId ?? DBNull.Value),
-            new SqlParameter("@SelfRating", (object?)entity.SelfRating ?? DBNull.Value),
-            new SqlParameter("@ManagerRating", (object?)entity.ManagerRating ?? DBNull.Value),
-            new SqlParameter("@SelfComments", (object?)entity.SelfComments ?? DBNull.Value),
-            new SqlParameter("@ManagerComments", (object?)entity.ManagerComments ?? DBNull.Value),
-            new SqlParameter("@FinalRatingScore", (object?)entity.FinalRatingScore ?? DBNull.Value),
-            new SqlParameter("@IsFinalized", (object?)entity.IsFinalized ?? DBNull.Value),
-            new SqlParameter("@FinalizedAt", (object?)entity.FinalizedAt ?? DBNull.Value)
+            new SqlParameter("@EmployeeID", ToDbValue(entity.EmployeeId)),
+            new SqlParameter("@CycleID", ToDbValue(entity.CycleId)),
+                new SqlParameter("@FormID", entity.FormId),
+            new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
+            new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
+            new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
         };
 
         var result = await _sqlRepository.FromSqlFirstOrDefaultAsync(PerformanceEvaluations_Create, parameters);
@@ -51,18 +50,16 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
 
     public override async Task<PerformanceEvaluation?> UpdateAsync(PerformanceEvaluation entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         var parameters = new object[]
         {
             new SqlParameter("@EvalID", entity.EvalId),
-            new SqlParameter("@EmployeeID", (object?)entity.EmployeeId ?? DBNull.Value),
-            new SqlParameter("@CycleID", (object?)entity.CycleId ?? DBNull.Value),
-            new SqlParameter("@SelfRating", (object?)entity.SelfRating ?? DBNull.Value),
-            new SqlParameter("@ManagerRating", (object?)entity.ManagerRating ?? DBNull.Value),
-            new SqlParameter("@SelfComments", (object?)entity.SelfComments ?? DBNull.Value),
-            new SqlParameter("@ManagerComments", (object?)entity.ManagerComments ?? DBNull.Value),
-            new SqlParameter("@FinalRatingScore", (object?)entity.FinalRatingScore ?? DBNull.Value),
-            new SqlParameter("@IsFinalized", (object?)entity.IsFinalized ?? DBNull.Value),
-            new SqlParameter("@FinalizedAt", (object?)entity.FinalizedAt ?? DBNull.Value)
+            new SqlParameter("@EmployeeID", ToDbValue(entity.EmployeeId)),
+            new SqlParameter("@CycleID", ToDbValue(entity.CycleId)),
+                new SqlParameter("@FormID", entity.FormId),
+            new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
+            new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
         };
 
         return await _sqlRepository.FromSqlFirstOrDefaultAsync(PerformanceEvaluations_Update, parameters);
@@ -83,4 +80,7 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
     {
         return await _sqlRepository.FromSqlAsync(PerformanceEvaluations_GetByCycleId, new SqlParameter("@CycleID", cycleId));
     }
+
+    private static object ToDbValue<T>(T? value)
+        => value is null ? DBNull.Value : value!;
 }

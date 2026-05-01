@@ -2,6 +2,7 @@ namespace EPMS.Shared.Requests;
 
 public class CreatePerformanceOutcomeRequest
 {
+    public int? EvalId { get; set; }
     public int? EmployeeId { get; set; }
     public int? CycleId { get; set; }
     public string? RecommendationType { get; set; }
@@ -15,6 +16,7 @@ public class CreatePerformanceOutcomeRequest
 
 public class UpdatePerformanceOutcomeRequest
 {
+    public int? EvalId { get; set; }
     public int? EmployeeId { get; set; }
     public int? CycleId { get; set; }
     public string? RecommendationType { get; set; }
