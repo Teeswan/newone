@@ -1,10 +1,13 @@
 using EPMS.Application.DependencyInjection;
-using EPMS.Infrastructure.DependencyInjection;
 using EPMS.Infrastructure;
+using EPMS.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
+using Microsoft.AspNetCore.Components.Authorization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +20,11 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMemoryCache();
+builder.Services.AddDistributedMemoryCache();
 
 // Swagger Configuration with JWT Support
 builder.Services.AddSwaggerGen(c =>
@@ -54,12 +60,12 @@ builder.Services.AddSwaggerGen(c =>
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
-// Redis Configuration
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "EPMS_";
-});
+//// Redis Configuration
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+//    options.InstanceName = "EPMS_";
+//});
 
 builder.Services.AddAuthentication(options =>
 {

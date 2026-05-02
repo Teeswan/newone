@@ -18,6 +18,8 @@ public class MappingProfile : Profile
         CreateMap<UpdateFormQuestionRequest, FormQuestion>();
 
         CreateMap<MeetingNote, NoteDto>().ReverseMap();
+        CreateMap<Role, RoleDto>().ReverseMap();
+        CreateMap<User, UserDto>().ReverseMap();
 
         // Org & Security Mappings
         CreateMap<Department, DepartmentDto>()

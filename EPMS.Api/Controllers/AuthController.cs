@@ -1,13 +1,14 @@
 using EPMS.Application.Interfaces;
 using EPMS.Application.Services;
 using EPMS.Domain.Interfaces;
+using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 
 namespace EPMS.Api.Controllers;
 
@@ -27,7 +28,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Username);
 

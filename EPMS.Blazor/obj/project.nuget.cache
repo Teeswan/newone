@@ -1,15 +1,17 @@
 {
   "version": 2,
-  "dgSpecHash": "nL7pzkhnIEQ=",
+  "dgSpecHash": "Am/MywLc0xU=",
   "success": true,
   "projectFilePath": "D:\\OJT_21_C#\\Final Project\\EPMS.Blazor\\EPMS.Blazor.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Admin\\.nuget\\packages\\blazored.localstorage\\4.5.0\\blazored.localstorage.4.5.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\fluentvalidation\\11.12.0\\fluentvalidation.11.12.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\mediatr\\14.1.0\\mediatr.14.1.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.authorization\\9.0.10\\microsoft.aspnetcore.authorization.9.0.10.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.components\\9.0.10\\microsoft.aspnetcore.components.9.0.10.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.components.analyzers\\9.0.10\\microsoft.aspnetcore.components.analyzers.9.0.10.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.components.authorization\\9.0.0\\microsoft.aspnetcore.components.authorization.9.0.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.components.forms\\9.0.10\\microsoft.aspnetcore.components.forms.9.0.10.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.components.web\\9.0.10\\microsoft.aspnetcore.components.web.9.0.10.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly\\9.0.10\\microsoft.aspnetcore.components.webassembly.9.0.10.nupkg.sha512",

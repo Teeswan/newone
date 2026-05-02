@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+﻿@* @inherits LayoutComponentBase
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -13,4 +13,55 @@
             @Body
         </article>
     </main>
+</div> *@
+
+@inherits LayoutComponentBase
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
+@using EPMS.Client.Identity
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4 d-flex justify-content-between align-items-center">
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+
+        
+            <AuthorizeView>
+                <Authorized>
+                    <div class="d-flex align-items-center">
+                        <span class="me-3 text-muted small">Welcome, @context.User.Identity?.Name</span>
+                        <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login" class="btn btn-primary btn-sm">Login</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
 </div>
+
+@code {
+    private async Task HandleLogout()
+    {
+      
+        await LocalStorage.RemoveItemAsync("authToken");
+
+        ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserLogout();
+
+        Navigation.NavigateTo("/login");
+    }
+}
