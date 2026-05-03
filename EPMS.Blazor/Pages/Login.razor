@@ -1,0 +1,99 @@
+﻿
+@page "/login"
+@attribute [AllowAnonymous]
+@* @layout EmptyLayout *@
+@using EPMS.Shared.DTOs
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using EPMS.Client.Identity 
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 12px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-primary">EPMS Login</h3>
+            <p class="text-muted small">Please enter your credentials to access the system</p>
+        </div>
+
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <InputText @bind-Value="loginModel.Username" class="form-control" placeholder="Enter username" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Password</label>
+                <InputText @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="Enter password" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2">Login</button>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3 py-2 small text-center">
+                    @errorMessage
+                </div>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginRequestDto loginModel = new();
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        Console.WriteLine("1. Login Button Clicked!"); 
+        errorMessage = null;
+
+        try
+        {
+            Console.WriteLine($"2. Sending Request for User: {loginModel.Username}");
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+            Console.WriteLine($"3. API Response Status: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var rawJson = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("4. API Raw JSON: " + rawJson);
+
+                var result = System.Text.Json.JsonSerializer.Deserialize<LoginResponseDto>(rawJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (result != null && !string.IsNullOrWhiteSpace(result.Token))
+                {
+                    Console.WriteLine("5. Token Received! Saving to LocalStorage...");
+                    await LocalStorage.SetItemAsync("authToken", result.Token);
+
+                    ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication(result.Token);
+
+                    Console.WriteLine("6. Navigating to Home...");
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Token is null or empty!");
+                    errorMessage = "Login but don't get Token ";
+                }
+            }
+            else
+            {
+                errorMessage = "Invalid username or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception: " + ex.Message);
+            errorMessage = "Server error connection failed.";
+        }
+
+        StateHasChanged(); 
+    }
+}

@@ -219,30 +219,32 @@ public class ExcelPdfService : IExcelPdfService
         var ws = workbook.Worksheets.Add("PerformanceOutcomes");
 
         ws.Cell(1, 1).Value = "OutcomeId";
-        ws.Cell(1, 2).Value = "EmployeeId";
-        ws.Cell(1, 3).Value = "CycleId";
-        ws.Cell(1, 4).Value = "RecommendationType";
-        ws.Cell(1, 5).Value = "OldPositionId";
-        ws.Cell(1, 6).Value = "NewPositionId";
-        ws.Cell(1, 7).Value = "OldLevelId";
-        ws.Cell(1, 8).Value = "NewLevelId";
-        ws.Cell(1, 9).Value = "ApprovalStatus";
-        ws.Cell(1, 10).Value = "EffectiveDate";
-        StyleHeaderRow(ws, 10);
+        ws.Cell(1, 2).Value = "EvalId";
+        ws.Cell(1, 3).Value = "EmployeeId";
+        ws.Cell(1, 4).Value = "CycleId";
+        ws.Cell(1, 5).Value = "RecommendationType";
+        ws.Cell(1, 6).Value = "OldPositionId";
+        ws.Cell(1, 7).Value = "NewPositionId";
+        ws.Cell(1, 8).Value = "OldLevelId";
+        ws.Cell(1, 9).Value = "NewLevelId";
+        ws.Cell(1, 10).Value = "ApprovalStatus";
+        ws.Cell(1, 11).Value = "EffectiveDate";
+        StyleHeaderRow(ws, 11);
 
         int row = 2;
         foreach (var item in data)
         {
             ws.Cell(row, 1).Value = item.OutcomeId;
-            ws.Cell(row, 2).Value = item.EmployeeId ?? 0;
-            ws.Cell(row, 3).Value = item.CycleId ?? 0;
-            ws.Cell(row, 4).Value = item.RecommendationType ?? "";
-            ws.Cell(row, 5).Value = item.OldPositionId ?? 0;
-            ws.Cell(row, 6).Value = item.NewPositionId ?? 0;
-            ws.Cell(row, 7).Value = item.OldLevelId ?? "";
-            ws.Cell(row, 8).Value = item.NewLevelId ?? "";
-            ws.Cell(row, 9).Value = item.ApprovalStatus ?? "";
-            ws.Cell(row, 10).Value = item.EffectiveDate?.ToString("yyyy-MM-dd") ?? "";
+            ws.Cell(row, 2).Value = item.EvalId ?? 0;
+            ws.Cell(row, 3).Value = item.EmployeeId ?? 0;
+            ws.Cell(row, 4).Value = item.CycleId ?? 0;
+            ws.Cell(row, 5).Value = item.RecommendationType ?? "";
+            ws.Cell(row, 6).Value = item.OldPositionId ?? 0;
+            ws.Cell(row, 7).Value = item.NewPositionId ?? 0;
+            ws.Cell(row, 8).Value = item.OldLevelId ?? "";
+            ws.Cell(row, 9).Value = item.NewLevelId ?? "";
+            ws.Cell(row, 10).Value = item.ApprovalStatus ?? "";
+            ws.Cell(row, 11).Value = item.EffectiveDate?.ToString("yyyy-MM-dd") ?? "";
             row++;
         }
 
@@ -398,15 +400,16 @@ public class ExcelPdfService : IExcelPdfService
         {
             var request = new CreatePerformanceOutcomeRequest
             {
-                EmployeeId = ParseNullableInt(row.Cell(2).GetString()),
-                CycleId = ParseNullableInt(row.Cell(3).GetString()),
-                RecommendationType = row.Cell(4).GetString(),
-                OldPositionId = ParseNullableInt(row.Cell(5).GetString()),
-                NewPositionId = ParseNullableInt(row.Cell(6).GetString()),
-                OldLevelId = row.Cell(7).GetString(),
-                NewLevelId = row.Cell(8).GetString(),
-                ApprovalStatus = row.Cell(9).GetString(),
-                EffectiveDate = ParseNullableDateOnly(row.Cell(10).GetString())
+                EvalId = ParseNullableInt(row.Cell(2).GetString()),
+                EmployeeId = ParseNullableInt(row.Cell(3).GetString()),
+                CycleId = ParseNullableInt(row.Cell(4).GetString()),
+                RecommendationType = row.Cell(5).GetString(),
+                OldPositionId = ParseNullableInt(row.Cell(6).GetString()),
+                NewPositionId = ParseNullableInt(row.Cell(7).GetString()),
+                OldLevelId = row.Cell(8).GetString(),
+                NewLevelId = row.Cell(9).GetString(),
+                ApprovalStatus = row.Cell(10).GetString(),
+                EffectiveDate = ParseNullableDateOnly(row.Cell(11).GetString())
             };
             await _outcomeService.CreateAsync(request);
             count++;
@@ -464,8 +467,8 @@ public class ExcelPdfService : IExcelPdfService
     {
         var data = (await _outcomeService.GetAllAsync()).ToList();
         return GeneratePdf("Performance Outcomes Report",
-            new[] { "OutcomeId", "EmployeeId", "CycleId", "RecommendationType", "OldPositionId", "NewPositionId", "ApprovalStatus", "EffectiveDate" },
-            data.Select(i => new[] { i.OutcomeId.ToString(), (i.EmployeeId ?? 0).ToString(), (i.CycleId ?? 0).ToString(), i.RecommendationType ?? "", (i.OldPositionId ?? 0).ToString(), (i.NewPositionId ?? 0).ToString(), i.ApprovalStatus ?? "", i.EffectiveDate?.ToString("yyyy-MM-dd") ?? "" }).ToList());
+            new[] { "OutcomeId", "EvalId", "EmployeeId", "CycleId", "RecommendationType", "OldPositionId", "NewPositionId", "ApprovalStatus", "EffectiveDate" },
+            data.Select(i => new[] { i.OutcomeId.ToString(), (i.EvalId ?? 0).ToString(), (i.EmployeeId ?? 0).ToString(), (i.CycleId ?? 0).ToString(), i.RecommendationType ?? "", (i.OldPositionId ?? 0).ToString(), (i.NewPositionId ?? 0).ToString(), i.ApprovalStatus ?? "", i.EffectiveDate?.ToString("yyyy-MM-dd") ?? "" }).ToList());
     }
 
     // ===================== HELPERS =====================

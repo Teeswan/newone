@@ -10,15 +10,56 @@ public class CachedTeamRepository : CachedBaseRepository<Team, int>, ITeamReposi
 {
     private readonly ITeamRepository _innerRepository;
 
-    public CachedTeamRepository(ITeamRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration) 
+    public CachedTeamRepository(ITeamRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration)
         : base(innerRepository, cache, cacheDuration)
     {
         _innerRepository = innerRepository;
     }
 
+    public override async Task<Team> CreateAsync(Team entity)
+    {
+        var result = await base.CreateAsync(entity);
+        if (result.DepartmentId.HasValue)
+        {
+            _cache.Remove(GetDepartmentCacheKey(result.DepartmentId.Value));
+        }
+        return result;
+    }
+
+    public override async Task<Team?> UpdateAsync(Team entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        var existing = await _innerRepository.GetByIdAsync(entity.TeamId);
+        var result = await base.UpdateAsync(entity);
+        if (result != null)
+        {
+            if (result.DepartmentId.HasValue)
+            {
+                _cache.Remove(GetDepartmentCacheKey(result.DepartmentId.Value));
+            }
+
+            if (existing != null && existing.DepartmentId != result.DepartmentId && existing.DepartmentId.HasValue)
+            {
+                _cache.Remove(GetDepartmentCacheKey(existing.DepartmentId.Value));
+            }
+        }
+        return result;
+    }
+
+    public override async Task<bool> DeleteAsync(int id)
+    {
+        var existing = await _innerRepository.GetByIdAsync(id);
+        var success = await base.DeleteAsync(id);
+        if (success && existing?.DepartmentId.HasValue == true)
+        {
+            _cache.Remove(GetDepartmentCacheKey(existing.DepartmentId.Value));
+        }
+        return success;
+    }
+
     public async Task<IEnumerable<dynamic>> GetTeamsByDepartmentAsync(int departmentId)
     {
-        string key = $"{_cacheKeyPrefix}_GetByDepartment_{departmentId}";
+        string key = GetDepartmentCacheKey(departmentId);
         if (!_cache.TryGetValue(key, out IEnumerable<dynamic>? entities))
         {
             entities = await _innerRepository.GetTeamsByDepartmentAsync(departmentId);
@@ -26,4 +67,6 @@ public class CachedTeamRepository : CachedBaseRepository<Team, int>, ITeamReposi
         }
         return entities ?? new List<dynamic>();
     }
+
+    private static string GetDepartmentCacheKey(int departmentId) => $"Team_GetByDepartment_{departmentId}";
 }

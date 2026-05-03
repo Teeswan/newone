@@ -4,6 +4,8 @@ using EPMS.Application.Services;
 using EPMS.Application.Settings;
 using EPMS.Domain.Interfaces;
 using EPMS.Domain.Services;
+using EPMS.Shared.Requests;
+using EPMS.Shared.Validation;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +53,15 @@ public static class ApplicationServiceRegistration
         // MediatR & FluentValidation
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ApplicationServiceRegistration).Assembly));
         services.AddValidatorsFromAssembly(typeof(ApplicationServiceRegistration).Assembly);
+
+        // FluentValidation (server-side gate)
+        services.AddScoped<IValidator<CreatePipPlanRequest>, CreatePipPlanValidator>();
+        services.AddScoped<IValidator<CreatePipObjectiveRequest>, CreatePipObjectiveValidator>();
+        services.AddScoped<IValidator<CreatePipMeetingRequest>, CreatePipMeetingValidator>();
+        services.AddScoped<IValidator<UpdatePipObjectiveRequest>, UpdatePipObjectiveValidator>();
+
+        // Services
+        services.AddScoped<IPipService, PipService>();
 
         return services;
     }

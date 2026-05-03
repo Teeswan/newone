@@ -1,5 +1,9 @@
+using Blazored.LocalStorage;
 using EPMS.Blazor;
+//using EPMS.Blazor.Identity;
 using EPMS.Blazor.Services;
+using EPMS.Client.Identity;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -7,11 +11,17 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Updated to use HTTP port to avoid certificate issues in development
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("http://localhost:5111/")
 });
+
+
+builder.Services.AddBlazoredLocalStorage(); 
+builder.Services.AddAuthorizationCore();    
+
+builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
+// --------------------------------------------------
 
 builder.Services.AddScoped<IAppraisalCycleBlazorService, AppraisalCycleBlazorService>();
 builder.Services.AddScoped<IAppraisalFormBlazorService, AppraisalFormBlazorService>();

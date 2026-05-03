@@ -686,7 +686,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
-          "EPMS.Domain": "1.0.0"
+          "EPMS.Domain": "1.0.0",
+          "FluentValidation": "11.0.0"
         },
         "compile": {
           "bin/placeholder/EPMS.Shared.dll": {}
@@ -1803,5 +1804,13 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
+    }
+  ]
 }

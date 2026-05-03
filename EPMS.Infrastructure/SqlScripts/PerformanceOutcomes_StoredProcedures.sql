@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_GetAll
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT OutcomeID, EmployeeID, CycleID, RecommendationType,
+    SELECT OutcomeID, EvalID, EmployeeID, CycleID, RecommendationType,
            OldPositionID, NewPositionID, OldLevelID, NewLevelID,
            ApprovalStatus, EffectiveDate
     FROM PerformanceOutcomes;
@@ -18,7 +18,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_GetById
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT OutcomeID, EmployeeID, CycleID, RecommendationType,
+    SELECT OutcomeID, EvalID, EmployeeID, CycleID, RecommendationType,
            OldPositionID, NewPositionID, OldLevelID, NewLevelID,
            ApprovalStatus, EffectiveDate
     FROM PerformanceOutcomes
@@ -31,7 +31,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_GetByEmployeeId
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT OutcomeID, EmployeeID, CycleID, RecommendationType,
+    SELECT OutcomeID, EvalID, EmployeeID, CycleID, RecommendationType,
            OldPositionID, NewPositionID, OldLevelID, NewLevelID,
            ApprovalStatus, EffectiveDate
     FROM PerformanceOutcomes
@@ -44,7 +44,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_GetByCycleId
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT OutcomeID, EmployeeID, CycleID, RecommendationType,
+    SELECT OutcomeID, EvalID, EmployeeID, CycleID, RecommendationType,
            OldPositionID, NewPositionID, OldLevelID, NewLevelID,
            ApprovalStatus, EffectiveDate
     FROM PerformanceOutcomes
@@ -53,6 +53,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_Create
+    @EvalID INT = NULL,
     @EmployeeID INT = NULL,
     @CycleID INT = NULL,
     @RecommendationType NVARCHAR(50) = NULL,
@@ -65,12 +66,12 @@ CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_Create
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO PerformanceOutcomes (EmployeeID, CycleID, RecommendationType,
+    INSERT INTO PerformanceOutcomes (EvalID, EmployeeID, CycleID, RecommendationType,
         OldPositionID, NewPositionID, OldLevelID, NewLevelID, ApprovalStatus, EffectiveDate)
-    VALUES (@EmployeeID, @CycleID, @RecommendationType,
+    VALUES (@EvalID, @EmployeeID, @CycleID, @RecommendationType,
         @OldPositionID, @NewPositionID, @OldLevelID, @NewLevelID, @ApprovalStatus, @EffectiveDate);
 
-    SELECT OutcomeID, EmployeeID, CycleID, RecommendationType,
+    SELECT OutcomeID, EvalID, EmployeeID, CycleID, RecommendationType,
            OldPositionID, NewPositionID, OldLevelID, NewLevelID,
            ApprovalStatus, EffectiveDate
     FROM PerformanceOutcomes
@@ -80,6 +81,7 @@ GO
 
 CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_Update
     @OutcomeID INT,
+    @EvalID INT = NULL,
     @EmployeeID INT = NULL,
     @CycleID INT = NULL,
     @RecommendationType NVARCHAR(50) = NULL,
@@ -93,7 +95,8 @@ AS
 BEGIN
     SET NOCOUNT ON;
     UPDATE PerformanceOutcomes
-    SET EmployeeID = @EmployeeID,
+    SET EvalID = @EvalID,
+        EmployeeID = @EmployeeID,
         CycleID = @CycleID,
         RecommendationType = @RecommendationType,
         OldPositionID = @OldPositionID,
@@ -104,7 +107,7 @@ BEGIN
         EffectiveDate = @EffectiveDate
     WHERE OutcomeID = @OutcomeID;
 
-    SELECT OutcomeID, EmployeeID, CycleID, RecommendationType,
+    SELECT OutcomeID, EvalID, EmployeeID, CycleID, RecommendationType,
            OldPositionID, NewPositionID, OldLevelID, NewLevelID,
            ApprovalStatus, EffectiveDate
     FROM PerformanceOutcomes

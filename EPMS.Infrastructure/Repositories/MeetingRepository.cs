@@ -1,4 +1,5 @@
 // EPMS.Infrastructure/Repositories/MeetingRepository.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,11 +17,16 @@ public class MeetingRepository : IMeetingRepository
 
     public MeetingRepository(AppDbContext context)
     {
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     public async Task<OneOnOneMeeting?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "Meeting id must be greater than zero.");
+        }
+
         return await _context.OneOnOneMeetings.FirstOrDefaultAsync(m => m.MeetingId == id, cancellationToken);
     }
 
@@ -50,7 +56,9 @@ public class MeetingRepository : IMeetingRepository
 
     public async Task AddAsync(OneOnOneMeeting meeting, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(meeting);
         await _context.OneOnOneMeetings.AddAsync(meeting, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }
 // Note: UnitOfWork and MeetingHub remain exactly the same as previously written!

@@ -15,14 +15,14 @@ public class CachedPositionPermissionRepository : IPositionPermissionRepository
 
     public CachedPositionPermissionRepository(IPositionPermissionRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration)
     {
-        _innerRepository = innerRepository;
-        _cache = cache;
+        _innerRepository = innerRepository ?? throw new ArgumentNullException(nameof(innerRepository));
+        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         _cacheDuration = cacheDuration;
     }
 
     public async Task<IEnumerable<Permission>> GetPermissionsByPositionAsync(int positionId)
     {
-        string key = $"{_cacheKeyPrefix}_GetByPosition_{positionId}";
+        string key = GetPositionCacheKey(positionId);
         if (!_cache.TryGetValue(key, out IEnumerable<Permission>? entities))
         {
             entities = await _innerRepository.GetPermissionsByPositionAsync(positionId);
@@ -33,20 +33,24 @@ public class CachedPositionPermissionRepository : IPositionPermissionRepository
 
     public async Task<PositionPermission?> GetByPositionAndPermissionAsync(int positionId, int permissionId)
     {
-        string key = $"{_cacheKeyPrefix}_GetByPosition_{positionId}_Permission_{permissionId}";
+        string key = GetPositionPermissionCacheKey(positionId, permissionId);
         if (!_cache.TryGetValue(key, out PositionPermission? entity))
         {
             entity = await _innerRepository.GetByPositionAndPermissionAsync(positionId, permissionId);
             if (entity != null)
+            {
                 _cache.Set(key, entity, new MemoryCacheEntryOptions().SetAbsoluteExpiration(_cacheDuration));
+            }
         }
         return entity;
     }
 
     public async Task<PositionPermission> CreateAsync(PositionPermission entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
         var createdEntity = await _innerRepository.CreateAsync(entity);
         InvalidateCache(entity.PositionId);
+        _cache.Remove(GetPositionPermissionCacheKey(entity.PositionId, entity.PermissionId));
         return createdEntity;
     }
 
@@ -56,14 +60,16 @@ public class CachedPositionPermissionRepository : IPositionPermissionRepository
         if (result)
         {
             InvalidateCache(positionId);
-            string key = $"{_cacheKeyPrefix}_GetByPosition_{positionId}_Permission_{permissionId}";
-            _cache.Remove(key);
+            _cache.Remove(GetPositionPermissionCacheKey(positionId, permissionId));
         }
         return result;
     }
 
     private void InvalidateCache(int positionId)
     {
-        _cache.Remove($"{_cacheKeyPrefix}_GetByPosition_{positionId}");
+        _cache.Remove(GetPositionCacheKey(positionId));
     }
+
+    private string GetPositionCacheKey(int positionId) => $"{_cacheKeyPrefix}_GetByPosition_{positionId}";
+    private string GetPositionPermissionCacheKey(int positionId, int permissionId) => $"{_cacheKeyPrefix}_GetByPosition_{positionId}_Permission_{permissionId}";
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,8 +18,8 @@ public class KpiAssignmentRepository : IKpiAssignmentRepository
 
     public KpiAssignmentRepository(AppDbContext context, IDbConnectionFactory connectionFactory)
     {
-        _context = context;
-        _connectionFactory = connectionFactory;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
     }
 
     public async Task<IEnumerable<EmployeeKpiAssignment>> GetAssignmentsByEmployeeCycleAsync(int employeeId, int cycleId)
@@ -44,18 +45,21 @@ public class KpiAssignmentRepository : IKpiAssignmentRepository
 
     public async Task AddRangeAsync(IEnumerable<EmployeeKpiAssignment> assignments)
     {
+        ArgumentNullException.ThrowIfNull(assignments);
         await _context.EmployeeKpiAssignments.AddRangeAsync(assignments);
         await _context.SaveChangesAsync();
     }
 
     public async Task AddAsync(EmployeeKpiAssignment assignment)
     {
+        ArgumentNullException.ThrowIfNull(assignment);
         await _context.EmployeeKpiAssignments.AddAsync(assignment);
         await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(EmployeeKpiAssignment assignment)
     {
+        ArgumentNullException.ThrowIfNull(assignment);
         _context.EmployeeKpiAssignments.Update(assignment);
         await _context.SaveChangesAsync();
     }

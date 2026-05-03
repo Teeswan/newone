@@ -336,6 +336,9 @@
               },
               "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
                 "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
+              },
+              "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj"
               }
             }
           }
@@ -485,6 +488,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[11.*, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

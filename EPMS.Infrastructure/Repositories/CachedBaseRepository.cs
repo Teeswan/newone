@@ -13,7 +13,6 @@ public class CachedBaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : 
     private readonly IBaseRepository<T, TKey> _innerRepository;
     protected readonly IMemoryCache _cache;
     protected readonly string _cacheKeyPrefix;
-    private readonly TimeSpan _defaultCacheDuration = TimeSpan.FromMinutes(10);
     protected readonly TimeSpan _cacheDuration;
     private static PropertyInfo? _idProperty;
 
@@ -22,7 +21,7 @@ public class CachedBaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : 
         _innerRepository = innerRepository ?? throw new ArgumentNullException(nameof(innerRepository));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         _cacheKeyPrefix = typeof(T).Name;
-        _cacheDuration = cacheDuration ?? TimeSpan.FromMinutes(10); // Default to 10 minutes if not provided
+        _cacheDuration = cacheDuration ?? TimeSpan.FromMinutes(10);
 
         // One-time reflection to find the ID property
         if (_idProperty == null)
@@ -66,6 +65,7 @@ public class CachedBaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : 
 
     public virtual async Task<T> CreateAsync(T entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
         var createdEntity = await _innerRepository.CreateAsync(entity);
         InvalidateCache();
         return createdEntity;
@@ -73,14 +73,18 @@ public class CachedBaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : 
 
     public virtual async Task<T?> UpdateAsync(T entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
         var updatedEntity = await _innerRepository.UpdateAsync(entity);
         InvalidateCache();
         
         // Generic ID invalidation
         if (updatedEntity != null && _idProperty != null)
         {
-            var id = (TKey)_idProperty.GetValue(updatedEntity)!;
-            InvalidateItemCache(id);
+            var idValue = _idProperty.GetValue(updatedEntity);
+            if (idValue is TKey id)
+            {
+                InvalidateItemCache(id);
+            }
         }
         
         return updatedEntity;
