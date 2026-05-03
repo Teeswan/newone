@@ -1,3 +1,4 @@
+using AutoMapper;
 using EPMS.Application.Interfaces;
 using EPMS.Domain.Interfaces;
 using EPMS.Domain.Entities;
@@ -9,79 +10,50 @@ namespace EPMS.Application.Services;
 public class AppraisalResponseService : IAppraisalResponseService
 {
     private readonly IAppraisalResponseRepository _repository;
+    private readonly IMapper _mapper;
 
-    public AppraisalResponseService(IAppraisalResponseRepository repository)
+    public AppraisalResponseService(IAppraisalResponseRepository repository, IMapper mapper)
     {
         _repository = repository;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<AppraisalResponseDto>> GetAllAsync()
     {
         var entities = await _repository.GetAllAsync();
-        return entities.Select(MapToDto);
+        return _mapper.Map<IEnumerable<AppraisalResponseDto>>(entities);
     }
 
     public async Task<AppraisalResponseDto?> GetByIdAsync(long responseId)
     {
         var entity = await _repository.GetByIdAsync(responseId);
-        return entity == null ? null : MapToDto(entity);
+        return _mapper.Map<AppraisalResponseDto?>(entity);
     }
 
     public async Task<IEnumerable<AppraisalResponseDto>> GetByEvalIdAsync(int evalId)
     {
         var entities = await _repository.GetByEvalIdAsync(evalId);
-        return entities.Select(MapToDto);
+        return _mapper.Map<IEnumerable<AppraisalResponseDto>>(entities);
     }
 
     public async Task<AppraisalResponseDto> CreateAsync(CreateAppraisalResponseRequest request)
     {
-        var entity = new AppraisalResponse
-        {
-            EvalId = request.EvalId,
-            QuestionId = request.QuestionId,
-            RespondentId = request.RespondentId,
-            AnswerText = request.AnswerText,
-            RatingValue = request.RatingValue,
-            IsAnonymous = request.IsAnonymous
-        };
-
+        var entity = _mapper.Map<AppraisalResponse>(request);
         var created = await _repository.CreateAsync(entity);
-        return MapToDto(created);
+        return _mapper.Map<AppraisalResponseDto>(created);
     }
 
     public async Task<AppraisalResponseDto?> UpdateAsync(long responseId, UpdateAppraisalResponseRequest request)
     {
-        var entity = new AppraisalResponse
-        {
-            ResponseId = responseId,
-            EvalId = request.EvalId,
-            QuestionId = request.QuestionId,
-            RespondentId = request.RespondentId,
-            AnswerText = request.AnswerText,
-            RatingValue = request.RatingValue,
-            IsAnonymous = request.IsAnonymous
-        };
+        var entity = _mapper.Map<AppraisalResponse>(request);
+        entity.ResponseId = responseId;
 
         var updated = await _repository.UpdateAsync(entity);
-        return updated == null ? null : MapToDto(updated);
+        return _mapper.Map<AppraisalResponseDto?>(updated);
     }
 
     public async Task<bool> DeleteAsync(long responseId)
     {
         return await _repository.DeleteAsync(responseId);
-    }
-
-    private static AppraisalResponseDto MapToDto(AppraisalResponse entity)
-    {
-        return new AppraisalResponseDto
-        {
-            ResponseId = entity.ResponseId,
-            EvalId = entity.EvalId,
-            QuestionId = entity.QuestionId,
-            RespondentId = entity.RespondentId,
-            AnswerText = entity.AnswerText,
-            RatingValue = entity.RatingValue,
-            IsAnonymous = entity.IsAnonymous
-        };
     }
 }

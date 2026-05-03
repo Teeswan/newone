@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj": {}
+    "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj": {
+    "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj",
         "projectName": "EPMS.Application",
-        "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Application\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -30,14 +30,13 @@
         },
         "frameworks": {
           "net9.0": {
-            "framework": "net9.0",
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
-                "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
+              "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
               },
-              "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj": {
-                "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj"
+              "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj"
               }
             }
           }
@@ -52,11 +51,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
-          "framework": "net9.0",
           "targetAlias": "net9.0",
           "dependencies": {
             "AutoMapper": {
@@ -124,18 +122,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
+    "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj",
         "projectName": "EPMS.Domain",
-        "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -154,7 +152,6 @@
         },
         "frameworks": {
           "net9.0": {
-            "framework": "net9.0",
             "targetAlias": "net9.0",
             "projectReferences": {}
           }
@@ -169,11 +166,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
-          "framework": "net9.0",
           "targetAlias": "net9.0",
           "dependencies": {
             "MediatR": {
@@ -197,18 +193,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj": {
+    "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
         "projectName": "EPMS.Infrastructure",
-        "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Infrastructure\\EPMS.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Infrastructure\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -227,14 +223,13 @@
         },
         "frameworks": {
           "net9.0": {
-            "framework": "net9.0",
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj": {
-                "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj"
+              "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Application\\EPMS.Application.csproj"
               },
-              "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
-                "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
+              "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
               }
             }
           }
@@ -249,11 +244,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
-          "framework": "net9.0",
           "targetAlias": "net9.0",
           "dependencies": {
             "Dapper": {
@@ -332,18 +326,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj": {
+    "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj",
         "projectName": "EPMS.Shared",
-        "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\EPMS.Shared.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Shared\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -362,11 +356,10 @@
         },
         "frameworks": {
           "net9.0": {
-            "framework": "net9.0",
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
-                "projectPath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
+              "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Domain\\EPMS.Domain.csproj"
               }
             }
           }
@@ -381,11 +374,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
-          "framework": "net9.0",
           "targetAlias": "net9.0",
           "imports": [
             "net461",
@@ -403,7 +395,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

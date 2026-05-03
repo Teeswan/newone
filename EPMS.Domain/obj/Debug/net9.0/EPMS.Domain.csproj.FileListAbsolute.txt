@@ -34,3 +34,16 @@ C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\refi
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.pdb
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\ref\EPMS.Domain.dll
 C:\Users\User\source\repos\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.AssemblyInfoInputs.cache
+C:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.AssemblyInfo.cs
+C:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.sourcelink.json
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.deps.json
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.dll
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\bin\Debug\net9.0\EPMS.Domain.pdb
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.dll
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\refint\EPMS.Domain.dll
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\EPMS.Domain.pdb
+c:\Users\User\Desktop\UIUX\EPerformance\EmployeePerformance\EPMS.Domain\obj\Debug\net9.0\ref\EPMS.Domain.dll

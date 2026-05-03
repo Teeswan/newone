@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_GetKpiAuditLog
+CREATE OR ALTER PROCEDURE sp_GetKpiAuditLog
     @EntityType NVARCHAR(100),
     @DateFrom DATE = NULL,
     @DateTo DATE = NULL,

@@ -3,27 +3,23 @@ using EPMS.Application.Interfaces;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
 using EPMS.Shared.DTOs;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace EPMS.Application.Services
+namespace EPMS.Application.Services;
+
+public class NotificationService : INotificationService
 {
-    public class NotificationService : INotificationService
+    private readonly INotificationRepository _repository;
+    private readonly IMapper _mapper;
+
+    public NotificationService(INotificationRepository repository, IMapper mapper)
     {
-        private readonly INotificationRepository _repository;
-        private readonly IMapper _mapper;
+        _repository = repository;
+        _mapper = mapper;
+    }
 
-        public NotificationService(INotificationRepository repository, IMapper mapper)
-        {
-            _repository = repository;
-            _mapper = mapper;
-        }
-
-        public async Task<List<NotificationDto>> GetAllNotificationsAsync()
-        {
-            var entities = await _repository.GetAllAsync();
-            return _mapper.Map<List<NotificationDto>>(entities.ToList());
-        }
+    public async Task<List<NotificationDto>> GetAllNotificationsAsync()
+    {
+        var entities = await _repository.GetAllAsync();
+        return _mapper.Map<List<NotificationDto>>(entities.ToList());
     }
 }

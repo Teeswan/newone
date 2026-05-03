@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_GetEmployeeKpiAssignment
+CREATE OR ALTER PROCEDURE sp_GetEmployeeKpiAssignment
     @EmployeeId INT,
     @CycleId INT
 AS

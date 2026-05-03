@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "F9+Tz5cbrtM=",
+  "dgSpecHash": "a7+ZtjvVma4=",
   "success": true,
-  "projectFilePath": "C:\\Users\\User\\source\\repos\\EmployeePerformance\\EPMS.Api\\EPMS.Api.csproj",
+  "projectFilePath": "C:\\Users\\User\\Desktop\\UIUX\\EPerformance\\EmployeePerformance\\EPMS.Api\\EPMS.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\User\\.nuget\\packages\\automapper\\16.1.1\\automapper.16.1.1.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",

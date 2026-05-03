@@ -44,8 +44,8 @@ BEGIN
             DepartmentId,
             0 AS Level
         FROM Employees
-        WHERE (@ManagerId IS NULL AND ReportsTo IS NULL)
-           OR (@ManagerId IS NOT NULL AND EmployeeId = @ManagerId)
+        WHERE ((@ManagerId IS NULL AND ReportsTo IS NULL)
+           OR (@ManagerId IS NOT NULL AND EmployeeId = @ManagerId))
         AND IsActive = 1
 
         UNION ALL

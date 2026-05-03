@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_GetKpisByPosition
+CREATE OR ALTER PROCEDURE sp_GetKpisByPosition
     @PositionId INT = NULL,
     @IsActive BIT = 1,
     @PageNumber INT = 1,

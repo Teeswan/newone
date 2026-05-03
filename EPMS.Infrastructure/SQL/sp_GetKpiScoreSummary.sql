@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_GetKpiScoreSummary
+CREATE OR ALTER PROCEDURE sp_GetKpiScoreSummary
     @EmployeeId INT,
     @CycleId INT
 AS

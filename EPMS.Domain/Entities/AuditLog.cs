@@ -5,19 +5,19 @@ namespace EPMS.Domain.Entities;
 
 public partial class AuditLog
 {
-    public long AuditId { get; set; }
+    public int AuditId { get; set; }
 
-    public string TableName { get; set; } = null!;
+    public string? TableName { get; set; }
 
-    public int RecordId { get; set; }
+    public int? RecordId { get; set; }
 
-    public string ActionType { get; set; } = null!;
+    public string? ActionType { get; set; }
 
     public string? OldData { get; set; }
 
     public string? NewData { get; set; }
 
-    public int ChangedByUserId { get; set; }
+    public int? ChangedByUserId { get; set; }
 
-    public DateTime? ChangedAt { get; set; }
+    public DateTimeOffset? ChangedAt { get; set; }
 }

@@ -66,17 +66,20 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.EndTime, opt => opt.MapFrom((src, dest, destMember, context) =>
             {
                 var duration = context.Items.ContainsKey("StandardDuration") ? (int)context.Items["StandardDuration"] : 45;
-                return src.ScheduledDateTime.AddMinutes(duration);
+                return src.ScheduledDateTime.HasValue ? src.ScheduledDateTime.Value.AddMinutes(duration) : (DateTime?)null;
             }))
             .ForMember(dest => dest.CanJoin, opt => opt.MapFrom((src, dest, destMember, context) =>
             {
                 var buffer = context.Items.ContainsKey("JoinBufferMinutes") ? (int)context.Items["JoinBufferMinutes"] : 0;
                 var duration = context.Items.ContainsKey("StandardDuration") ? (int)context.Items["StandardDuration"] : 45;
                 var now = DateTime.UtcNow;
-                var endTime = src.ScheduledDateTime.AddMinutes(duration);
+                
+                if (!src.ScheduledDateTime.HasValue)
+                    return false;
+                    
+                var endTime = src.ScheduledDateTime.Value.AddMinutes(duration);
           
-                bool isWithinBuffer = now >= src.ScheduledDateTime.AddMinutes(-buffer) && now <= endTime;
-
+                bool isWithinBuffer = now >= src.ScheduledDateTime.Value.AddMinutes(-buffer) && now <= endTime;
                 bool isManagerAlreadyIn = src.MeetingStatus == "Started";
 
                 return isWithinBuffer || isManagerAlreadyIn;

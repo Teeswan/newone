@@ -25,9 +25,9 @@ public partial class PerformanceEvaluation
 
     public DateTime? FinalizedAt { get; set; }
 
-    public virtual ICollection<AppraisalResponse> AppraisalResponses { get; set; } = new List<AppraisalResponse>();
-
     public virtual AppraisalCycle? Cycle { get; set; }
 
     public virtual Employee? Employee { get; set; }
+
+    public virtual ICollection<AppraisalResponse> AppraisalResponses { get; set; } = new List<AppraisalResponse>();
 }

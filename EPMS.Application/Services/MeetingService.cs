@@ -39,8 +39,9 @@ public class MeetingService : IMeetingService
 
             // Conflict Validation (No Database Changes needed!)
             var conflicts = existingMeetings.Where(m =>
-                currentStartTime < m.ScheduledDateTime.AddMinutes(_settings.StandardMeetingDurationMinutes) &&
-                calculatedEndTime > m.ScheduledDateTime).ToList();
+                m.ScheduledDateTime.HasValue &&
+                currentStartTime < m.ScheduledDateTime.Value.AddMinutes(_settings.StandardMeetingDurationMinutes) &&
+                calculatedEndTime > m.ScheduledDateTime.Value).ToList();
 
             if (conflicts.Any())
             {
@@ -99,8 +100,8 @@ public class MeetingService : IMeetingService
         {
             MeetingId = meetingId,
             AuthorId = authorId,
-            CreatedAt = DateTime.UtcNow,
-            // Assuming NoteText column exists in MeetingNote scaffold
+            NoteText = dto.NoteText,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _unitOfWork.MeetingNotes.AddAsync(note, ct);

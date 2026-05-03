@@ -3,27 +3,23 @@ using EPMS.Application.Interfaces;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
 using EPMS.Shared.DTOs;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace EPMS.Application.Services
+namespace EPMS.Application.Services;
+
+public class RoleService : IRoleService
 {
-    public class RoleService : IRoleService
+    private readonly IRoleRepository _repository;
+    private readonly IMapper _mapper;
+
+    public RoleService(IRoleRepository repository, IMapper mapper)
     {
-        private readonly IRoleRepository _repository;
-        private readonly IMapper _mapper;
+        _repository = repository;
+        _mapper = mapper;
+    }
 
-        public RoleService(IRoleRepository repository, IMapper mapper)
-        {
-            _repository = repository;
-            _mapper = mapper;
-        }
-
-        public async Task<List<RoleDto>> GetAllRolesAsync()
-        {
-            var entities = await _repository.GetAllAsync();
-            return _mapper.Map<List<RoleDto>>(entities.ToList());
-        }
+    public async Task<List<RoleDto>> GetAllRolesAsync()
+    {
+        var entities = await _repository.GetAllAsync();
+        return _mapper.Map<List<RoleDto>>(entities.ToList());
     }
 }
