@@ -1,0 +1,238 @@
+﻿@page "/pip/{PipId:int}"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@inject IPipClientService PipService
+@inject NavigationManager Nav
+
+<PageTitle>PIP Details</PageTitle>
+
+@if (_loading)
+{
+    <div class="loading-spinner">Loading...</div>
+}
+else if (_plan is null)
+{
+    <div class="alert alert-danger">PIP not found.</div>
+}
+else
+{
+    <div class="pip-detail-page">
+
+        <!-- Header -->
+        <div class="detail-header">
+            <div>
+                <h1>PIP – @_plan.EmployeeName</h1>
+                <p class="subtitle">Managed by @_plan.ManagerName</p>
+            </div>
+            <div class="header-actions">
+                <span class="badge badge-@_plan.Status.ToLower()">@_plan.Status</span>
+                <button class="btn-outline" @onclick='() => Nav.NavigateTo("/pip")'>← Back</button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card">
+                <span class="card-label">Duration</span>
+                <span class="card-value">
+                    @_plan.StartDate.ToString("dd MMM") – @_plan.EndDate.ToString("dd MMM yyyy")
+                </span>
+            </div>
+            <div class="card">
+                <span class="card-label">Objectives Achieved</span>
+                <span class="card-value">
+                    @_plan.Objectives.Count(o => o.IsAchieved) / @_plan.Objectives.Count
+                </span>
+            </div>
+            <div class="card">
+                <span class="card-label">Meetings Held</span>
+                <span class="card-value">@_plan.Meetings.Count</span>
+            </div>
+        </div>
+
+        <!-- Overall Goal -->
+        @if (!string.IsNullOrEmpty(_plan.OverallGoal))
+        {
+            <section class="detail-section">
+                <h2>Overall Goal</h2>
+                <p>@_plan.OverallGoal</p>
+            </section>
+        }
+
+        <!-- Objectives -->
+        <section class="detail-section">
+            <div class="section-header">
+                <h2>Objectives</h2>
+                <button class="btn-secondary btn-sm" @onclick="ShowAddObjective">+ Add</button>
+            </div>
+            @foreach (var obj in _plan.Objectives)
+            {
+                <PipObjectiveCard Objective="obj"
+                                  OnUpdate="HandleObjectiveUpdate"
+                                  OnDelete="HandleObjectiveDelete" />
+            }
+        </section>
+
+        <!-- Meetings -->
+        <section class="detail-section">
+            <div class="section-header">
+                <h2>Review Meetings</h2>
+                <button class="btn-secondary btn-sm" @onclick="ShowScheduleMeeting">+ Schedule</button>
+            </div>
+            @foreach (var meeting in _plan.Meetings.OrderBy(m => m.MeetingDate))
+            {
+                <PipMeetingCard Meeting="meeting"
+                                OnUpdate="HandleMeetingUpdate"
+                                OnDelete="HandleMeetingDelete" />
+            }
+            @if (!_plan.Meetings.Any())
+            {
+                <p class="hint">No meetings scheduled yet.</p>
+            }
+        </section>
+
+        <!-- Add Objective Form (inline) -->
+        @if (_showAddObjective)
+        {
+            <div class="inline-form">
+                <h3>Add Objective</h3>
+                <textarea class="form-control" rows="3"
+                          placeholder="Objective description..."
+                          @bind="_newObjective.ObjectiveDescription"></textarea>
+                <textarea class="form-control" rows="2"
+                          placeholder="Success criteria..."
+                          @bind="_newObjective.SuccessCriteria"></textarea>
+                <div class="form-actions">
+                    <button class="btn-outline btn-sm"
+                            @onclick="() => _showAddObjective = false">Cancel</button>
+                    <button class="btn-primary btn-sm"
+                            @onclick="SubmitObjective">Add Objective</button>
+                </div>
+            </div>
+        }
+
+        <!-- Schedule Meeting Form (inline) -->
+        @if (_showScheduleMeeting)
+        {
+            <div class="inline-form">
+                <h3>Schedule Meeting</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Meeting Date</label>
+                        <InputDate class="form-control" @bind-Value="_newMeeting.MeetingDate" />
+                    </div>
+                    <div class="form-group">
+                        <label>Progress Status</label>
+                        <InputSelect class="form-control" @bind-Value="_newMeeting.ProgressStatus">
+                            <option>On Track</option>
+                            <option>At Risk</option>
+                            <option>Behind Schedule</option>
+                            <option>Completed</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <textarea class="form-control" rows="3"
+                          placeholder="Discussion points..."
+                          @bind="_newMeeting.DiscussionPoints"></textarea>
+                <textarea class="form-control" rows="2"
+                          placeholder="Next steps..."
+                          @bind="_newMeeting.NextSteps"></textarea>
+                <div class="form-actions">
+                    <button class="btn-outline btn-sm"
+                            @onclick="() => _showScheduleMeeting = false">Cancel</button>
+                    <button class="btn-primary btn-sm"
+                            @onclick="SubmitMeeting">Schedule Meeting</button>
+                </div>
+            </div>
+        }
+
+    </div>
+}
+
+@code {
+    [Parameter] public int PipId { get; set; }
+
+    private PipPlanDto? _plan;
+    private bool _loading = true;
+    private bool _showAddObjective;
+    private bool _showScheduleMeeting;
+
+    private CreatePipObjectiveRequest _newObjective = new();
+    private CreatePipMeetingRequest _newMeeting = new()
+    {
+        MeetingDate = DateTime.Now.AddDays(7),
+        ProgressStatus = "On Track"
+    };
+
+    protected override async Task OnParametersSetAsync() => await LoadPlan();
+
+    private async Task LoadPlan()
+    {
+        _loading = true;
+        var response = await PipService.GetByIdAsync(PipId);
+        _plan = response?.Data;
+        _loading = false;
+    }
+
+    private void ShowAddObjective()
+    {
+        _newObjective = new CreatePipObjectiveRequest { PipId = PipId };
+        _showAddObjective = true;
+    }
+
+    private void ShowScheduleMeeting()
+    {
+        _newMeeting = new CreatePipMeetingRequest
+        {
+            PipId = PipId,
+            MeetingDate = DateTime.Now.AddDays(7),
+            ProgressStatus = "On Track"
+        };
+        _showScheduleMeeting = true;
+    }
+
+    private async Task SubmitObjective()
+    {
+        var response = await PipService.AddObjectiveAsync(_newObjective);
+        if (response?.Success == true)
+        {
+            _showAddObjective = false;
+            await LoadPlan();
+        }
+    }
+
+    private async Task SubmitMeeting()
+    {
+        var response = await PipService.AddMeetingAsync(_newMeeting);
+        if (response?.Success == true)
+        {
+            _showScheduleMeeting = false;
+            await LoadPlan();
+        }
+    }
+
+    private async Task HandleObjectiveUpdate(UpdatePipObjectiveRequest request)
+    {
+        await PipService.UpdateObjectiveAsync(request);
+        await LoadPlan();
+    }
+
+    private async Task HandleObjectiveDelete(int objectiveId)
+    {
+        await PipService.DeleteObjectiveAsync(objectiveId);
+        await LoadPlan();
+    }
+
+    private async Task HandleMeetingUpdate(UpdatePipMeetingRequest request)
+    {
+        await PipService.UpdateMeetingAsync(request);
+        await LoadPlan();
+    }
+
+    private async Task HandleMeetingDelete(int meetingId)
+    {
+        await PipService.DeleteMeetingAsync(meetingId);
+        await LoadPlan();
+    }
+}

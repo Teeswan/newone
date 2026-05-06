@@ -115,9 +115,9 @@ namespace EPMS.Application.Services
             if (plan is null)
                 return ApiResponse<PipPlanDto>.Fail($"PIP with ID {request.PipId} not found.");
 
-            plan.EndDate = request.EndDate;
+            //plan.EndDate = request.EndDate;
             plan.Status = request.Status;
-            plan.OverallGoal = request.OverallGoal;
+            //plan.OverallGoal = request.OverallGoal;
 
             await _planRepo.UpdateAsync(plan, ct);
             var updated = await _planRepo.GetByIdWithDetailsAsync(plan.Pipid, ct);
@@ -159,8 +159,8 @@ namespace EPMS.Application.Services
                 return ApiResponse<PipObjectiveDto>.Fail($"Objective {request.ObjectiveId} not found.");
 
             objective.IsAchieved = request.IsAchieved;
-            objective.ReviewComments = request.ReviewComments;
-            objective.SuccessCriteria = request.SuccessCriteria;
+            //objective.ReviewComments = request.ReviewComments;
+            //objective.SuccessCriteria = request.SuccessCriteria;
 
             var updated = await _objectiveRepo.UpdateAsync(objective, ct);
             return ApiResponse<PipObjectiveDto>.Ok(_mapper.Map<PipObjectiveDto>(updated), "Objective updated.");
@@ -196,10 +196,10 @@ namespace EPMS.Application.Services
             if (meeting is null)
                 return ApiResponse<PipMeetingDto>.Fail($"Meeting {request.PipMeetingId} not found.");
 
-            meeting.MeetingDate = request.MeetingDate;
-            meeting.DiscussionPoints = request.DiscussionPoints;
+            //meeting.MeetingDate = request.MeetingDate;
+            //meeting.DiscussionPoints = request.DiscussionPoints;
             meeting.ProgressStatus = request.ProgressStatus;
-            meeting.NextSteps = request.NextSteps;
+            //meeting.NextSteps = request.NextSteps;
 
             var updated = await _meetingRepo.UpdateAsync(meeting, ct);
             return ApiResponse<PipMeetingDto>.Ok(_mapper.Map<PipMeetingDto>(updated), "Meeting updated.");

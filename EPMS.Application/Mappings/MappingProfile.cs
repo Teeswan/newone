@@ -120,7 +120,7 @@ public class MappingProfile : Profile
             .ForMember(d => d.ObjectiveId, o => o.Ignore())
             .ForMember(d => d.Pipid, o => o.MapFrom(s => s.PipId))
             .ForMember(d => d.IsAchieved, o => o.MapFrom(_ => false))
-            .ForMember(d => d.ReviewComments, o => o.Ignore())
+            //.ForMember(d => d.ReviewComments, o => o.Ignore())
             .ForMember(d => d.Pip, o => o.Ignore());
 
         CreateMap<CreatePipMeetingRequest, PipMeeting>()

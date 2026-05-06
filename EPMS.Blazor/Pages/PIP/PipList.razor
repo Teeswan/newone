@@ -1,0 +1,114 @@
+﻿@page "/pip"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@inject IPipClientService PipService
+@inject NavigationManager Nav
+
+<PageTitle>Performance Improvement Plans</PageTitle>
+
+<div class="pip-list-page">
+    <div class="page-header">
+        <h1>Performance Improvement Plans</h1>
+        <button class="btn-primary" @onclick='() => Nav.NavigateTo("/pip/create")'>
+            + New PIP
+        </button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <select @bind="_statusFilter" @bind:after="LoadData">
+            <option value="">All Statuses</option>
+            <option>Active</option>
+            <option>Completed</option>
+            <option>Terminated</option>
+            <option>Extended</option>
+        </select>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="loading-spinner">Loading PIPs...</div>
+    }
+    else if (_errorMessage is not null)
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+    else if (_plans is not null)
+    {
+        <table class="pip-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Manager</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                    <th>Objectives</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var plan in _plans)
+                {
+                    <tr>
+                        <td>@plan.EmployeeName</td>
+                        <td>@plan.ManagerName</td>
+                        <td>@plan.StartDate.ToString("dd MMM yyyy")</td>
+                        <td>@plan.EndDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="badge badge-@plan.Status.ToLower()">
+                                @plan.Status
+                            </span>
+                        </td>
+                        <td>
+                            @plan.Objectives.Count(o => o.IsAchieved) / @plan.Objectives.Count
+                        </td>
+                        <td>
+                            <button class="btn-sm btn-outline"
+                                    @onclick='() => Nav.NavigateTo($"/pip/{plan.PipId}")'>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private IEnumerable<PipPlanDto>? _plans;
+    private bool _loading = true;
+    private string? _errorMessage;
+    private string _statusFilter = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        _errorMessage = null;
+        try
+        {
+            var response = await PipService.GetAllAsync();
+            if (response?.Success == true)
+            {
+                _plans = string.IsNullOrEmpty(_statusFilter)
+                    ? response.Data
+                    : response.Data?.Where(p => p.Status == _statusFilter);
+            }
+            else
+            {
+                _errorMessage = response?.Message ?? "Failed to load PIPs.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

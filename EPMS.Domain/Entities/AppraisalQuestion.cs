@@ -17,5 +17,5 @@ public partial class AppraisalQuestion
 
     public virtual ICollection<AppraisalResponse> AppraisalResponses { get; set; } = new List<AppraisalResponse>();
 
-    public virtual ICollection<FormQuestion> FormQuestions { get; set; } = new List<FormQuestion>();
+    //public virtual ICollection<FormQuestion> FormQuestions { get; set; } = new List<FormQuestion>();
 }

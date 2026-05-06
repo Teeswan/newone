@@ -50,7 +50,7 @@ namespace EPMS.Infrastructure.Repositories
             }
 
             plan.PipMeetings = plan.PipMeetings
-                .OrderBy(m => m.MeetingDate)
+                //.OrderBy(m => m.MeetingDate)
                 .ToList();
 
             return plan;

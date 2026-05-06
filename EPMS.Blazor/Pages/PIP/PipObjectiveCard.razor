@@ -1,0 +1,79 @@
+﻿@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+
+<div class="objective-card @(_editing ? "editing" : "") @(Objective.IsAchieved ? "achieved" : "")">
+
+    @if (!_editing)
+    {
+        <div class="objective-header">
+            <div class="achieved-badge @(Objective.IsAchieved ? "yes" : "no")">
+                @(Objective.IsAchieved ? "✓ Achieved" : "Pending")
+            </div>
+            <div class="objective-actions">
+                <button class="btn-icon" title="Edit" @onclick="StartEdit">✏️</button>
+                <button class="btn-icon btn-danger" title="Delete"
+                        @onclick="() => OnDelete.InvokeAsync(Objective.ObjectiveId)">
+                    🗑
+                </button>
+            </div>
+        </div>
+        <p class="objective-desc">@Objective.ObjectiveDescription</p>
+        @if (!string.IsNullOrEmpty(Objective.SuccessCriteria))
+        {
+            <p class="success-criteria"><strong>Success Criteria:</strong> @Objective.SuccessCriteria</p>
+        }
+        @if (!string.IsNullOrEmpty(Objective.ReviewComments))
+        {
+            <p class="review-comments"><strong>Review Notes:</strong> @Objective.ReviewComments</p>
+        }
+    }
+    else
+    {
+        <div class="edit-form">
+            <label>
+                <input type="checkbox" @bind="_editRequest.IsAchieved" />
+                Mark as Achieved
+            </label>
+            <textarea class="form-control" rows="2"
+                      placeholder="Success criteria..."
+                      @bind="_editRequest.SuccessCriteria"></textarea>
+            <textarea class="form-control" rows="2"
+                      placeholder="Review comments..."
+                      @bind="_editRequest.ReviewComments"></textarea>
+            <div class="form-actions">
+                <button class="btn-outline btn-sm" @onclick="CancelEdit">Cancel</button>
+                <button class="btn-primary btn-sm" @onclick="SaveEdit">Save</button>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public PipObjectiveDto Objective { get; set; } = null!;
+    [Parameter] public EventCallback<UpdatePipObjectiveRequest> OnUpdate { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
+    private bool _editing;
+    private UpdatePipObjectiveRequest _editRequest = new();
+
+    private void StartEdit()
+    {
+        _editRequest = new UpdatePipObjectiveRequest
+        {
+            ObjectiveId = Objective.ObjectiveId,
+            IsAchieved = Objective.IsAchieved,
+            ReviewComments = Objective.ReviewComments,
+            SuccessCriteria = Objective.SuccessCriteria
+        };
+        _editing = true;
+    }
+
+    private void CancelEdit() => _editing = false;
+
+    private async Task SaveEdit()
+    {
+        await OnUpdate.InvokeAsync(_editRequest);
+        _editing = false;
+    }
+}

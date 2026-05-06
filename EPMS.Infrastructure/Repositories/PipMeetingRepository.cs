@@ -39,7 +39,7 @@ namespace EPMS.Infrastructure.Repositories
             return await _db.PipMeetings
                 .AsNoTracking()
                 .Where(m => m.Pipid == pipId)
-                .OrderBy(m => m.MeetingDate)
+                //.OrderBy(m => m.MeetingDate)
                 .ToListAsync(ct);
         }
 
@@ -86,7 +86,7 @@ namespace EPMS.Infrastructure.Repositories
             return await _db.PipMeetings
                 .AsNoTracking()
                 .Where(m => m.Pipid == pipId)
-                .OrderByDescending(m => m.MeetingDate)
+                //.OrderByDescending(m => m.MeetingDate)
                 .FirstOrDefaultAsync(ct);
         }
     }

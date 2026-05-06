@@ -1,0 +1,139 @@
+﻿@page "/pip/create"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.Requests
+@using EPMS.Shared.Validation
+@inject IPipClientService PipService
+@inject NavigationManager Nav
+
+<PageTitle>Create Performance Improvement Plan</PageTitle>
+
+<div class="pip-create-page">
+    <h1>Create New PIP</h1>
+
+    <EditForm Model="_request" OnValidSubmit="HandleSubmit">
+
+        <!-- Plan Details -->
+        <section class="form-section">
+            <h2>Plan Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Employee ID</label>
+                    <InputNumber class="form-control" @bind-Value="_request.EmployeeId" />
+                </div>
+                <div class="form-group">
+                    <label>Manager ID</label>
+                    <InputNumber class="form-control" @bind-Value="_request.ManagerId" />
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <InputDate class="form-control" @bind-Value="_request.StartDate" />
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <InputDate class="form-control" @bind-Value="_request.EndDate" />
+                </div>
+            </div>
+            <div class="form-group full-width">
+                <label>Overall Goal</label>
+                <InputTextArea class="form-control" rows="4" @bind-Value="_request.OverallGoal" />
+            </div>
+        </section>
+
+        <!-- Objectives -->
+        <section class="form-section">
+            <div class="section-header">
+                <h2>Objectives</h2>
+                <button type="button" class="btn-secondary btn-sm" @onclick="AddObjective">
+                    + Add Objective
+                </button>
+            </div>
+
+            @for (var i = 0; i < _request.Objectives.Count; i++)
+            {
+                var index = i;
+                <PipObjectiveForm
+                    Objective="_request.Objectives[index]"
+                    Index="index + 1"
+                    OnRemove="() => RemoveObjective(index)" />
+            }
+
+            @if (!_request.Objectives.Any())
+            {
+                <p class="hint">Add at least one objective to define improvement targets.</p>
+            }
+        </section>
+
+        <!-- Validation Errors -->
+        @if (_errors.Any())
+        {
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach (var error in _errors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="form-actions">
+            <button type="button" class="btn-outline"
+                    @onclick='() => Nav.NavigateTo("/pip")'>
+                Cancel
+            </button>
+            <button type="submit" class="btn-primary" disabled="@_submitting">
+                @(_submitting ? "Creating..." : "Create PIP")
+            </button>
+        </div>
+
+    </EditForm>
+</div>
+
+@code {
+    private readonly CreatePipPlanRequest _request = new()
+    {
+        StartDate = DateOnly.FromDateTime(DateTime.Today),
+        EndDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(1)),
+        Objectives = new List<CreatePipObjectiveRequest>
+        {
+            new()
+        }
+    };
+
+    private List<string> _errors = new();
+    private bool _submitting;
+
+    private void AddObjective() =>
+        _request.Objectives.Add(new CreatePipObjectiveRequest { PipId = 0 });
+
+    private void RemoveObjective(int index) =>
+        _request.Objectives.RemoveAt(index);
+
+    private async Task HandleSubmit()
+    {
+        _submitting = true;
+        _errors.Clear();
+
+        // Client-side FluentValidation
+        var validator = new CreatePipPlanValidator();
+        var result = await validator.ValidateAsync(_request);
+        if (!result.IsValid)
+        {
+            _errors = result.Errors.Select(e => e.ErrorMessage).ToList();
+            _submitting = false;
+            return;
+        }
+
+        var response = await PipService.CreatePipAsync(_request);
+        if (response?.Success == true)
+        {
+            Nav.NavigateTo($"/pip/{response.Data!.PipId}");
+        }
+        else
+        {
+            _errors = response?.Errors ?? new List<string> { "Failed to create PIP." };
+        }
+
+        _submitting = false;
+    }
+}
