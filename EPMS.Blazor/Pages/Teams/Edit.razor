@@ -1,0 +1,115 @@
+@page "/teams/edit/{id:int}"
+@inject EPMS.Blazor.Services.ITeamBlazorService TeamService
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Team</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Edit Team</MudText>
+        <MudDivider Class="mb-6" />
+
+        @if (team == null)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <EditForm Model="team" OnValidSubmit="HandleValidSubmit">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField 
+                            @bind-Value="team.TeamName" 
+                            Label="Team Name" 
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudNumericField 
+                            @bind-Value="team.ManagerId" 
+                            Label="Manager ID" 
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            FullWidth="true"
+                            T="int?" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSelect 
+                            @bind-Value="team.DepartmentId" 
+                            Label="Department"
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            FullWidth="true"
+                            T="int?">
+                            @if (departments != null)
+                            {
+                                @foreach (var dept in departments)
+                                {
+                                    <MudSelectItem Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" Class="pt-4">
+                        <MudButtonGroup>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
+                                Save
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                                Cancel
+                            </MudButton>
+                        </MudButtonGroup>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateTeamRequest? team;
+    private IEnumerable<DepartmentDto>? departments;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var teamDto = await TeamService.GetTeamByIdAsync(Id);
+        if (teamDto != null)
+        {
+            team = new UpdateTeamRequest
+            {
+                TeamName = teamDto.TeamName,
+                ManagerId = teamDto.ManagerId,
+                DepartmentId = teamDto.DepartmentId
+            };
+        }
+        departments = await DepartmentService.GetAllDepartmentsAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (team != null)
+        {
+            try
+            {
+                await TeamService.UpdateTeamAsync(Id, team);
+                Snackbar.Add("Team updated successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/teams");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error updating team: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/teams");
+    }
+}

@@ -1,20 +1,3 @@
-﻿@* @inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div> *@
-
 @inherits LayoutComponentBase
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components.Authorization
@@ -23,45 +6,47 @@
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudLayout>
+    <MudAppBar Elevation="4">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudText Class="ml-4" Typo="Typo.h6" Color="Color.Inherit">EPMS - Employee Performance Management System</MudText>
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudText Class="mr-4" Color="Color.Inherit">Welcome, @context.User.Identity?.Name!</MudText>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="HandleLogout">
+                    <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Logout" /> Logout
+                </MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/login">
+                    <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Login" /> Login
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
 
-    <main>
-        <div class="top-row px-4 d-flex justify-content-between align-items-center">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu CloseDrawer="() => _drawerOpen = false" />
+    </MudDrawer>
 
-        
-            <AuthorizeView>
-                <Authorized>
-                    <div class="d-flex align-items-center">
-                        <span class="me-3 text-muted small">Welcome, @context.User.Identity?.Name</span>
-                        <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </button>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="/login" class="btn btn-primary btn-sm">Login</a>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    <MudMainContent Class="mt-16 pa-6">
+        @Body
+    </MudMainContent>
+</MudLayout>
 
 @code {
+    private bool _drawerOpen = true;
+
     private async Task HandleLogout()
     {
-      
         await LocalStorage.RemoveItemAsync("authToken");
-
         ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserLogout();
-
         Navigation.NavigateTo("/login");
+    }
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
     }
 }

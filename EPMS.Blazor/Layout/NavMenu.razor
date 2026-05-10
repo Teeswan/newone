@@ -1,69 +1,17 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">EPMS.Blazor</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="appraisalcycles">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Appraisal Cycles
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="appraisalforms">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Appraisal Forms
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="appraisalquestions">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Appraisal Questions
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="appraisalresponses">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Appraisal Responses
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="performanceevaluations">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Performance Evaluations
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="performanceoutcomes">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Performance Outcomes
-            </NavLink>
-        </div>
-    </nav>
-</div>
+<MudNavMenu>
+    <MudText Typo="Typo.h6" Class="px-4 py-3">Menu</MudText>
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Href="/appraisalcycles" Icon="@Icons.Material.Filled.EventNote">Appraisal Cycles</MudNavLink>
+    <MudNavLink Href="/appraisalforms" Icon="@Icons.Material.Filled.Description">Appraisal Forms</MudNavLink>
+    <MudNavLink Href="/appraisalquestions" Icon="@Icons.Material.Filled.Quiz">Appraisal Questions</MudNavLink>
+    <MudNavLink Href="/appraisalresponses" Icon="@Icons.Material.Filled.QuestionAnswer">Appraisal Responses</MudNavLink>
+    <MudNavLink Href="/performanceevaluations" Icon="@Icons.Material.Filled.Assessment">Performance Evaluations</MudNavLink>
+    <MudNavLink Href="/performanceoutcomes" Icon="@Icons.Material.Filled.TaskAlt">Performance Outcomes</MudNavLink>
+    <MudNavLink Href="/departments" Icon="@Icons.Material.Filled.Domain">Departments</MudNavLink>
+    <MudNavLink Href="/teams" Icon="@Icons.Material.Filled.Groups">Teams</MudNavLink>
+</MudNavMenu>
 
 @code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
+    [Parameter]
+    public Action? CloseDrawer { get; set; }
 }

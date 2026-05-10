@@ -1,0 +1,73 @@
+@page "/departments/details/{id:int}"
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Department Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Department Details</MudText>
+        <MudDivider Class="mb-6" />
+
+        @if (department == null)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Department ID</MudText>
+                    <MudText Typo="Typo.body1">@department.DepartmentId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Name</MudText>
+                    <MudText Typo="Typo.body1">@department.DepartmentName</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Parent Department</MudText>
+                    <MudText Typo="Typo.body1">@department.ParentDepartmentName</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Active</MudText>
+                    <MudChip Color="@(department.IsActive ? Color.Success : Color.Error)" Size="Size.Small" T="bool">
+                        @(department.IsActive ? "Yes" : "No")
+                    </MudChip>
+                </MudItem>
+            </MudGrid>
+        }
+
+        <MudDivider Class="my-6" />
+
+        <MudButtonGroup>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                Edit
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                Back to List
+            </MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private DepartmentDto? department;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        department = await DepartmentService.GetDepartmentByIdAsync(Id);
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/departments/edit/{Id}");
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/departments");
+    }
+}

@@ -25,6 +25,9 @@ public class DepartmentRepository : BaseRepository<Department, int>, IDepartment
 
     public override async Task<IEnumerable<Department>> GetAllAsync()
     {
-        return await _dbSet.Where(d => d.IsActive == true).AsNoTracking().ToListAsync();
+        return await _dbSet.Where(d => d.IsActive == true)
+            .Include(d => d.ParentDepartment)
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

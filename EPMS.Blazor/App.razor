@@ -1,25 +1,25 @@
-﻿@* <Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router> *@
 <CascadingAuthenticationState>
+    <MudThemeProvider />
+    <MudPopoverProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    <div class="text-center" style="margin-top: 100px;">
-                        <h3 class="text-danger">Access Denied</h3>
-                        <p>You do not have permission to view this page. Please log in.</p>
-                        <a href="login" class="btn btn-primary mt-3">Go to Login Page</a>
-                    </div>
+                    <MudPaper Class="mt-20 mx-auto" Elevation="3" MaxWidth="MaxWidth.Small">
+                        <MudContainer Class="pa-8">
+                            <MudText GutterBottom="true" Typo="Typo.h5" Color="Color.Error" Align="Align.Center">
+                                Access Denied
+                            </MudText>
+                            <MudText Align="Align.Center" Class="mb-6">
+                                You do not have permission to view this page. Please log in.
+                            </MudText>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Href="/login">
+                                Go to Login Page
+                            </MudButton>
+                        </MudContainer>
+                    </MudPaper>
                 </NotAuthorized>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -27,7 +27,9 @@
         <NotFound>
             <PageTitle>Not found</PageTitle>
             <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
+                <MudText GutterBottom="true" Typo="Typo.h5">
+                    Sorry, there's nothing at this address.
+                </MudText>
             </LayoutView>
         </NotFound>
     </Router>

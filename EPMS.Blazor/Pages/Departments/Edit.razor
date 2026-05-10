@@ -1,0 +1,107 @@
+@page "/departments/edit/{id:int}"
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Department</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Edit Department</MudText>
+        <MudDivider Class="mb-6" />
+
+        @if (department == null)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <EditForm Model="department" OnValidSubmit="HandleValidSubmit">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField 
+                            @bind-Value="department.DepartmentName" 
+                            Label="Department Name" 
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudSelect 
+                            @bind-Value="department.ParentDepartmentId" 
+                            Label="Parent Department"
+                            Variant="Variant.Outlined"
+                            FullWidth="true"
+                            T="int?">
+                            @if (allDepartments != null)
+                            {
+                                @foreach (var dept in allDepartments.Where(d => d.DepartmentId != Id))
+                                {
+                                    <MudSelectItem Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudCheckBox @bind-Value="department.IsActive" Label="Is Active" Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="12" Class="pt-4">
+                        <MudButtonGroup>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
+                                Save
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                                Cancel
+                            </MudButton>
+                        </MudButtonGroup>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateDepartmentRequest? department;
+    private IEnumerable<DepartmentDto>? allDepartments;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var deptDto = await DepartmentService.GetDepartmentByIdAsync(Id);
+        if (deptDto != null)
+        {
+            department = new UpdateDepartmentRequest
+            {
+                DepartmentName = deptDto.DepartmentName,
+                ParentDepartmentId = deptDto.ParentDepartmentId,
+                IsActive = deptDto.IsActive
+            };
+        }
+        allDepartments = await DepartmentService.GetAllDepartmentsAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (department != null)
+        {
+            try
+            {
+                await DepartmentService.UpdateDepartmentAsync(Id, department);
+                Snackbar.Add("Department updated successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/departments");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error updating department: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/departments");
+    }
+}

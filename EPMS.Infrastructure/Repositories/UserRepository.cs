@@ -67,7 +67,7 @@ namespace EPMS.Infrastructure.Repositories
 
             if (!_cache.TryGetValue(userCacheKey, out User? user))
             {
-                user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Username == username);
                 if (user != null)
                 {
                     _cache.Set(userCacheKey, user, TimeSpan.FromMinutes(30));

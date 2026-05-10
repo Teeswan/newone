@@ -1,0 +1,71 @@
+@page "/teams/details/{id:int}"
+@inject EPMS.Blazor.Services.ITeamBlazorService TeamService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Team Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Team Details</MudText>
+        <MudDivider Class="mb-6" />
+
+        @if (team == null)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Team ID</MudText>
+                    <MudText Typo="Typo.body1">@team.TeamId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Name</MudText>
+                    <MudText Typo="Typo.body1">@team.TeamName</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Manager</MudText>
+                    <MudText Typo="Typo.body1">@team.ManagerName</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Department</MudText>
+                    <MudText Typo="Typo.body1">@team.DepartmentName</MudText>
+                </MudItem>
+            </MudGrid>
+        }
+
+        <MudDivider Class="my-6" />
+
+        <MudButtonGroup>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                Edit
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                Back to List
+            </MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private TeamDto? team;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        team = await TeamService.GetTeamByIdAsync(Id);
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/teams/edit/{Id}");
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/teams");
+    }
+}

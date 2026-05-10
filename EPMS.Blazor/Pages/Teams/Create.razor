@@ -1,0 +1,92 @@
+@page "/teams/create"
+@inject EPMS.Blazor.Services.ITeamBlazorService TeamService
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Team</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Create Team</MudText>
+        <MudDivider Class="mb-6" />
+
+        <EditForm Model="team" OnValidSubmit="HandleValidSubmit">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField 
+                        @bind-Value="team.TeamName" 
+                        Label="Team Name" 
+                        Required="true"
+                        Variant="Variant.Outlined"
+                        FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField 
+                        @bind-Value="team.ManagerId" 
+                        Label="Manager ID" 
+                        Required="true"
+                        Variant="Variant.Outlined"
+                        FullWidth="true"
+                        T="int?" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect 
+                        @bind-Value="team.DepartmentId" 
+                        Label="Department"
+                        Required="true"
+                        Variant="Variant.Outlined"
+                        FullWidth="true"
+                        T="int?">
+                        @if (departments != null)
+                        {
+                            @foreach (var dept in departments)
+                            {
+                                <MudSelectItem Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" Class="pt-4">
+                    <MudButtonGroup>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
+                            Create
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                            Cancel
+                        </MudButton>
+                    </MudButtonGroup>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private CreateTeamRequest team = new();
+    private IEnumerable<DepartmentDto>? departments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await DepartmentService.GetAllDepartmentsAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await TeamService.CreateTeamAsync(team);
+            Snackbar.Add("Team created successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/teams");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating team: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/teams");
+    }
+}

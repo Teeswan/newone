@@ -1,0 +1,262 @@
+@page "/departments"
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Departments</PageTitle>
+
+<MudContainer>
+    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudItem>
+            <MudText Typo="Typo.h4" Class="mb-0">Departments</MudText>
+        </MudItem>
+        <MudItem>
+            <MudButtonGroup Variant="Variant.Filled">
+                <MudButton Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                    Create New
+                </MudButton>
+                @if (selectedDepartments.Any())
+                {
+                    <MudButton Color="Color.Error" OnClick="DeleteSelected" StartIcon="@Icons.Material.Filled.Delete">
+                        Delete Selected (@selectedDepartments.Count)
+                    </MudButton>
+                }
+                <MudButton Color="Color.Success" OnClick="ExportToExcel" StartIcon="@Icons.Material.Filled.Download">
+                    Export Excel
+                </MudButton>
+                <MudButton Color="Color.Secondary" OnClick="ExportToPdf" StartIcon="@Icons.Material.Filled.PictureAsPdf">
+                    Export PDF
+                </MudButton>
+                <MudButton Color="Color.Info" OnClick="ShowImportDialog" StartIcon="@Icons.Material.Filled.Upload">
+                    Import Excel
+                </MudButton>
+            </MudButtonGroup>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Elevation="2" Class="pa-4">
+        @if (departments == null)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!departments.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="ma-4">
+                No departments found. Create your first department!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@departments" Hover="true" Breakpoint="Breakpoint.Sm" MultiSelection="true" @bind-SelectedItems="selectedDepartments" SelectOnRowClick="false">
+                <HeaderContent>
+                    <MudTh>
+                        <MudCheckBox T="bool" Checked="@AreAllDepartmentsSelected" CheckedChanged="@ToggleAllDepartments" Size="Size.Small" />
+                    </MudTh>
+                    <MudTh>Department ID</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Parent Department</MudTh>
+                    <MudTh>Active</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd></MudTd>
+                    <MudTd DataLabel="Department ID">@context.DepartmentId</MudTd>
+                    <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Parent Department">@context.ParentDepartmentName ?? "None"</MudTd>
+                    <MudTd DataLabel="Active">
+                        <MudChip Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small" T="bool">
+                            @(context.IsActive ? "Yes" : "No")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.DepartmentId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
+                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.DepartmentId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                            <MudButton Color="Color.Error" OnClick="() => DeleteDepartment(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private IEnumerable<DepartmentDto>? departments;
+    private HashSet<DepartmentDto> selectedDepartments = new();
+
+    private bool AreAllDepartmentsSelected => departments != null && selectedDepartments.Count == departments.Count();
+
+    private void ToggleAllDepartments(bool value)
+    {
+        if (departments == null)
+            return;
+
+        if (value)
+        {
+            selectedDepartments = new HashSet<DepartmentDto>(departments);
+        }
+        else
+        {
+            selectedDepartments.Clear();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDepartments();
+    }
+
+    private async Task LoadDepartments()
+    {
+        try
+        {
+            departments = await DepartmentService.GetAllDepartmentsAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Error loading departments: {ex.Message}", Severity.Error);
+            departments = new List<DepartmentDto>();
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/departments/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/departments/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/departments/edit/{id}");
+    }
+
+    private async Task DeleteDepartment(DepartmentDto dept)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete this department?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await DepartmentService.DeleteDepartmentAsync(dept.DepartmentId);
+                if (success)
+                {
+                    Snackbar.Add("Department deleted successfully!", Severity.Success);
+                    await LoadDepartments();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting department.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting department: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteSelected()
+    {
+        if (!selectedDepartments.Any())
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete {selectedDepartments.Count} selected departments?" },
+            { "ButtonText", "Delete All" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            int deletedCount = 0;
+            try
+            {
+                foreach (var dept in selectedDepartments.ToList())
+                {
+                    var success = await DepartmentService.DeleteDepartmentAsync(dept.DepartmentId);
+                    if (success)
+                    {
+                        deletedCount++;
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    Snackbar.Add($"Successfully deleted {deletedCount} departments!", Severity.Success);
+                    selectedDepartments.Clear();
+                    await LoadDepartments();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting departments.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting departments: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            var fileBytes = await DepartmentService.ExportToExcelAsync();
+            await JSRuntime.InvokeVoidAsync("saveAsFile", "Departments.xlsx", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("Excel file downloaded successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportToPdf()
+    {
+        try
+        {
+            var fileBytes = await DepartmentService.ExportToPdfAsync();
+            await JSRuntime.InvokeVoidAsync("saveAsFile", "Departments.pdf", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("PDF file downloaded successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to PDF: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ShowImportDialog()
+    {
+        Snackbar.Add("Opening import dialog...", Severity.Info);
+        var dialog = DialogService.Show<ImportDepartmentDialog>("Import Departments");
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await LoadDepartments();
+        }
+    }
+}
