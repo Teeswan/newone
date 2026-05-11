@@ -1,0 +1,101 @@
+@page "/levels/details/{id}"
+@inject EPMS.Blazor.Services.ILevelBlazorService LevelService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Level Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="3" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+            <MudItem>
+                <MudText Typo="Typo.h4">Level Details</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                    Back to List
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (isLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center" />
+        }
+        else if (level == null)
+        {
+            <MudAlert Severity="Severity.Error">Level not found.</MudAlert>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudPaper Class="pa-4" Elevation="0" Style="background-color: var(--mud-palette-surface);">
+                        <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Level ID</MudText>
+                        <MudText Typo="Typo.body1">@level.LevelId</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudPaper Class="pa-4" Elevation="0" Style="background-color: var(--mud-palette-surface);">
+                        <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Level Name</MudText>
+                        <MudText Typo="Typo.body1">@level.LevelName</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4" Elevation="0" Style="background-color: var(--mud-palette-surface);">
+                        <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Description</MudText>
+                        <MudText Typo="Typo.body1">@level.LevelDescription</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-6" />
+
+            <MudButtonGroup>
+                <MudButton Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                    Edit Level
+                </MudButton>
+            </MudButtonGroup>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private LevelDto? level;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadLevel();
+    }
+
+    private async Task LoadLevel()
+    {
+        try
+        {
+            isLoading = true;
+            level = await LevelService.GetLevelByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading level: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/levels");
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/levels/edit/{Id}");
+    }
+}

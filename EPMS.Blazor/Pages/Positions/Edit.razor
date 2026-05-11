@@ -1,0 +1,145 @@
+@page "/positions/edit/{id:int}"
+@inject EPMS.Blazor.Services.IPositionBlazorService PositionService
+@inject EPMS.Blazor.Services.ILevelBlazorService LevelService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Position</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-6">Edit Position</MudText>
+
+        @if (isLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center" />
+        }
+        else if (positionModel == null)
+        {
+            <MudAlert Severity="Severity.Error">Position not found.</MudAlert>
+        }
+        else
+        {
+            <EditForm Model="positionModel" OnValidSubmit="HandleUpdate">
+                <MudTextField 
+                    T="int"
+                    Label="Position ID" 
+                    @bind-Value="positionId"
+                    Variant="Variant.Outlined"
+                    FullWidth="true"
+                    Class="mb-4"
+                    Disabled="true" />
+
+                <MudTextField 
+                    T="string"
+                    Label="Position Title" 
+                    @bind-Value="positionModel.PositionTitle"
+                    Placeholder="Enter position title"
+                    Variant="Variant.Outlined"
+                    FullWidth="true"
+                    Class="mb-4"
+                    Required="true" />
+
+                <MudSelect 
+                    T="string"
+                    Label="Level" 
+                    @bind-Value="positionModel.LevelId"
+                    Placeholder="Select level (optional)"
+                    Variant="Variant.Outlined"
+                    FullWidth="true"
+                    Class="mb-6"
+                    Clearable="true">
+                    @if (levels != null)
+                    {
+                        @foreach (var level in levels)
+                        {
+                            <MudSelectItem Value="@level.LevelId">@level.LevelName</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" FullWidth="true" OnClick="NavigateBack">
+                            Cancel
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" FullWidth="true">
+                            Update
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private int positionId;
+    private UpdatePositionRequest? positionModel;
+    private IEnumerable<LevelDto>? levels;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            var positionTask = PositionService.GetPositionByIdAsync(Id);
+            var levelsTask = LevelService.GetAllLevelsAsync();
+
+            await Task.WhenAll(positionTask, levelsTask);
+
+            var position = await positionTask;
+            levels = await levelsTask;
+
+            if (position != null)
+            {
+                positionId = position.PositionId;
+                positionModel = new UpdatePositionRequest
+                {
+                    PositionTitle = position.PositionTitle,
+                    LevelId = position.LevelId
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (positionModel == null) return;
+
+        try
+        {
+            await PositionService.UpdatePositionAsync(Id, positionModel);
+            Snackbar.Add("Position updated successfully!", Severity.Success);
+            NavigateBack();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating position: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/positions");
+    }
+}

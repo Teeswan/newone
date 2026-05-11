@@ -1,0 +1,88 @@
+@inject EPMS.Blazor.Services.IPermissionBlazorService PermissionService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Select Permission to Assign</MudText>
+
+        @if (AvailablePermissions == null || !AvailablePermissions.Any())
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                No permissions available! Please click "Seed Permissions" on the Position Details page first!
+            </MudAlert>
+        }
+        else
+        {
+            <MudSelect 
+                T="int?"
+                Label="Permission" 
+                @bind-Value="selectedPermissionId"
+                Placeholder="Select a permission"
+                Variant="Variant.Outlined"
+                FullWidth="true"
+                Class="mb-4"
+                Required="true">
+                @foreach (var permission in AvailablePermissions)
+                {
+                    <MudSelectItem Value="@permission.PermissionId">
+                        @permission.PermissionCode - @permission.Description
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Assign" Disabled="selectedPermissionId == null">
+            Assign
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public IEnumerable<PermissionDto> AvailablePermissions { get; set; } = new List<PermissionDto>();
+
+    [Parameter]
+    public int PositionId { get; set; }
+
+    private int? selectedPermissionId;
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task Assign()
+    {
+        if (selectedPermissionId == null) return;
+
+        try
+        {
+            var request = new AssignPermissionRequest
+            {
+                PositionId = PositionId,
+                PermissionId = selectedPermissionId.Value
+            };
+
+            var success = await PermissionService.AssignPermissionAsync(request);
+            if (success)
+            {
+                Snackbar.Add("Permission assigned successfully!", Severity.Success);
+                MudDialog?.Close();
+            }
+            else
+            {
+                Snackbar.Add("Error assigning permission.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error assigning permission: {ex.Message}", Severity.Error);
+        }
+    }
+}

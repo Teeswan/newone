@@ -43,5 +43,8 @@ builder.Services.AddScoped<IFormQuestionBlazorService, FormQuestionBlazorService
 builder.Services.AddScoped<IDepartmentBlazorService, DepartmentBlazorService>();
 builder.Services.AddScoped<ITeamBlazorService, TeamBlazorService>();
 builder.Services.AddScoped<IPipClientService, PipClientService>();
+builder.Services.AddScoped<ILevelBlazorService, LevelBlazorService>();
+builder.Services.AddScoped<IPositionBlazorService, PositionBlazorService>();
+builder.Services.AddScoped<IPermissionBlazorService, PermissionBlazorService>();
 
 await builder.Build().RunAsync();
