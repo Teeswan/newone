@@ -1,0 +1,87 @@
+﻿@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+
+<div class="meeting-card status-@(Meeting.ProgressStatus?.Replace(" ", "-").ToLower())">
+    @if (!_editing)
+    {
+        <div class="meeting-header">
+            <span class="meeting-date">📅 @Meeting.MeetingDate.ToString("dd MMM yyyy, HH:mm")</span>
+            <span class="progress-badge">@Meeting.ProgressStatus</span>
+            <div class="meeting-actions">
+                <button class="btn-icon" @onclick="StartEdit">✏️</button>
+                <button class="btn-icon btn-danger"
+                        @onclick="() => OnDelete.InvokeAsync(Meeting.PipMeetingId)">
+                    🗑
+                </button>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Meeting.DiscussionPoints))
+        {
+            <p><strong>Discussion:</strong> @Meeting.DiscussionPoints</p>
+        }
+        @if (!string.IsNullOrEmpty(Meeting.NextSteps))
+        {
+            <p><strong>Next Steps:</strong> @Meeting.NextSteps</p>
+        }
+    }
+    else
+    {
+        <div class="edit-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Meeting Date</label>
+                    <InputDate class="form-control" @bind-Value="_editRequest.MeetingDate" />
+                </div>
+                <div class="form-group">
+                    <label>Progress Status</label>
+                    <InputSelect class="form-control" @bind-Value="_editRequest.ProgressStatus">
+                        <option>On Track</option>
+                        <option>At Risk</option>
+                        <option>Behind Schedule</option>
+                        <option>Completed</option>
+                    </InputSelect>
+                </div>
+            </div>
+            <textarea class="form-control" rows="2"
+                      placeholder="Discussion points..."
+                      @bind="_editRequest.DiscussionPoints"></textarea>
+            <textarea class="form-control" rows="2"
+                      placeholder="Next steps..."
+                      @bind="_editRequest.NextSteps"></textarea>
+            <div class="form-actions">
+                <button class="btn-outline btn-sm" @onclick="CancelEdit">Cancel</button>
+                <button class="btn-primary btn-sm" @onclick="SaveEdit">Save</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public PipMeetingDto Meeting { get; set; } = null!;
+    [Parameter] public EventCallback<UpdatePipMeetingRequest> OnUpdate { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
+    private bool _editing;
+    private UpdatePipMeetingRequest _editRequest = new();
+
+    private void StartEdit()
+    {
+        _editRequest = new UpdatePipMeetingRequest
+        {
+            PipMeetingId = Meeting.PipMeetingId,
+            MeetingDate = Meeting.MeetingDate,
+            DiscussionPoints = Meeting.DiscussionPoints,
+            ProgressStatus = Meeting.ProgressStatus ?? "On Track",
+            NextSteps = Meeting.NextSteps
+        };
+        _editing = true;
+    }
+
+    private void CancelEdit() => _editing = false;
+
+    private async Task SaveEdit()
+    {
+        await OnUpdate.InvokeAsync(_editRequest);
+        _editing = false;
+    }
+}

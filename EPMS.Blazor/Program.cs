@@ -42,5 +42,6 @@ builder.Services.AddScoped<IPerformanceOutcomeBlazorService, PerformanceOutcomeB
 builder.Services.AddScoped<IFormQuestionBlazorService, FormQuestionBlazorService>();
 builder.Services.AddScoped<IDepartmentBlazorService, DepartmentBlazorService>();
 builder.Services.AddScoped<ITeamBlazorService, TeamBlazorService>();
+builder.Services.AddScoped<IPipClientService, PipClientService>();
 
 await builder.Build().RunAsync();
