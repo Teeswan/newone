@@ -43,5 +43,7 @@ builder.Services.AddScoped<IFormQuestionBlazorService, FormQuestionBlazorService
 builder.Services.AddScoped<IDepartmentBlazorService, DepartmentBlazorService>();
 builder.Services.AddScoped<ITeamBlazorService, TeamBlazorService>();
 builder.Services.AddScoped<IPipClientService, PipClientService>();
+builder.Services.AddScoped<IKpiMasterBlazorService, KpiMasterBlazorService>();
+builder.Services.AddScoped<IEmployeeKpiBlazorService, EmployeeKpiBlazorService>();
 
 await builder.Build().RunAsync();

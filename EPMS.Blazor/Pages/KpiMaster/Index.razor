@@ -1,0 +1,159 @@
+@page "/kpi-master"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Domain.Enums
+@inject IKpiMasterBlazorService KpiService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
+
+<MudText Typo="Typo.h4" Class="mb-4">KPI Master Management</MudText>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudStack Row="true" Spacing="2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/kpi-master/create">
+            Add New KPI
+        </MudButton>
+        <MudSpacer />
+        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile" Accept=".xlsx">
+            <ActivatorContent>
+                <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.UploadFile">
+                    Bulk Import Excel
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Download" OnClick="DownloadTemplate">
+            Download Template
+        </MudButton>
+    </MudStack>
+</MudPaper>
+
+<MudTable Items="@_kpis" Loading="@_loading" Hover="true" Bordered="true" Striped="true" Filter="new Func<KpiMasterDto,bool>(FilterFunc)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">KPI Templates</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search by name or category" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>KPI Name</MudTh>
+        <MudTh>Category</MudTh>
+        <MudTh>Weight (%)</MudTh>
+        <MudTh>Priority</MudTh>
+        <MudTh>Direction</MudTh>
+        <MudTh>Active</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
+        <MudTd DataLabel="Category">@context.Category</MudTd>
+        <MudTd DataLabel="Weight (%)">@context.WeightPercent%</MudTd>
+        <MudTd DataLabel="Priority">
+            <MudChip T="string" Color="@GetPriorityColor(context.PriorityLevel)" Size="Size.Small">@context.PriorityLevel</MudChip>
+        </MudTd>
+        <MudTd DataLabel="Direction">@context.Direction</MudTd>
+        <MudTd DataLabel="Active">
+            <MudIcon Icon="@(context.IsActive ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" 
+                     Color="@(context.IsActive ? Color.Success : Color.Error)" />
+        </MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/kpi-master/edit/{context.KpiId}")" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeactivateKpi(context))" Disabled="@(!context.IsActive)" />
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private IEnumerable<KpiMasterDto> _kpis = new List<KpiMasterDto>();
+    private bool _loading = true;
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            _kpis = await KpiService.GetKpiMastersAsync();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private bool FilterFunc(KpiMasterDto kpi)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        if (kpi.KpiName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (kpi.Category?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    }
+
+    private Color GetPriorityColor(PriorityLevel priority) => priority switch
+    {
+        PriorityLevel.Critical => Color.Error,
+        PriorityLevel.High => Color.Warning,
+        PriorityLevel.Medium => Color.Info,
+        PriorityLevel.Lower => Color.Default,
+        _ => Color.Default
+    };
+
+    private async Task DeactivateKpi(KpiMasterDto kpi)
+    {
+        bool? result = await DialogService.ShowMessageBox("Confirm Deactivation", $"Are you sure you want to deactivate {kpi.KpiName}?", yesText: "Yes", noText: "No");
+        if (result == true)
+        {
+            var success = await KpiService.DeactivateAsync(kpi.KpiId);
+            if (success)
+            {
+                Snackbar.Add("KPI deactivated successfully", Severity.Success);
+                await LoadData();
+            }
+            else
+            {
+                Snackbar.Add("Failed to deactivate KPI", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DownloadTemplate()
+    {
+        var bytes = await KpiService.DownloadTemplateAsync();
+        var fileName = "KPI_Master_Import_Template.xlsx";
+        await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, Convert.ToBase64String(bytes));
+    }
+
+    private async Task UploadFile(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        var result = await KpiService.BulkImportExcelAsync(stream, file.Name);
+
+        if (result != null)
+        {
+            string message = $"Import complete: {result.Imported} success, {result.Rejected} failed.";
+            Severity severity = result.Rejected > 0 ? Severity.Warning : Severity.Success;
+            Snackbar.Add(message, severity);
+            
+            if (result.Errors.Any())
+            {
+                // Optionally show errors in a dialog
+                await DialogService.ShowMessageBox("Import Details", string.Join("\n", result.Errors.Take(10)));
+            }
+            
+            await LoadData();
+        }
+        else
+        {
+            Snackbar.Add("Failed to import Excel file", Severity.Error);
+        }
+    }
+}

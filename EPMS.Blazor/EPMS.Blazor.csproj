@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EPMS.Shared\EPMS.Shared.csproj" />
+    <ProjectReference Include="..\EPMS.Application\EPMS.Application.csproj" />
   </ItemGroup>
 
 </Project>
