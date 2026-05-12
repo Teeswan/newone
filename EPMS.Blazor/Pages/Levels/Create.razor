@@ -1,0 +1,80 @@
+@page "/levels/create"
+@inject EPMS.Blazor.Services.ILevelBlazorService LevelService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Level</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-6">Create New Level</MudText>
+
+        <EditForm Model="levelModel" OnValidSubmit="HandleCreate">
+            <MudTextField 
+                T="string"
+                Label="Level ID" 
+                @bind-Value="levelModel.LevelId"
+                Placeholder="Enter level ID (e.g., L1, L2)"
+                Variant="Variant.Outlined"
+                FullWidth="true"
+                Class="mb-4"
+                Required="true" />
+
+            <MudTextField 
+                T="string"
+                Label="Level Name" 
+                @bind-Value="levelModel.LevelName"
+                Placeholder="Enter level name"
+                Variant="Variant.Outlined"
+                FullWidth="true"
+                Class="mb-4"
+                Required="true" />
+
+            <MudTextField 
+                T="string"
+                Label="Description" 
+                @bind-Value="levelModel.LevelDescription"
+                Placeholder="Enter level description (optional)"
+                Variant="Variant.Outlined"
+                FullWidth="true"
+                Class="mb-6"
+                Lines="3" />
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" FullWidth="true" OnClick="NavigateBack">
+                        Cancel
+                    </MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" FullWidth="true">
+                        Create
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private CreateLevelRequest levelModel = new();
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            await LevelService.CreateLevelAsync(levelModel);
+            Snackbar.Add("Level created successfully!", Severity.Success);
+            NavigateBack();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating level: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/levels");
+    }
+}

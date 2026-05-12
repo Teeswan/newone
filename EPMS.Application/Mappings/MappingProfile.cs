@@ -56,8 +56,7 @@ public class MappingProfile : Profile
         CreateMap<CreateLevelRequest, Level>();
         CreateMap<UpdateLevelRequest, Level>();
 
-        CreateMap<Position, PositionDto>()
-            .ForMember(dest => dest.LevelName, opt => opt.MapFrom(src => src.Level != null ? src.Level.LevelName : null));
+        CreateMap<Position, PositionDto>();
         CreateMap<CreatePositionRequest, Position>();
         CreateMap<UpdatePositionRequest, Position>();
 
