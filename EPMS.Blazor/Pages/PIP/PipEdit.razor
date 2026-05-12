@@ -1,0 +1,155 @@
+@page "/pip/edit/{PipId:int}"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.Requests
+@using EPMS.Shared.Validation
+@inject IPipClientService PipService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit PIP</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+            <MudItem>
+                <MudText Typo="Typo.h4">Edit PIP</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip/" + PipId))">
+                    ← Back to Details
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (_loading)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" />
+                <MudText Class="mt-3">Loading...</MudText>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="_request" OnValidSubmit="HandleSubmit">
+                <MudCard Class="mb-6">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Plan Details</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker Label="End Date" @bind-Date="_endDate" Variant="Variant.Outlined" Required="true" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudSelect T="string" Label="Status" @bind-Value="_request.Status" Variant="Variant.Outlined" Required="true">
+                                    <MudSelectItem T="string" Value="@("Active")">Active</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Terminated")">Terminated</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Extended")">Extended</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField Label="Overall Goal" @bind-Value="_request.OverallGoal" Variant="Variant.Outlined" Lines="4" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+
+                @if (_errors.Any())
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">
+                        <MudList T="string" Dense="true">
+                            @foreach (var error in _errors)
+                            {
+                                <MudListItem T="string">@error</MudListItem>
+                            }
+                        </MudList>
+                    </MudAlert>
+                }
+
+                <MudGrid Justify="Justify.FlexEnd">
+                    <MudItem>
+                        <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip/" + PipId))" Class="mr-3">
+                            Cancel
+                        </MudButton>
+                        <MudButton Type="submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="_submitting" StartIcon="@(_submitting ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.Check)">
+                            @(_submitting ? "Saving..." : "Save Changes")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int PipId { get; set; }
+
+    private UpdatePipPlanRequest _request = new();
+    private DateTime? _endDate;
+    private List<string> _errors = new();
+    private bool _loading = true;
+    private bool _submitting;
+
+    protected override async Task OnParametersSetAsync() => await LoadPlan();
+
+    private async Task LoadPlan()
+    {
+        _loading = true;
+        try
+        {
+            var response = await PipService.GetByIdAsync(PipId);
+            if (response?.Success == true && response.Data != null)
+            {
+                _endDate = new DateTime(response.Data.EndDate.Year, response.Data.EndDate.Month, response.Data.EndDate.Day);
+                _request = new UpdatePipPlanRequest
+                {
+                    PipId = response.Data.PipId,
+                    Status = response.Data.Status,
+                    OverallGoal = response.Data.OverallGoal
+                };
+            }
+            else
+            {
+                Snackbar.Add(response?.Message ?? "Failed to load PIP.", Severity.Error);
+                NavigationManager.NavigateTo("/pip");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading PIP: {ex.Message}", Severity.Error);
+            NavigationManager.NavigateTo("/pip");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        _submitting = true;
+        _errors.Clear();
+
+        if (_endDate.HasValue)
+        {
+            _request.EndDate = DateOnly.FromDateTime(_endDate.Value);
+        }
+
+        var response = await PipService.UpdatePipAsync(_request);
+        if (response?.Success == true)
+        {
+            Snackbar.Add("PIP updated successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/pip/" + PipId);
+        }
+        else
+        {
+            _errors = response?.Errors ?? new List<string> { "Failed to update PIP." };
+            Snackbar.Add(_errors.FirstOrDefault() ?? "Failed to update PIP.", Severity.Error);
+        }
+
+        _submitting = false;
+    }
+}

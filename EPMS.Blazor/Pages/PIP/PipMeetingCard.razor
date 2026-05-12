@@ -1,71 +1,91 @@
-﻿@using EPMS.Shared.DTOs
+@using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 
-<div class="meeting-card status-@(Meeting.ProgressStatus?.Replace(" ", "-").ToLower())">
+<MudPaper Class="pa-4 mb-4" Elevation="2">
     @if (!_editing)
     {
-        <div class="meeting-header">
-            <span class="meeting-date">📅 @Meeting.MeetingDate.ToString("dd MMM yyyy, HH:mm")</span>
-            <span class="progress-badge">@Meeting.ProgressStatus</span>
-            <div class="meeting-actions">
-                <button class="btn-icon" @onclick="StartEdit">✏️</button>
-                <button class="btn-icon btn-danger"
-                        @onclick="() => OnDelete.InvokeAsync(Meeting.PipMeetingId)">
-                    🗑
-                </button>
-            </div>
-        </div>
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+            <MudItem>
+                <MudText Typo="Typo.subtitle2">
+                    <MudIcon Icon="@Icons.Material.Filled.Event" Class="mr-1" />
+                    @Meeting.MeetingDate.ToString("dd MMM yyyy, HH:mm")
+                </MudText>
+            </MudItem>
+            <MudItem>
+                <MudChip T="string" Color="GetProgressColor(Meeting.ProgressStatus)" Variant="Variant.Filled" Size="Size.Small">
+                    @Meeting.ProgressStatus
+                </MudChip>
+            </MudItem>
+            <MudItem>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="StartEdit" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => OnDelete.InvokeAsync(Meeting.PipMeetingId)" />
+            </MudItem>
+        </MudGrid>
+
         @if (!string.IsNullOrEmpty(Meeting.DiscussionPoints))
         {
-            <p><strong>Discussion:</strong> @Meeting.DiscussionPoints</p>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                <strong>Discussion:</strong> @Meeting.DiscussionPoints
+            </MudText>
         }
+
         @if (!string.IsNullOrEmpty(Meeting.NextSteps))
         {
-            <p><strong>Next Steps:</strong> @Meeting.NextSteps</p>
+            <MudText Typo="Typo.body2">
+                <strong>Next Steps:</strong> @Meeting.NextSteps
+            </MudText>
         }
     }
     else
     {
-        <div class="edit-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Meeting Date</label>
-                    <InputDate class="form-control" @bind-Value="_editRequest.MeetingDate" />
-                </div>
-                <div class="form-group">
-                    <label>Progress Status</label>
-                    <InputSelect class="form-control" @bind-Value="_editRequest.ProgressStatus">
-                        <option>On Track</option>
-                        <option>At Risk</option>
-                        <option>Behind Schedule</option>
-                        <option>Completed</option>
-                    </InputSelect>
-                </div>
-            </div>
-            <textarea class="form-control" rows="2"
-                      placeholder="Discussion points..."
-                      @bind="_editRequest.DiscussionPoints"></textarea>
-            <textarea class="form-control" rows="2"
-                      placeholder="Next steps..."
-                      @bind="_editRequest.NextSteps"></textarea>
-            <div class="form-actions">
-                <button class="btn-outline btn-sm" @onclick="CancelEdit">Cancel</button>
-                <button class="btn-primary btn-sm" @onclick="SaveEdit">Save</button>
-            </div>
-        </div>
+        <MudForm Model="_editRequest">
+            <MudGrid Class="mb-3">
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Meeting Date" @bind-Date="_meetingDateOnly" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="Progress Status" @bind-Value="_editRequest.ProgressStatus" Variant="Variant.Outlined">
+                        <MudSelectItem T="string" Value="@("On Track")">On Track</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("At Risk")">At Risk</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Behind Schedule")">Behind Schedule</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Discussion Points" @bind-Value="_editRequest.DiscussionPoints" Variant="Variant.Outlined" Lines="2" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Next Steps" @bind-Value="_editRequest.NextSteps" Variant="Variant.Outlined" Lines="2" />
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid Justify="Justify.FlexEnd">
+                <MudItem>
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" OnClick="CancelEdit" Class="mr-2">
+                        Cancel
+                    </MudButton>
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="SaveEdit">
+                        Save
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
     }
-</div>
+</MudPaper>
 
 @code {
     [Parameter] public PipMeetingDto Meeting { get; set; } = null!;
     [Parameter] public EventCallback<UpdatePipMeetingRequest> OnUpdate { get; set; }
     [Parameter] public EventCallback<int> OnDelete { get; set; }
 
+    private DateTime? _meetingDateOnly;
+
     private bool _editing;
     private UpdatePipMeetingRequest _editRequest = new();
 
     private void StartEdit()
     {
+        _meetingDateOnly = Meeting.MeetingDate.Date;
         _editRequest = new UpdatePipMeetingRequest
         {
             PipMeetingId = Meeting.PipMeetingId,
@@ -81,7 +101,21 @@
 
     private async Task SaveEdit()
     {
+        if (_meetingDateOnly.HasValue)
+        {
+            _editRequest.MeetingDate = _meetingDateOnly.Value.Date.Add(Meeting.MeetingDate.TimeOfDay);
+        }
+
         await OnUpdate.InvokeAsync(_editRequest);
         _editing = false;
     }
+
+    private Color GetProgressColor(string? status) => status?.ToLower() switch
+    {
+        "on track" => Color.Success,
+        "at risk" => Color.Warning,
+        "behind schedule" => Color.Error,
+        "completed" => Color.Primary,
+        _ => Color.Default
+    };
 }
