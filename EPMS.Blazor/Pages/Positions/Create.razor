@@ -17,7 +17,7 @@
                 @bind-Value="positionModel.PositionTitle"
                 Placeholder="Enter position title"
                 Variant="Variant.Outlined"
-                FullWidth="true"
+                Style="width: 100%"
                 Class="mb-4"
                 Required="true" />
 
@@ -27,7 +27,7 @@
                 @bind-Value="positionModel.LevelId"
                 Placeholder="Select level (optional)"
                 Variant="Variant.Outlined"
-                FullWidth="true"
+                Style="width: 100%"
                 Class="mb-6"
                 Clearable="true">
                 @if (levels != null)
@@ -41,12 +41,12 @@
 
             <MudGrid>
                 <MudItem xs="6">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" FullWidth="true" OnClick="NavigateBack">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Style="width: 100%" OnClick="NavigateBack">
                         Cancel
                     </MudButton>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" FullWidth="true">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Style="width: 100%">
                         Create
                     </MudButton>
                 </MudItem>

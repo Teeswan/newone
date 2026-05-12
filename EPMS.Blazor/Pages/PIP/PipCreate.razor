@@ -79,8 +79,8 @@
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => RemoveObjective(index)" />
                                     </MudItem>
                                 </MudGrid>
-                                <MudTextField Label="Objective Description" @bind-Value="_request.Objectives[index].ObjectiveDescription" Variant="Variant.Outlined" Lines="3" Class="mb-2" FullWidth="true" Required="true" />
-                                <MudTextField Label="Success Criteria" @bind-Value="_request.Objectives[index].SuccessCriteria" Variant="Variant.Outlined" Lines="2" FullWidth="true" />
+                                <MudTextField Label="Objective Description" @bind-Value="_request.Objectives[index].ObjectiveDescription" Variant="Variant.Outlined" Lines="3" Class="mb-2" Style="width: 100%" Required="true" />
+                                <MudTextField Label="Success Criteria" @bind-Value="_request.Objectives[index].SuccessCriteria" Variant="Variant.Outlined" Lines="2" Style="width: 100%" />
                             </MudPaper>
                         }
                     }

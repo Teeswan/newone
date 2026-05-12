@@ -2,38 +2,57 @@
 @using EPMS.Shared.Requests
 @inject EPMS.Blazor.Services.IAppraisalFormBlazorService AppraisalFormService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Edit Appraisal Form</h3>
+<PageTitle>Edit Appraisal Form</PageTitle>
 
-<hr />
-@if (updateRequest == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Edit Appraisal Form</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (updateRequest == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal form...</MudText>
+            </div>
+        }
+        else
+        {
             <EditForm Model="@updateRequest" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-
-                <div class="form-group mb-3">
-                    <label for="formName" class="form-label">Form Name</label>
-                    <InputText id="formName" class="form-control" @bind-Value="updateRequest.FormName" />
-                </div>
-
-                <div class="form-check mb-3">
-                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="isActiveValue" />
-                    <label for="isActive" class="form-check-label">Is Active</label>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/appraisalforms" class="btn btn-secondary">Cancel</a>
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField T="string" 
+                                      Label="Form Name" 
+                                      @bind-Value="updateRequest.FormName" 
+                                      Required="true"
+                                      RequiredError="Form name is required"
+                                      Variant="Variant.Outlined"
+                                      Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSwitch T="bool" 
+                                   Label="Is Active" 
+                                   @bind-Checked="isActiveValue" 
+                                   Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                            Cancel
+                        </MudButton>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                            Save Changes
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
             </EditForm>
-        </div>
-    </div>
-}
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
@@ -56,6 +75,7 @@ else
         }
         else
         {
+            Snackbar.Add("Appraisal form not found.", Severity.Error);
             NavigationManager.NavigateTo("/appraisalforms");
         }
     }
@@ -68,12 +88,18 @@ else
             try
             {
                 await AppraisalFormService.UpdateAppraisalFormAsync(Id, updateRequest);
+                Snackbar.Add("Appraisal form updated successfully!", Severity.Success);
                 NavigationManager.NavigateTo("/appraisalforms");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating appraisal form: {ex.Message}");
+                Snackbar.Add($"Error updating appraisal form: {ex.Message}", Severity.Error);
             }
         }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalforms");
     }
 }

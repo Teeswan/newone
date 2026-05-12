@@ -1,4 +1,4 @@
-ï»¿@page "/pip/{PipId:int}"
+@page "/pip/{PipId:int}"
 @using EPMS.Blazor.Services
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
@@ -26,7 +26,7 @@
         <MudPaper Elevation="2" Class="pa-6 mb-6">
             <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
                 <MudItem>
-                    <MudText Typo="Typo.h4">PIP â€“ @_plan.EmployeeName</MudText>
+                    <MudText Typo="Typo.h4">PIP – @_plan.EmployeeName</MudText>
                     <MudText Typo="Typo.subtitle1" Class="text-muted">Managed by @_plan.ManagerName</MudText>
                 </MudItem>
                 <MudItem>
@@ -45,7 +45,7 @@
                     <MudCard>
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="text-muted">Duration</MudText>
-                            <MudText Typo="Typo.h5">@_plan.StartDate.ToString("dd MMM") â€“ @_plan.EndDate.ToString("dd MMM yyyy")</MudText>
+                            <MudText Typo="Typo.h5">@_plan.StartDate.ToString("dd MMM") – @_plan.EndDate.ToString("dd MMM yyyy")</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -140,8 +140,8 @@
                 <DialogContent>
                     <MudText Typo="Typo.h6" Class="mb-4">Add Objective</MudText>
                     <MudForm Model="_newObjective">
-                        <MudTextField Label="Objective Description" @bind-Value="_newObjective.ObjectiveDescription" Variant="Variant.Outlined" Lines="3" Class="mb-3" FullWidth="true" />
-                        <MudTextField Label="Success Criteria" @bind-Value="_newObjective.SuccessCriteria" Variant="Variant.Outlined" Lines="2" FullWidth="true" />
+                        <MudTextField Label="Objective Description" @bind-Value="_newObjective.ObjectiveDescription" Variant="Variant.Outlined" Lines="3" Class="mb-3" Style="width: 100%" />
+                        <MudTextField Label="Success Criteria" @bind-Value="_newObjective.SuccessCriteria" Variant="Variant.Outlined" Lines="2" Style="width: 100%" />
                     </MudForm>
                 </DialogContent>
                 <DialogActions>
@@ -157,15 +157,15 @@
                 <DialogContent>
                     <MudText Typo="Typo.h6" Class="mb-4">Schedule Meeting</MudText>
                     <MudForm Model="_newMeeting">
-                        <MudDatePicker Label="Meeting Date" @bind-Date="_meetingDateOnly" Variant="Variant.Outlined" Class="mb-3" FullWidth="true" />
-                        <MudSelect T="string" Label="Progress Status" @bind-Value="_newMeeting.ProgressStatus" Variant="Variant.Outlined" Class="mb-3" FullWidth="true">
+                        <MudDatePicker Label="Meeting Date" @bind-Date="_meetingDateOnly" Variant="Variant.Outlined" Class="mb-3" Style="width: 100%" />
+                        <MudSelect T="string" Label="Progress Status" @bind-Value="_newMeeting.ProgressStatus" Variant="Variant.Outlined" Class="mb-3" Style="width: 100%">
                             <MudSelectItem T="string" Value="@("On Track")">On Track</MudSelectItem>
                             <MudSelectItem T="string" Value="@("At Risk")">At Risk</MudSelectItem>
                             <MudSelectItem T="string" Value="@("Behind Schedule")">Behind Schedule</MudSelectItem>
                             <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
                         </MudSelect>
-                        <MudTextField Label="Discussion Points" @bind-Value="_newMeeting.DiscussionPoints" Variant="Variant.Outlined" Lines="3" Class="mb-3" FullWidth="true" />
-                        <MudTextField Label="Next Steps" @bind-Value="_newMeeting.NextSteps" Variant="Variant.Outlined" Lines="2" FullWidth="true" />
+                        <MudTextField Label="Discussion Points" @bind-Value="_newMeeting.DiscussionPoints" Variant="Variant.Outlined" Lines="3" Class="mb-3" Style="width: 100%" />
+                        <MudTextField Label="Next Steps" @bind-Value="_newMeeting.NextSteps" Variant="Variant.Outlined" Lines="2" Style="width: 100%" />
                     </MudForm>
                 </DialogContent>
                 <DialogActions>

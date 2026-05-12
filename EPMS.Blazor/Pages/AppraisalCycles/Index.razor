@@ -1,47 +1,68 @@
 @page "/appraisalcycles"
 @inject EPMS.Blazor.Services.IAppraisalCycleBlazorService AppraisalCycleService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<h3>Appraisal Cycles</h3>
+<PageTitle>Appraisal Cycles</PageTitle>
 
-<p>
-    <a href="/appraisalcycles/create">Create New</a>
-</p>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4" Class="mb-0">Appraisal Cycles</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                    Create New
+                </MudButton>
+            </MudItem>
+        </MudGrid>
 
-@if (appraisalCycles == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Cycle Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cycle in appraisalCycles)
-            {
-                <tr>
-                    <td>@cycle.CycleName</td>
-                    <td>@cycle.StartDate.ToShortDateString()</td>
-                    <td>@cycle.EndDate.ToShortDateString()</td>
-                    <td>@cycle.CycleStatus</td>
-                    <td>
-                        <a href="/appraisalcycles/details/@cycle.CycleId">Details</a> |
-                        <a href="/appraisalcycles/edit/@cycle.CycleId">Edit</a> |
-                        <button class="btn btn-danger btn-sm" @onclick="(() => DeleteAppraisalCycle(cycle.CycleId))">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+        @if (appraisalCycles == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal cycles...</MudText>
+            </div>
+        }
+        else if (!appraisalCycles.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="ma-4">
+                No appraisal cycles found. Create your first appraisal cycle!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="appraisalCycles" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Cycle Name</MudTh>
+                    <MudTh>Start Date</MudTh>
+                    <MudTh>End Date</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Cycle Name">@context.CycleName</MudTd>
+                    <MudTd DataLabel="Start Date">@context.StartDate.ToString("dd MMM yyyy")</MudTd>
+                    <MudTd DataLabel="End Date">@context.EndDate.ToString("dd MMM yyyy")</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="GetStatusColor(context.CycleStatus)" Variant="Variant.Filled" Size="Size.Small">
+                            @context.CycleStatus
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.CycleId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
+                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.CycleId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                            <MudButton Color="Color.Error" OnClick="() => DeleteAppraisalCycle(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     private IEnumerable<EPMS.Shared.DTOs.AppraisalCycleDto>? appraisalCycles;
@@ -59,30 +80,65 @@ else
         }
         catch (HttpRequestException ex)
         {
-            // Log the exception or display an error message to the user
-            Console.WriteLine($"Error loading appraisal cycles: {ex.Message}");
-            appraisalCycles = new List<EPMS.Shared.DTOs.AppraisalCycleDto>(); // Initialize to empty list on error
+            Snackbar.Add($"Error loading appraisal cycles: {ex.Message}", Severity.Error);
+            appraisalCycles = new List<EPMS.Shared.DTOs.AppraisalCycleDto>();
         }
     }
 
-    private async Task DeleteAppraisalCycle(int cycleId)
+    private void NavigateToCreate()
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this appraisal cycle?");
-        if (confirmed)
+        NavigationManager.NavigateTo("/appraisalcycles/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalcycles/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalcycles/edit/{id}");
+    }
+
+    private async Task DeleteAppraisalCycle(EPMS.Shared.DTOs.AppraisalCycleDto cycle)
+    {
+        var parameters = new DialogParameters
         {
-            var success = await AppraisalCycleService.DeleteAppraisalCycleAsync(cycleId);
-            if (success)
+            { "ContentText", $"Are you sure you want to delete the appraisal cycle '{cycle.CycleName}'?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
             {
-                await LoadAppraisalCycles(); // Reload data after successful deletion
+                var success = await AppraisalCycleService.DeleteAppraisalCycleAsync(cycle.CycleId);
+                if (success)
+                {
+                    Snackbar.Add("Appraisal cycle deleted successfully!", Severity.Success);
+                    await LoadAppraisalCycles();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting appraisal cycle.", Severity.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Handle deletion failure, e.g., show an error message
-                Console.WriteLine("Error deleting appraisal cycle.");
+                Snackbar.Add($"Error deleting appraisal cycle: {ex.Message}", Severity.Error);
             }
         }
     }
 
-    [Inject]
-    public IJSRuntime JSRuntime { get; set; } = default!;
+    private Color GetStatusColor(string? status) => status?.ToLower() switch
+    {
+        "draft" => Color.Secondary,
+        "active" => Color.Primary,
+        "completed" => Color.Success,
+        _ => Color.Default
+    };
 }

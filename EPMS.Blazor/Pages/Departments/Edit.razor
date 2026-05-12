@@ -24,14 +24,14 @@
                             Label="Department Name" 
                             Required="true"
                             Variant="Variant.Outlined"
-                            FullWidth="true" />
+                            Style="width: 100%" />
                     </MudItem>
                     <MudItem xs="12" md="6">
                         <MudSelect 
                             @bind-Value="department.ParentDepartmentId" 
                             Label="Parent Department"
                             Variant="Variant.Outlined"
-                            FullWidth="true"
+                            Style="width: 100%"
                             T="int?">
                             @if (allDepartments != null)
                             {

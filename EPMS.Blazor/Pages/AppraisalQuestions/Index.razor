@@ -1,45 +1,66 @@
 @page "/appraisalquestions"
 @inject EPMS.Blazor.Services.IAppraisalQuestionBlazorService AppraisalQuestionService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<h3>Appraisal Questions</h3>
+<PageTitle>Appraisal Questions</PageTitle>
 
-<p>
-    <a href="/appraisalquestions/create" class="btn btn-primary">Create New</a>
-</p>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4" Class="mb-0">Appraisal Questions</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                    Create New
+                </MudButton>
+            </MudItem>
+        </MudGrid>
 
-@if (appraisalQuestions == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Question Text</th>
-                <th>Category</th>
-                <th>Required</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var question in appraisalQuestions)
-            {
-                <tr>
-                    <td>@question.QuestionText</td>
-                    <td>@question.Category</td>
-                    <td>@(question.IsRequired == true ? "Yes" : "No")</td>
-                    <td>
-                        <a href="/appraisalquestions/details/@question.QuestionId" class="btn btn-info btn-sm">Details</a>
-                        <a href="/appraisalquestions/edit/@question.QuestionId" class="btn btn-warning btn-sm">Edit</a>
-                        <button class="btn btn-danger btn-sm" @onclick="(() => DeleteAppraisalQuestion(question.QuestionId))">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+        @if (appraisalQuestions == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal questions...</MudText>
+            </div>
+        }
+        else if (!appraisalQuestions.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="ma-4">
+                No appraisal questions found. Create your first appraisal question!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="appraisalQuestions" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Question Text</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Required</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Question Text">@context.QuestionText</MudTd>
+                    <MudTd DataLabel="Category">@context.Category</MudTd>
+                    <MudTd DataLabel="Required">
+                        <MudChip T="string" Color="@(context.IsRequired == true ? Color.Primary : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                            @(context.IsRequired == true ? "Yes" : "No")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.QuestionId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
+                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.QuestionId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                            <MudButton Color="Color.Error" OnClick="() => DeleteAppraisalQuestion(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     private IEnumerable<EPMS.Shared.DTOs.AppraisalQuestionDto>? appraisalQuestions;
@@ -57,28 +78,57 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading appraisal questions: {ex.Message}");
+            Snackbar.Add($"Error loading appraisal questions: {ex.Message}", Severity.Error);
             appraisalQuestions = new List<EPMS.Shared.DTOs.AppraisalQuestionDto>();
         }
     }
 
-    private async Task DeleteAppraisalQuestion(int questionId)
+    private void NavigateToCreate()
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this appraisal question?");
-        if (confirmed)
+        NavigationManager.NavigateTo("/appraisalquestions/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalquestions/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalquestions/edit/{id}");
+    }
+
+    private async Task DeleteAppraisalQuestion(EPMS.Shared.DTOs.AppraisalQuestionDto question)
+    {
+        var parameters = new DialogParameters
         {
-            var success = await AppraisalQuestionService.DeleteAppraisalQuestionAsync(questionId);
-            if (success)
+            { "ContentText", $"Are you sure you want to delete the appraisal question?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
             {
-                await LoadAppraisalQuestions();
+                var success = await AppraisalQuestionService.DeleteAppraisalQuestionAsync(question.QuestionId);
+                if (success)
+                {
+                    Snackbar.Add("Appraisal question deleted successfully!", Severity.Success);
+                    await LoadAppraisalQuestions();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting appraisal question.", Severity.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Error deleting appraisal question.");
+                Snackbar.Add($"Error deleting appraisal question: {ex.Message}", Severity.Error);
             }
         }
     }
-
-    [Inject]
-    public IJSRuntime JSRuntime { get; set; } = default!;
 }
