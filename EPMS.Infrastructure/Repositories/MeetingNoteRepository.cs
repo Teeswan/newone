@@ -21,6 +21,7 @@ public class MeetingNoteRepository : IMeetingNoteRepository
     public async Task<IEnumerable<MeetingNote>> GetByMeetingIdAsync(int meetingId, CancellationToken cancellationToken)
     {
         return await _context.MeetingNotes
+            .Include(n => n.Author)
             .Where(n => n.MeetingId == meetingId)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -30,6 +31,5 @@ public class MeetingNoteRepository : IMeetingNoteRepository
     {
         ArgumentNullException.ThrowIfNull(meetingNote);
         await _context.MeetingNotes.AddAsync(meetingNote, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

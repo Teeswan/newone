@@ -17,6 +17,8 @@ public partial class OneOnOneMeeting
 
     public string? MeetingStatus { get; set; }
 
+    public string? RescheduleReason { get; set; }
+
     public string? MeetingSummary { get; set; }
 
     public int? ParentMeetingId { get; set; }
@@ -24,6 +26,10 @@ public partial class OneOnOneMeeting
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public string? DiscussionPoints { get; set; }
+
+    public string? ActionItems { get; set; }
 
     public virtual Employee? Employee { get; set; }
 

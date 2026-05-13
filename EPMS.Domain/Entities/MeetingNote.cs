@@ -7,11 +7,11 @@ public partial class MeetingNote
 {
     public int NoteId { get; set; }
 
-    public int? MeetingId { get; set; }
+    public int MeetingId { get; set; }
 
-    public int? AuthorId { get; set; }
+    public int AuthorId { get; set; }
 
-    public string? NoteText { get; set; }
+    public string NoteText { get; set; } = null!;
 
     public string? NoteType { get; set; }
 

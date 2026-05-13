@@ -1,4 +1,3 @@
-// EPMS.Infrastructure/Repositories/MeetingRepository.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,12 +26,19 @@ public class MeetingRepository : IMeetingRepository
             throw new ArgumentOutOfRangeException(nameof(id), "Meeting id must be greater than zero.");
         }
 
-        return await _context.OneOnOneMeetings.FirstOrDefaultAsync(m => m.MeetingId == id, cancellationToken);
+        return await _context.OneOnOneMeetings
+            .Include(m => m.Employee)
+            .Include(m => m.Manager)
+            .Include(m => m.MeetingNotes)
+                .ThenInclude(n => n.Author)
+            .FirstOrDefaultAsync(m => m.MeetingId == id, cancellationToken);
     }
 
     public async Task<IEnumerable<OneOnOneMeeting>> GetHistoryTimelineAsync(int rootMeetingId, CancellationToken cancellationToken)
     {
         return await _context.OneOnOneMeetings
+            .Include(m => m.Employee)
+            .Include(m => m.Manager)
             .Where(m => m.MeetingId == rootMeetingId || m.ParentMeetingId == rootMeetingId)
             .OrderBy(m => m.ScheduledDateTime)
             .ToListAsync(cancellationToken);
@@ -41,6 +47,8 @@ public class MeetingRepository : IMeetingRepository
     public async Task<IEnumerable<OneOnOneMeeting>> GetManagerDashboardAsync(int managerId, CancellationToken cancellationToken)
     {
         return await _context.OneOnOneMeetings
+            .Include(m => m.Employee)
+            .Include(m => m.Manager)
             .Where(m => m.ManagerId == managerId)
             .OrderBy(m => m.ScheduledDateTime)
             .ToListAsync(cancellationToken);
@@ -49,6 +57,8 @@ public class MeetingRepository : IMeetingRepository
     public async Task<IEnumerable<OneOnOneMeeting>> GetEmployeeDashboardAsync(int employeeId, CancellationToken cancellationToken)
     {
         return await _context.OneOnOneMeetings
+            .Include(m => m.Employee)
+            .Include(m => m.Manager)
             .Where(m => m.EmployeeId == employeeId)
             .OrderBy(m => m.ScheduledDateTime)
             .ToListAsync(cancellationToken);
@@ -58,7 +68,5 @@ public class MeetingRepository : IMeetingRepository
     {
         ArgumentNullException.ThrowIfNull(meeting);
         await _context.OneOnOneMeetings.AddAsync(meeting, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }
-// Note: UnitOfWork and MeetingHub remain exactly the same as previously written!

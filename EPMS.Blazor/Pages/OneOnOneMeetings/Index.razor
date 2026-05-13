@@ -1,0 +1,152 @@
+@page "/one-on-one-meetings"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@inject IMeetingBlazorService MeetingService
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">1:1 Meetings</MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToCreate">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-1" />
+                Schedule New
+            </MudButton>
+        </CardHeaderActions>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (isLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Class="mt-4" />
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @errorMessage
+            </MudAlert>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="LoadMeetings">
+                Retry
+            </MudButton>
+        }
+        else if (meetings == null || !meetings.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                No meetings found.
+            </MudAlert>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToCreate">
+                Schedule Your First Meeting
+            </MudButton>
+        }
+        else
+        {
+            <MudTable Items="@meetings.OrderByDescending(m => m.ScheduledDateTime)" Hover="true" Breakpoint="Breakpoint.Sm">
+                <HeaderContent>
+                    <MudTh>Date & Time</MudTh>
+                    <MudTh>With</MudTh>
+                    <MudTh>Location</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date & Time">
+                        @context.ScheduledDateTime?.ToString("g")
+                    </MudTd>
+                    <MudTd DataLabel="With">
+                        @(isManager ? context.EmployeeName : context.ManagerName)
+                    </MudTd>
+                    <MudTd DataLabel="Location">
+                        @context.Location
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="@GetStatusColor(context.MeetingStatus)" Size="Size.Small">
+                            @context.MeetingStatus
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="() => GoToDetails(context.MeetingId)">
+                            View
+                        </MudButton>
+                        @if (context.CanJoin && (context.MeetingStatus == "Scheduled" || context.MeetingStatus == "InProgress"))
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" Class="ms-2" OnClick="() => JoinMeeting(context.MeetingId)">
+                                Join
+                            </MudButton>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private List<MeetingDto> meetings = new();
+    private bool isLoading = true;
+    private bool isManager = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMeetings();
+    }
+
+    private async Task LoadMeetings()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            meetings = (await MeetingService.GetManagerMeetingsAsync()).ToList();
+            isManager = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading meetings: {ex.Message}";
+            meetings = new List<MeetingDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoToCreate()
+    {
+        NavManager.NavigateTo("/one-on-one-meetings/create");
+    }
+
+    private void GoToDetails(int id)
+    {
+        NavManager.NavigateTo($"/one-on-one-meetings/{id}");
+    }
+
+    private async Task JoinMeeting(int id)
+    {
+        try
+        {
+            var joinUrl = await MeetingService.JoinMeetingAsync(id);
+            NavManager.NavigateTo(joinUrl);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private Color GetStatusColor(string? status)
+    {
+        return status switch
+        {
+            "Scheduled" => Color.Primary,
+            "InProgress" => Color.Info,
+            "PendingConfirmation" => Color.Warning,
+            "Completed" => Color.Success,
+            "Rescheduled" => Color.Secondary,
+            "Skipped" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

@@ -62,16 +62,23 @@ public class MappingProfile : Profile
 
         CreateMap<OneOnOneMeeting, MeetingDto>()
             .ForMember(dest => dest.MeetingId, opt => opt.MapFrom(src => src.MeetingId))
-            .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.ScheduledDateTime))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.MeetingStatus))
-            .ForMember(dest => dest.EndTime, opt => opt.MapFrom((src, dest, destMember, context) =>
-            {
-                var duration = context.Items.ContainsKey("StandardDuration") ? (int)context.Items["StandardDuration"] : 45;
-                return src.ScheduledDateTime.HasValue ? src.ScheduledDateTime.Value.AddMinutes(duration) : (DateTime?)null;
-            }))
+            .ForMember(dest => dest.ManagerId, opt => opt.MapFrom(src => src.ManagerId))
+            .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId))
+            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager != null ? src.Manager.FullName : null))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
+            .ForMember(dest => dest.ScheduledDateTime, opt => opt.MapFrom(src => src.ScheduledDateTime))
+            .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location))
+            .ForMember(dest => dest.MeetingStatus, opt => opt.MapFrom(src => src.MeetingStatus))
+            .ForMember(dest => dest.RescheduleReason, opt => opt.MapFrom(src => src.RescheduleReason))
+            .ForMember(dest => dest.ParentMeetingId, opt => opt.MapFrom(src => src.ParentMeetingId))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
+            .ForMember(dest => dest.DiscussionPoints, opt => opt.MapFrom(src => src.DiscussionPoints))
+            .ForMember(dest => dest.ActionItems, opt => opt.MapFrom(src => src.ActionItems))
+            .ForMember(dest => dest.MeetingSummary, opt => opt.MapFrom(src => src.MeetingSummary))
             .ForMember(dest => dest.CanJoin, opt => opt.MapFrom((src, dest, destMember, context) =>
             {
-                var buffer = context.Items.ContainsKey("JoinBufferMinutes") ? (int)context.Items["JoinBufferMinutes"] : 0;
+                var buffer = context.Items.ContainsKey("JoinBufferMinutes") ? (int)context.Items["JoinBufferMinutes"] : 15;
                 var duration = context.Items.ContainsKey("StandardDuration") ? (int)context.Items["StandardDuration"] : 45;
                 var now = DateTime.UtcNow;
                 
@@ -81,10 +88,21 @@ public class MappingProfile : Profile
                 var endTime = src.ScheduledDateTime.Value.AddMinutes(duration);
           
                 bool isWithinBuffer = now >= src.ScheduledDateTime.Value.AddMinutes(-buffer) && now <= endTime;
-                bool isManagerAlreadyIn = src.MeetingStatus == "Started";
+                bool isManagerAlreadyIn = src.MeetingStatus == "InProgress";
 
                 return isWithinBuffer || isManagerAlreadyIn;
-            }));
+            }))
+            .ForMember(dest => dest.Notes, opt => opt.Ignore());
+
+        CreateMap<MeetingNote, MeetingNoteDto>()
+            .ForMember(dest => dest.NoteId, opt => opt.MapFrom(src => src.NoteId))
+            .ForMember(dest => dest.MeetingId, opt => opt.MapFrom(src => src.MeetingId))
+            .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId))
+            .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author != null ? src.Author.FullName : null))
+            .ForMember(dest => dest.NoteContent, opt => opt.MapFrom(src => src.NoteText))
+            .ForMember(dest => dest.NoteType, opt => opt.MapFrom(src => src.NoteType))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
 
         // Entity ? DTO
         CreateMap<PipPlan, PipPlanDto>()
