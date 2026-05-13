@@ -13,6 +13,10 @@ public partial class Employee
 
     public string? Email { get; set; }
 
+    public string? Username { get; set; }
+
+    public string? PasswordHash { get; set; }
+
     public int? DepartmentId { get; set; }
 
     public int? PositionId { get; set; }

@@ -82,6 +82,14 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { EmployeeCode = employeeCode });
     }
 
+    public async Task<Employee?> GetByUsernameAsync(string username)
+    {
+        ArgumentNullException.ThrowIfNull(username);
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = "SELECT TOP 1 * FROM Employees WHERE Username = @Username";
+        return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { Username = username });
+    }
+
 
     public override async Task<Employee> CreateAsync(Employee entity)
     {
