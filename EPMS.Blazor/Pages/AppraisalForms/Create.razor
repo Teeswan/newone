@@ -2,31 +2,47 @@
 @using EPMS.Shared.Requests
 @inject EPMS.Blazor.Services.IAppraisalFormBlazorService AppraisalFormService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Create Appraisal Form</h3>
+<PageTitle>Create Appraisal Form</PageTitle>
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Create New Appraisal Form</MudText>
+            </MudItem>
+        </MudGrid>
+
         <EditForm Model="@createRequest" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div class="form-group mb-3">
-                <label for="formName" class="form-label">Form Name</label>
-                <InputText id="formName" class="form-control" @bind-Value="createRequest.FormName" />
-            </div>
-
-            <div class="form-check mb-3">
-                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="isActiveValue" />
-                <label for="isActive" class="form-check-label">Is Active</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a href="/appraisalforms" class="btn btn-secondary">Cancel</a>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField T="string" 
+                                  Label="Form Name" 
+                                  @bind-Value="createRequest.FormName" 
+                                  Required="true"
+                                  RequiredError="Form name is required"
+                                  Variant="Variant.Outlined"
+                                  Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSwitch T="bool" 
+                               Label="Is Active" 
+                               @bind-Checked="isActiveValue" 
+                               Color="Color.Primary" />
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                        Cancel
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                        Create Form
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
         </EditForm>
-    </div>
-</div>
+    </MudPaper>
+</MudContainer>
 
 @code {
     private CreateAppraisalFormRequest createRequest = new();
@@ -38,11 +54,17 @@
         try
         {
             await AppraisalFormService.CreateAppraisalFormAsync(createRequest);
+            Snackbar.Add("Appraisal form created successfully!", Severity.Success);
             NavigationManager.NavigateTo("/appraisalforms");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating appraisal form: {ex.Message}");
+            Snackbar.Add($"Error creating appraisal form: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalforms");
     }
 }

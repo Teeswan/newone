@@ -1,48 +1,103 @@
 @page "/appraisalcycles/create"
 @inject EPMS.Blazor.Services.IAppraisalCycleBlazorService AppraisalCycleService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Create Appraisal Cycle</h3>
+<PageTitle>Create Appraisal Cycle</PageTitle>
 
-<EditForm Model="@createRequest" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Create New Appraisal Cycle</MudText>
+            </MudItem>
+        </MudGrid>
 
-    <div class="form-group">
-        <label for="cycleName">Cycle Name</label>
-        <InputText id="cycleName" class="form-control" @bind-Value="createRequest.CycleName" />
-    </div>
-    <div class="form-group">
-        <label for="startDate">Start Date</label>
-        <InputDate id="startDate" class="form-control" @bind-Value="createRequest.StartDate" />
-    </div>
-    <div class="form-group">
-        <label for="endDate">End Date</label>
-        <InputDate id="endDate" class="form-control" @bind-Value="createRequest.EndDate" />
-    </div>
-    <div class="form-group">
-        <label for="status">Cycle Status</label>
-        <InputText id="status" class="form-control" @bind-Value="createRequest.CycleStatus" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a href="/appraisalcycles" class="btn btn-secondary">Cancel</a>
-</EditForm>
+        <EditForm Model="@createRequest" OnValidSubmit="HandleValidSubmit">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField T="string" 
+                                  Label="Cycle Name" 
+                                  @bind-Value="createRequest.CycleName" 
+                                  Required="true"
+                                  RequiredError="Cycle name is required"
+                                  Variant="Variant.Outlined"
+                                  Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker T="DateTime?" 
+                                   Label="Start Date" 
+                                   @bind-Date="startDate" 
+                                   Required="true"
+                                   RequiredError="Start date is required"
+                                   Variant="Variant.Outlined"
+                                   Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker T="DateTime?" 
+                                   Label="End Date" 
+                                   @bind-Date="endDate" 
+                                   Required="true"
+                                   RequiredError="End date is required"
+                                   Variant="Variant.Outlined"
+                                   Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="string" 
+                               Label="Cycle Status" 
+                               @bind-Value="createRequest.CycleStatus" 
+                               Required="true"
+                               RequiredError="Status is required"
+                               Variant="Variant.Outlined"
+                               Style="width: 100%">
+                        <MudSelectItem T="string" Value="@("Draft")">Draft</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                        Cancel
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                        Create Cycle
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
 
 @code {
     private EPMS.Shared.Requests.CreateAppraisalCycleRequest createRequest = new();
+    private DateTime? startDate;
+    private DateTime? endDate;
 
     private async Task HandleValidSubmit()
     {
+        if (startDate.HasValue)
+        {
+            createRequest.StartDate = DateOnly.FromDateTime(startDate.Value);
+        }
+        if (endDate.HasValue)
+        {
+            createRequest.EndDate = DateOnly.FromDateTime(endDate.Value);
+        }
+
         try
         {
             await AppraisalCycleService.CreateAppraisalCycleAsync(createRequest);
+            Snackbar.Add("Appraisal cycle created successfully!", Severity.Success);
             NavigationManager.NavigateTo("/appraisalcycles");
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Error creating appraisal cycle: {ex.Message}");
-            // Optionally, display an error message to the user
+            Snackbar.Add($"Error creating appraisal cycle: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalcycles");
     }
 }

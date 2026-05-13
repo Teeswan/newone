@@ -1,53 +1,65 @@
-﻿@using EPMS.Shared.DTOs
+@using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 
-<div class="objective-card @(_editing ? "editing" : "") @(Objective.IsAchieved ? "achieved" : "")">
-
+<MudPaper Class="pa-4 mb-4" Elevation="2">
     @if (!_editing)
     {
-        <div class="objective-header">
-            <div class="achieved-badge @(Objective.IsAchieved ? "yes" : "no")">
-                @(Objective.IsAchieved ? "✓ Achieved" : "Pending")
-            </div>
-            <div class="objective-actions">
-                <button class="btn-icon" title="Edit" @onclick="StartEdit">✏️</button>
-                <button class="btn-icon btn-danger" title="Delete"
-                        @onclick="() => OnDelete.InvokeAsync(Objective.ObjectiveId)">
-                    🗑
-                </button>
-            </div>
-        </div>
-        <p class="objective-desc">@Objective.ObjectiveDescription</p>
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+            <MudItem>
+                <MudChip T="string" Color="@(Objective.IsAchieved ? Color.Success : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                    @(Objective.IsAchieved ? "✓ Achieved" : "Pending")
+                </MudChip>
+            </MudItem>
+            <MudItem>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="StartEdit" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => OnDelete.InvokeAsync(Objective.ObjectiveId)" />
+            </MudItem>
+        </MudGrid>
+
+        <MudText Typo="Typo.body1" Class="mb-2">@Objective.ObjectiveDescription</MudText>
+
         @if (!string.IsNullOrEmpty(Objective.SuccessCriteria))
         {
-            <p class="success-criteria"><strong>Success Criteria:</strong> @Objective.SuccessCriteria</p>
+            <MudText Typo="Typo.caption" Class="text-muted mb-2">
+                <strong>Success Criteria:</strong> @Objective.SuccessCriteria
+            </MudText>
         }
+
         @if (!string.IsNullOrEmpty(Objective.ReviewComments))
         {
-            <p class="review-comments"><strong>Review Notes:</strong> @Objective.ReviewComments</p>
+            <MudText Typo="Typo.caption" Class="text-muted">
+                <strong>Review Notes:</strong> @Objective.ReviewComments
+            </MudText>
         }
     }
     else
     {
-        <div class="edit-form">
-            <label>
-                <input type="checkbox" @bind="_editRequest.IsAchieved" />
-                Mark as Achieved
-            </label>
-            <textarea class="form-control" rows="2"
-                      placeholder="Success criteria..."
-                      @bind="_editRequest.SuccessCriteria"></textarea>
-            <textarea class="form-control" rows="2"
-                      placeholder="Review comments..."
-                      @bind="_editRequest.ReviewComments"></textarea>
-            <div class="form-actions">
-                <button class="btn-outline btn-sm" @onclick="CancelEdit">Cancel</button>
-                <button class="btn-primary btn-sm" @onclick="SaveEdit">Save</button>
-            </div>
-        </div>
-    }
+        <MudForm Model="_editRequest">
+            <MudGrid Class="mb-3">
+                <MudItem xs="12">
+                    <MudCheckBox T="bool" Label="Mark as Achieved" @bind-Checked="_editRequest.IsAchieved" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Success Criteria" @bind-Value="_editRequest.SuccessCriteria" Variant="Variant.Outlined" Lines="2" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Review Comments" @bind-Value="_editRequest.ReviewComments" Variant="Variant.Outlined" Lines="2" />
+                </MudItem>
+            </MudGrid>
 
-</div>
+            <MudGrid Justify="Justify.FlexEnd">
+                <MudItem>
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" OnClick="CancelEdit" Class="mr-2">
+                        Cancel
+                    </MudButton>
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="SaveEdit">
+                        Save
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    }
+</MudPaper>
 
 @code {
     [Parameter] public PipObjectiveDto Objective { get; set; } = null!;

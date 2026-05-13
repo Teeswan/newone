@@ -2,36 +2,55 @@
 @using EPMS.Shared.Requests
 @inject EPMS.Blazor.Services.IAppraisalQuestionBlazorService AppraisalQuestionService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Create Appraisal Question</h3>
+<PageTitle>Create Appraisal Question</PageTitle>
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Create New Appraisal Question</MudText>
+            </MudItem>
+        </MudGrid>
+
         <EditForm Model="@createRequest" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div class="form-group mb-3">
-                <label for="questionText" class="form-label">Question Text</label>
-                <InputTextArea id="questionText" class="form-control" @bind-Value="createRequest.QuestionText" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="category" class="form-label">Category</label>
-                <InputText id="category" class="form-control" @bind-Value="createRequest.Category" />
-            </div>
-
-            <div class="form-check mb-3">
-                <InputCheckbox id="isRequired" class="form-check-input" @bind-Value="isRequiredValue" />
-                <label for="isRequired" class="form-check-label">Is Required</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a href="/appraisalquestions" class="btn btn-secondary">Cancel</a>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField T="string" 
+                                  Label="Question Text" 
+                                  @bind-Value="createRequest.QuestionText" 
+                                  Required="true"
+                                  RequiredError="Question text is required"
+                                  Variant="Variant.Outlined"
+                                  Lines="3"
+                                  Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" 
+                                  Label="Category" 
+                                  @bind-Value="createRequest.Category" 
+                                  Variant="Variant.Outlined"
+                                  Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSwitch T="bool" 
+                               Label="Is Required" 
+                               @bind-Checked="isRequiredValue" 
+                               Color="Color.Primary" />
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                        Cancel
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                        Create Question
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
         </EditForm>
-    </div>
-</div>
+    </MudPaper>
+</MudContainer>
 
 @code {
     private CreateAppraisalQuestionRequest createRequest = new();
@@ -43,11 +62,17 @@
         try
         {
             await AppraisalQuestionService.CreateAppraisalQuestionAsync(createRequest);
+            Snackbar.Add("Appraisal question created successfully!", Severity.Success);
             NavigationManager.NavigateTo("/appraisalquestions");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating appraisal question: {ex.Message}");
+            Snackbar.Add($"Error creating appraisal question: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalquestions");
     }
 }

@@ -1,37 +1,67 @@
 @page "/appraisalcycles/details/{Id:int}"
 @inject EPMS.Blazor.Services.IAppraisalCycleBlazorService AppraisalCycleService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Appraisal Cycle Details</h3>
+<PageTitle>Appraisal Cycle Details</PageTitle>
 
-@if (appraisalCycle == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div>
-        <h4>@appraisalCycle.CycleName</h4>
-        <hr />
-        <dl class="row">
-            <dt class="col-sm-2">Cycle Name</dt>
-            <dd class="col-sm-10">@appraisalCycle.CycleName</dd>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Appraisal Cycle Details</MudText>
+            </MudItem>
+        </MudGrid>
 
-            <dt class="col-sm-2">Start Date</dt>
-            <dd class="col-sm-10">@appraisalCycle.StartDate.ToShortDateString()</dd>
-
-            <dt class="col-sm-2">End Date</dt>
-            <dd class="col-sm-10">@appraisalCycle.EndDate.ToShortDateString()</dd>
-
-            <dt class="col-sm-2">Cycle Status</dt>
-            <dd class="col-sm-10">@appraisalCycle.CycleStatus</dd>
-        </dl>
-    </div>
-    <div>
-        <a href="/appraisalcycles/edit/@appraisalCycle.CycleId" class="btn btn-primary">Edit</a> |
-        <a href="/appraisalcycles" class="btn btn-secondary">Back to List</a>
-    </div>
-}
+        @if (appraisalCycle == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal cycle...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" Class="mb-4">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5">@appraisalCycle.CycleName</MudText>
+                            <MudSpacer />
+                            <MudChip T="string" Color="GetStatusColor(appraisalCycle.CycleStatus)" Variant="Variant.Filled">
+                                @appraisalCycle.CycleStatus
+                            </MudChip>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Cycle ID</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@appraisalCycle.CycleId</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Start Date</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@appraisalCycle.StartDate.ToString("dd MMM yyyy")</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">End Date</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@appraisalCycle.EndDate.ToString("dd MMM yyyy")</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-end">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                Back to List
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                                Edit
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
@@ -47,8 +77,25 @@ else
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Error loading appraisal cycle details: {ex.Message}");
-            // Optionally, display an error message to the user
+            Snackbar.Add($"Error loading appraisal cycle details: {ex.Message}", Severity.Error);
         }
     }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalcycles");
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/appraisalcycles/edit/{Id}");
+    }
+
+    private Color GetStatusColor(string? status) => status?.ToLower() switch
+    {
+        "draft" => Color.Secondary,
+        "active" => Color.Primary,
+        "completed" => Color.Success,
+        _ => Color.Default
+    };
 }

@@ -2,58 +2,92 @@
 @using EPMS.Shared.Requests
 @inject EPMS.Blazor.Services.IAppraisalResponseBlazorService AppraisalResponseService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Edit Appraisal Response</h3>
+<PageTitle>Edit Appraisal Response</PageTitle>
 
-<hr />
-@if (updateRequest == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-6">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Edit Appraisal Response</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (updateRequest == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal response...</MudText>
+            </div>
+        }
+        else
+        {
             <EditForm Model="@updateRequest" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-
-                <div class="form-group mb-3">
-                    <label for="evalId" class="form-label">Evaluation ID</label>
-                    <InputNumber id="evalId" class="form-control" @bind-Value="updateRequest.EvalId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="questionId" class="form-label">Question ID</label>
-                    <InputNumber id="questionId" class="form-control" @bind-Value="updateRequest.QuestionId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="respondentId" class="form-label">Respondent ID</label>
-                    <InputNumber id="respondentId" class="form-control" @bind-Value="updateRequest.RespondentId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="answerText" class="form-label">Answer Text</label>
-                    <InputTextArea id="answerText" class="form-control" @bind-Value="updateRequest.AnswerText" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="ratingValue" class="form-label">Rating Value</label>
-                    <InputNumber id="ratingValue" class="form-control" @bind-Value="updateRequest.RatingValue" />
-                </div>
-
-                <div class="form-check mb-3">
-                    <InputCheckbox id="isAnonymous" class="form-check-input" @bind-Value="isAnonymousValue" />
-                    <label for="isAnonymous" class="form-check-label">Is Anonymous</label>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/appraisalresponses" class="btn btn-secondary">Cancel</a>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Evaluation ID" 
+                                         @bind-Value="updateRequest.EvalId" 
+                                         Required="true"
+                                         RequiredError="Evaluation ID is required"
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Question ID" 
+                                         @bind-Value="updateRequest.QuestionId" 
+                                         Required="true"
+                                         RequiredError="Question ID is required"
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Respondent ID" 
+                                         @bind-Value="updateRequest.RespondentId" 
+                                         Required="true"
+                                         RequiredError="Respondent ID is required"
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string" 
+                                      Label="Answer Text" 
+                                      @bind-Value="updateRequest.AnswerText" 
+                                      Variant="Variant.Outlined"
+                                      Lines="3"
+                                      Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Rating Value" 
+                                         @bind-Value="updateRequest.RatingValue" 
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%"
+                                         Min="0"
+                                         Max="5" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSwitch T="bool?" 
+                                   Label="Is Anonymous" 
+                                   @bind-Checked="updateRequest.IsAnonymous" 
+                                   Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                            Cancel
+                        </MudButton>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                            Save Changes
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
             </EditForm>
-        </div>
-    </div>
-}
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
@@ -80,6 +114,7 @@ else
         }
         else
         {
+            Snackbar.Add("Appraisal response not found.", Severity.Error);
             NavigationManager.NavigateTo("/appraisalresponses");
         }
     }
@@ -88,16 +123,21 @@ else
     {
         if (updateRequest != null)
         {
-            updateRequest.IsAnonymous = isAnonymousValue;
             try
             {
                 await AppraisalResponseService.UpdateAppraisalResponseAsync((int)Id, updateRequest);
+                Snackbar.Add("Appraisal response updated successfully!", Severity.Success);
                 NavigationManager.NavigateTo("/appraisalresponses");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating appraisal response: {ex.Message}");
+                Snackbar.Add($"Error updating appraisal response: {ex.Message}", Severity.Error);
             }
         }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalresponses");
     }
 }
