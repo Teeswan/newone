@@ -49,4 +49,5 @@ builder.Services.AddScoped<IPermissionBlazorService, PermissionBlazorService>();
 builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
 builder.Services.AddScoped<IEmployeeBlazorService, EmployeeBlazorService>();
 builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
+builder.Services.AddScoped<IKpiMasterBlazorService, KpiMasterBlazorService>();
 await builder.Build().RunAsync();
