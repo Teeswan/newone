@@ -1,0 +1,136 @@
+﻿@using EPMS.Shared.Requests
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IDepartmentBlazorService DeptService
+@inject IPositionBlazorService PosService
+@inject IEmployeeBlazorService EmployeeService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(IsEdit? Icons.Material.Filled.Edit : Icons.Material.Filled.PersonAdd)" Class="mr-3 mb-n1" />
+            @(IsEdit ? "Update Employee Profile" : "Register New Employee")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudGrid Spacing="2">
+                @* --- Basic Section --- *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.EmployeeCode" Label="Employee Code" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" RequiredError="Code is required!" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.FullName" Label="Full Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" RequiredError="Name is required!" />
+                </MudItem>
+
+                @* --- Identification & Contact --- *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.NrcNumber" Label="NRC Number" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="12/YAKANA(N)123456" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="InputType.Email" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.Phone" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.EmploymentStatus" Label="Employment Status" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Permanent / Contract" />
+                </MudItem>
+
+                @* --- Organization Section --- *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int?" Label="Department" @bind-Value="Model.DepartmentId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
+                        @foreach (var dept in departments)
+                        {
+                            <MudSelectItem T="int?" Value="@dept.DepartmentId">@dept.DepartmentName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int?" Label="Position" @bind-Value="Model.PositionId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="int?" Value="@((int?)null)">Select Position</MudSelectItem>
+                        @foreach (var pos in positions)
+                        {
+                            <MudSelectItem T="int?" Value="@pos.PositionId">@pos.PositionTitle</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* --- Dates & Finance --- *@
+                <MudItem xs="12" sm="4">
+                    <MudDatePicker Label="Join Date" @bind-Date="Model.JoinDate" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="Model.CurrentSalary" Label="Salary (MMK)" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Format="N0" />
+                </MudItem>
+
+                @* --- Hierarchy & Address --- *@
+                <MudItem xs="12">
+                    <MudSelect T="int?" Label="Reports To (Manager)" @bind-Value="Model.ReportsTo" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None (Top Level)</MudSelectItem>
+                        @foreach (var emp in allEmployees.Where(x => x.EmployeeId != EmployeeId))
+                        {
+                            <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName (@emp.PositionTitle)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Address" Label="Home Address" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="px-10">SAVE</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public CreateEmployeeRequest Model { get; set; } = new();
+    [Parameter] public bool IsEdit { get; set; }
+    [Parameter] public int EmployeeId { get; set; }
+
+    private MudForm form = null!;
+
+
+    private IEnumerable<DepartmentDto> departments = new List<DepartmentDto>();
+    private IEnumerable<PositionDto> positions = new List<PositionDto>();
+    private List<EmployeeDto> allEmployees = new List<EmployeeDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            
+
+            var deptData = await DeptService.GetAllDepartmentsAsync();
+            var posData = await PosService.GetAllPositionsAsync();
+            var empData = await EmployeeService.GetEmployeesAsync();
+
+            departments = deptData ?? new List<DepartmentDto>();
+            positions = posData ?? new List<PositionDto>();
+            allEmployees = empData ?? new List<EmployeeDto>();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading data from other services: " + ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

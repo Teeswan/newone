@@ -18,14 +18,14 @@ public class EmployeeDto
 
 public class EmployeeDetailDto : EmployeeDto
 {
-    public DateOnly? JoinDate { get; set; }
+    public DateTime? JoinDate { get; set; }
     public decimal? CurrentSalary { get; set; }
     public string? NrcNumber { get; set; }
     public bool? PromotionEligibility { get; set; }
-    public DateOnly? LastPromotionDate { get; set; }
+    public DateTime? LastPromotionDate { get; set; }
     public string? Gender { get; set; }
     public string? Address { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? EmergencyContact { get; set; }
     public string? EmergencyPhone { get; set; }
     public string? BankName { get; set; }

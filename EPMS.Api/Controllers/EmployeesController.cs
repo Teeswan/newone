@@ -3,6 +3,7 @@ using EPMS.Infrastructure.Authorization;
 using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EPMS.Api.Controllers;
@@ -19,6 +20,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAll()
     {

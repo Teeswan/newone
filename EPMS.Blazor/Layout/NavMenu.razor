@@ -5,6 +5,7 @@
     <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Organization</MudText>
     <MudNavLink Href="/departments" Icon="@Icons.Material.Filled.Domain">Departments</MudNavLink>
     <MudNavLink Href="/teams" Icon="@Icons.Material.Filled.Groups">Teams</MudNavLink>
+    <MudNavLink href="/employees" Icon="@Icons.Material.Filled.Badge">Employees</MudNavLink>
     <MudNavLink Href="/levels" Icon="@Icons.Material.Filled.SignalCellularAlt">Levels</MudNavLink>
     <MudNavLink Href="/positions" Icon="@Icons.Material.Filled.Work">Positions</MudNavLink>
     <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Performance</MudText>
@@ -16,6 +17,9 @@
     <MudNavLink Href="/performanceoutcomes" Icon="@Icons.Material.Filled.TaskAlt">Performance Outcomes</MudNavLink>
     <MudNavLink Href="/pip" Icon="@Icons.Material.Filled.TrendingUp">Performance Improvement Plans</MudNavLink>
 </MudNavMenu>
+<MudNavGroup Title="Security" Icon="@Icons.Material.Filled.Security">
+    <MudNavLink href="/users/manage-roles" Icon="@Icons.Material.Filled.AdminPanelSettings">User Access</MudNavLink>
+</MudNavGroup>
 
 @code {
     [Parameter]

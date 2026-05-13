@@ -8,18 +8,18 @@ public class CreateEmployeeRequest
     public int? DepartmentId { get; set; }
     public int? PositionId { get; set; }
     public int? ReportsTo { get; set; }
-    public DateOnly? JoinDate { get; set; }
+    public DateTime? JoinDate { get; set; }
     public decimal? CurrentSalary { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? EmploymentStatus { get; set; }
+    public string? NrcNumber { get; set; }
 }
 
 public class UpdateEmployeeRequest : CreateEmployeeRequest
 {
     public bool? IsActive { get; set; }
-    public string? NrcNumber { get; set; }
     public string? Gender { get; set; }
     public string? EmergencyContact { get; set; }
     public string? EmergencyPhone { get; set; }

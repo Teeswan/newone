@@ -46,5 +46,7 @@ builder.Services.AddScoped<IPipClientService, PipClientService>();
 builder.Services.AddScoped<ILevelBlazorService, LevelBlazorService>();
 builder.Services.AddScoped<IPositionBlazorService, PositionBlazorService>();
 builder.Services.AddScoped<IPermissionBlazorService, PermissionBlazorService>();
-
+builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
+builder.Services.AddScoped<IEmployeeBlazorService, EmployeeBlazorService>();
+builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
 await builder.Build().RunAsync();

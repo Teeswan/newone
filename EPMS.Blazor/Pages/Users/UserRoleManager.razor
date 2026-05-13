@@ -1,0 +1,54 @@
+﻿@page "/users/manage-roles"
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IUserBlazorService UserBlazorService
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold;">User Access & Role Management</MudText>
+
+@if (UserRecords == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="@UserRecords" T="UserRoleDto" Hover="true" Elevation="1">
+        <HeaderContent>
+            <MudTh>Employee Name</MudTh>
+            <MudTh>Username</MudTh>
+            <MudTh>Assigned Roles</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Employee">@context.FullName</MudTd>
+            <MudTd DataLabel="Username">@context.Username</MudTd>
+            <MudTd DataLabel="Roles">
+                @foreach (var role in context.Roles)
+                {
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Text">@role</MudChip>
+                }
+            </MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small">Edit Roles</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private string searchString = "";
+    private List<UserRoleDto>? UserRecords;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+       
+            UserRecords = await UserBlazorService.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+            UserRecords = new List<UserRoleDto>();
+        }
+    }
+}
