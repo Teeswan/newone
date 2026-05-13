@@ -109,6 +109,8 @@ public class MappingProfile : Profile
         // Request ? Entity
         CreateMap<CreatePipPlanRequest, PipPlan>()
             .ForMember(d => d.Pipid, o => o.Ignore())
+            //.ForMember(d => d.StartDate, o => o.MapFrom(s => s.StartDate))
+            //.ForMember(d => d.EndDate, o => o.MapFrom(s => s.EndDate))
             .ForMember(d => d.Status, o => o.MapFrom(_ => "Active"))
             .ForMember(d => d.CreatedAt, o => o.Ignore())
             .ForMember(d => d.PipObjectives, o => o.Ignore())
