@@ -48,7 +48,7 @@
                             {
                                 @foreach (var dept in departments)
                                 {
-                                    <MudSelectItem Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                    <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
                                 }
                             }
                         </MudSelect>

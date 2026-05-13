@@ -21,7 +21,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet]
-    // [HasPermission(Permissions.Teams.View)]
+    [HasPermission(Permissions.Teams.View)]
     public async Task<ActionResult<IEnumerable<TeamDto>>> GetAll()
     {
         var result = await _service.GetAllAsync();
@@ -29,7 +29,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    // [HasPermission(Permissions.Teams.View)]
+    [HasPermission(Permissions.Teams.View)]
     public async Task<ActionResult<TeamDto>> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);
@@ -38,7 +38,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPost]
-    // [HasPermission(Permissions.Teams.Manage)]
+    [HasPermission(Permissions.Teams.Manage)]
     public async Task<ActionResult<TeamDto>> Create(CreateTeamRequest request)
     {
         var result = await _service.CreateAsync(request);
@@ -46,7 +46,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    // [HasPermission(Permissions.Teams.Manage)]
+    [HasPermission(Permissions.Teams.Manage)]
     public async Task<ActionResult<TeamDto>> Update(int id, UpdateTeamRequest request)
     {
         var result = await _service.UpdateAsync(id, request);
@@ -55,7 +55,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    // [HasPermission(Permissions.Teams.Manage)]
+    [HasPermission(Permissions.Teams.Manage)]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);
@@ -64,7 +64,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("department/{departmentId}")]
-    // [HasPermission(Permissions.Teams.View)]
+    [HasPermission(Permissions.Teams.View)]
     public async Task<ActionResult<IEnumerable<TeamDetailDto>>> GetByDepartment(int departmentId)
     {
         var result = await _service.GetByDepartmentAsync(departmentId);
@@ -72,7 +72,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("export/excel")]
-    // [HasPermission(Permissions.Teams.View)]
+    [HasPermission(Permissions.Teams.View)]
     public async Task<IActionResult> ExportToExcel()
     {
         var fileBytes = await _excelPdfService.ExportTeamsToExcelAsync();
@@ -80,7 +80,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("export/pdf")]
-    // [HasPermission(Permissions.Teams.View)]
+    [HasPermission(Permissions.Teams.View)]
     public async Task<IActionResult> ExportToPdf()
     {
         var fileBytes = await _excelPdfService.ExportTeamsToPdfAsync();
@@ -88,7 +88,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPost("import/excel")]
-    // [HasPermission(Permissions.Teams.Manage)]
+    [HasPermission(Permissions.Teams.Manage)]
     public async Task<ActionResult<int>> ImportFromExcel(IFormFile file, [FromQuery] bool skipFirstRow = true, [FromQuery] string sheetName = "", [FromQuery] bool skipExisting = false)
     {
         if (file == null || file.Length == 0)
