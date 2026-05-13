@@ -1,7 +1,9 @@
 using AutoMapper;
-using EPMS.Domain.Entities;
-using EPMS.Shared.DTOs;
-using EPMS.Shared.Requests;
+using EPMS.Domain.Entities;     
+using EPMS.Shared.DTOs;          
+using EPMS.Shared.Requests;      
+using EPMS.Domain.Enums;
+using EPMS.Application.UseCases.KpiMaster.Commands;
 
 namespace EPMS.Application.Mappings;
 
@@ -9,6 +11,16 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        // Appraisal Form Mappings
+        CreateMap<ApplicationForm, AppraisalFormDto>();
+        CreateMap<CreateAppraisalFormRequest, ApplicationForm>();
+        CreateMap<UpdateAppraisalFormRequest, ApplicationForm>();
+
+        // Appraisal Question Mappings
+        CreateMap<AppraisalQuestion, AppraisalQuestionDto>();
+        CreateMap<CreateAppraisalQuestionRequest, AppraisalQuestion>();
+        CreateMap<UpdateAppraisalQuestionRequest, AppraisalQuestion>();
+
         CreateMap<AppraisalCycle, AppraisalCycleDto>();
         CreateMap<CreateAppraisalCycleRequest, AppraisalCycle>();
         CreateMap<UpdateAppraisalCycleRequest, AppraisalCycle>();
@@ -147,6 +159,18 @@ public class MappingProfile : Profile
             .ForMember(d => d.Pipid, o => o.MapFrom(s => s.PipId))
             .ForMember(d => d.Pip, o => o.Ignore());
 
-        // Add more mappings as needed for other entities
+        // Inside your MappingProfile constructor:
+
+        CreateMap<KpiMaster, KpiMasterDto>()
+            .ForMember(dest => dest.KpiId, opt => opt.MapFrom(src => src.KpiId))
+            .ForMember(dest => dest.PriorityLevel, opt => opt.MapFrom(src => src.PriorityLevel.ToString()))
+            .ForMember(dest => dest.Direction, opt => opt.MapFrom(src => src.Direction.ToString()))
+            .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : "N/A"));
+
+        //CreateMap<CreateKpiMasterRequest, KpiMaster>();
+        //CreateMap<UpdateKpiMasterRequest, KpiMaster>();
+
+        // Import Mapping (for the Excel Bulk Import feature)
+        CreateMap<KpiImportDto, KpiMaster>();
     }
 }

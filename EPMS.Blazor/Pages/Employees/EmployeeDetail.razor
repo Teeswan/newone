@@ -1,0 +1,124 @@
+﻿@page "/employees/details/{Id:int}"
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IEmployeeBlazorService EmployeeService
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @* Header with Back Button *@
+    <div class="d-flex align-center mb-4">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="mr-2" />
+        <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1A56DB;">Employee Profile</MudText>
+    </div>
+
+    @if (detail == null)
+    {
+        <div class="d-flex justify-center my-10">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </div>
+    }
+    else
+    {
+        <MudGrid>
+            @* Left Side: Profile Card *@
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="1" Style="border-radius: 12px; height: 100%;">
+                    <MudCardContent Class="d-flex flex-column align-center py-8">
+                        <MudAvatar Style="height:120px; width:120px; font-size: 3rem;" Color="Color.Primary" Variant="Variant.Filled">
+                            @detail.FullName[0]
+                        </MudAvatar>
+                        <MudText Typo="Typo.h6" Class="mt-4" Style="font-weight: bold;">@detail.FullName</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@detail.EmployeeCode</MudText>
+                        <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Class="mt-2" Size="Size.Small">
+                            @detail.EmploymentStatus
+                        </MudChip>
+
+                        <MudDivider DividerType="DividerType.Middle" Class="my-4" Style="width: 80%;" />
+
+                        <div class="w-100 px-4">
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText Typo="Typo.body2" Style="color: #6B7280;">Department:</MudText>
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@detail.DepartmentName</MudText>
+                            </div>
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="color: #6B7280;">Position:</MudText>
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@detail.PositionTitle</MudText>
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            @* Right Side: Information Tabs *@
+            <MudItem xs="12" md="8">
+                <MudCard Elevation="1" Style="border-radius: 12px;">
+                    <MudCardContent>
+                        <MudTabs Elevation="0" Outlined="false" Color="Color.Primary">
+                            @* Tab 1: Official Info *@
+                            <MudTabPanel Text="Official Info" Icon="@Icons.Material.Filled.Badge">
+                                <MudGrid Class="mt-4">
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">NRC Number</MudText>
+                                        <MudText Typo="Typo.body1">@(detail.NrcNumber ?? "N/A")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Join Date</MudText>
+                                        <MudText Typo="Typo.body1">@detail.JoinDate?.ToString("dd MMM yyyy")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Reporting Manager</MudText>
+                                        <MudText Typo="Typo.body1">@(detail.ManagerName ?? "No Direct Manager")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
+                                        <MudText Typo="Typo.body1">@detail.Email</MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudTabPanel>
+
+                            @* Tab 2: Financial & Personal *@
+                            <MudTabPanel Text="Salary & Personal" Icon="@Icons.Material.Filled.Payments">
+                                <MudGrid Class="mt-4">
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Basic Salary</MudText>
+                                        <MudText Typo="Typo.body1" Style="color: #059669; font-weight: bold;">
+                                            @detail.CurrentSalary?.ToString("N0") MMK
+                                        </MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Phone Number</MudText>
+                                        <MudText Typo="Typo.body1">@(detail.Phone ?? "N/A")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Address</MudText>
+                                        <MudText Typo="Typo.body1">@(detail.Address ?? "Not Provided")</MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudTabPanel>
+                        </MudTabs>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private EmployeeDetailDto? detail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            detail = await EmployeeService.GetEmployeeDetailsAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            // Error handling
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/employees");
+}

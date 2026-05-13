@@ -13,13 +13,17 @@ public partial class Employee
 
     public string? Email { get; set; }
 
+    public string? Username { get; set; }
+
+    public string? PasswordHash { get; set; }
+
     public int? DepartmentId { get; set; }
 
     public int? PositionId { get; set; }
 
     public int? ReportsTo { get; set; }
 
-    public DateOnly? JoinDate { get; set; }
+    public DateTime? JoinDate { get; set; }
 
     public bool? IsActive { get; set; }
 
@@ -29,7 +33,7 @@ public partial class Employee
 
     public bool? PromotionEligibility { get; set; }
 
-    public DateOnly? LastPromotionDate { get; set; }
+    public DateTime? LastPromotionDate { get; set; }
 
     public string? Gender { get; set; }
 
@@ -37,7 +41,7 @@ public partial class Employee
 
     public string? Address { get; set; }
 
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     public string? EmergencyContact { get; set; }
 

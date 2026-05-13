@@ -1,0 +1,162 @@
+@page "/employees"
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IEmployeeBlazorService EmployeeService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Employee Management</MudText>
+
+<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
+    <MudCardContent>
+        @* Toolbar: Search and Add *@
+        <div class="d-flex justify-space-between align-center mb-4">
+            <MudTextField @bind-Value="searchString" Placeholder="Search employees..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenAddDialog"
+                       Style="background-color: #1A56DB; font-weight: 600;">
+                Add Employee
+            </MudButton>
+        </div>
+
+        @if (Employees == null)
+        {
+            <div class="d-flex justify-center my-4">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <MudTable Items="@Employees" T="EmployeeDto" Hover="true" Breakpoint="Breakpoint.Sm"
+                      Elevation="0" Filter="new Func<EmployeeDto,bool>(FilterFunc)">
+                <HeaderContent>
+                    <MudTh Style="font-weight: 600;">Code</MudTh>
+                    <MudTh Style="font-weight: 600;">Full Name</MudTh>
+                    <MudTh Style="font-weight: 600;">Position</MudTh>
+                    <MudTh Style="font-weight: 600;">Reports To</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
+                    <MudTd DataLabel="Name">@context.FullName</MudTd>
+                    <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
+                    <MudTd DataLabel="Manager">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                            @(context.ManagerName ?? "No Manager")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        @* View Details *@
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info"
+                                       Size="Size.Small" OnClick="@(() => ViewDetails(context.EmployeeId))" />
+
+                        @* Edit *@
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
+                                       Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+
+                        @* Delete *@
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                       Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private List<EmployeeDto>? Employees;
+    private string searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmployees();
+    }
+
+    private async Task LoadEmployees()
+    {
+        Employees = await EmployeeService.GetEmployeesAsync();
+    }
+
+    // 1. Create Logic (Open Dialog)
+    private async Task OpenAddDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EmployeeForm>("Add New Employee", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is CreateEmployeeRequest request)
+        {
+            try
+            {
+                var success = await EmployeeService.CreateEmployeeAsync(request);
+                if (success)
+                {
+                    Snackbar.Add("Employee created successfully!", Severity.Success);
+                    await LoadEmployees();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+        }
+    }
+
+    // 2. Update Logic (Open Dialog with Data)
+    private async Task OpenEditDialog(EmployeeDto employee)
+    {
+        var parameters = new DialogParameters { ["IsEdit"] = true, ["EmployeeId"] = employee.EmployeeId };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EmployeeForm>("Update Employee", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is UpdateEmployeeRequest request)
+        {
+            var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
+            if (success)
+            {
+                Snackbar.Add("Employee updated successfully!", Severity.Success);
+                await LoadEmployees();
+            }
+        }
+    }
+
+    // 3. Delete Logic (Confirmation)
+    private async Task DeleteEmployee(int id)
+    {
+        bool? confirm = await DialogService.ShowMessageBox("Warning",
+            "Are you sure you want to delete this employee? This action cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            var success = await EmployeeService.DeleteEmployeeAsync(id);
+            if (success)
+            {
+                Snackbar.Add("Employee deleted!", Severity.Info);
+                await LoadEmployees();
+            }
+        }
+    }
+
+    private void ViewDetails(int id) => Navigation.NavigateTo($"/employees/details/{id}");
+
+    private bool FilterFunc(EmployeeDto element)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if (element.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (element.EmployeeCode.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+}

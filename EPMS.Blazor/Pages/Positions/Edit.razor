@@ -53,7 +53,7 @@
                     {
                         @foreach (var level in levels)
                         {
-                            <MudSelectItem Value="@level.LevelId">@level.LevelName</MudSelectItem>
+                            <MudSelectItem T="string" Value="@level.LevelId">@level.LevelName</MudSelectItem>
                         }
                     }
                 </MudSelect>

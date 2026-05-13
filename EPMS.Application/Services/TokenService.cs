@@ -9,7 +9,7 @@ namespace EPMS.Application.Services;
 
 public interface ITokenService
 {
-    string CreateToken(User user);
+    string CreateToken(Employee employee);
 }
 
 public class TokenService : ITokenService
@@ -21,7 +21,7 @@ public class TokenService : ITokenService
         _config = config;
     }
 
-    public string CreateToken(User user)
+    public string CreateToken(Employee employee)
     {
         var jwtSettings = _config.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
@@ -29,13 +29,13 @@ public class TokenService : ITokenService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString())
+            new Claim(ClaimTypes.Name, employee.Username ?? employee.FullName),
+            new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
         };
 
-        if (user.Employee?.PositionId != null)
+        if (employee.PositionId != null)
         {
-            claims.Add(new Claim("PositionId", user.Employee.PositionId.Value.ToString()));
+            claims.Add(new Claim("PositionId", employee.PositionId.Value.ToString()));
         }
 
         var token = new JwtSecurityToken(

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace EPMS.Shared.DTOs
 {
-    public class RoleDto
+    public class UserRoleAssignDto
     {
-        public int RoleID { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public int UserId { get; set; }
+        public int RoleId { get; set; }
     }
 }

@@ -32,6 +32,12 @@ public class EmployeeService : IEmployeeService
 
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeRequest request)
     {
+        var existingCode = await _repository.GetByCodeAsync(request.EmployeeCode);
+        if (existingCode != null)
+        {
+            throw new InvalidOperationException($"Employee Code '{request.EmployeeCode}' already exists. Please use a unique code.");
+        }
+
         var entity = _mapper.Map<Employee>(request);
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<EmployeeDto>(created);

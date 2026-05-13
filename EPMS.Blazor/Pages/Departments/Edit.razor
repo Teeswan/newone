@@ -37,7 +37,7 @@
                             {
                                 @foreach (var dept in allDepartments.Where(d => d.DepartmentId != Id))
                                 {
-                                    <MudSelectItem Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                    <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
                                 }
                             }
                         </MudSelect>

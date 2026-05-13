@@ -16,13 +16,13 @@ namespace EPMS.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IEmployeeRepository _employeeRepository;
     private readonly ITokenService _tokenService;
     private readonly IConfiguration _config;
 
-    public AuthController(IUserRepository userRepository, ITokenService tokenService, IConfiguration config)
+    public AuthController(IEmployeeRepository employeeRepository, ITokenService tokenService, IConfiguration config)
     {
-        _userRepository = userRepository;
+        _employeeRepository = employeeRepository;
         _tokenService = tokenService;
         _config = config;
     }
@@ -30,14 +30,14 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        var user = await _userRepository.GetByUsernameAsync(request.Username);
+        var employee = await _employeeRepository.GetByUsernameAsync(request.Username);
 
-        if (user == null || user.PasswordHash != request.Password) // In real app, use password hashing!
+        if (employee == null || employee.PasswordHash != request.Password) // In real app, use password hashing!
         {
             return Unauthorized("Invalid username or password.");
         }
 
-        var token = _tokenService.CreateToken(user);
+        var token = _tokenService.CreateToken(employee);
         return Ok(new { Token = token });
     }
 

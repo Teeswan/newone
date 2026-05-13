@@ -25,7 +25,7 @@
                 Required="true">
                 @foreach (var permission in AvailablePermissions)
                 {
-                    <MudSelectItem Value="@permission.PermissionId">
+                    <MudSelectItem T="int?" Value="@permission.PermissionId">
                         @permission.PermissionCode - @permission.Description
                     </MudSelectItem>
                 }

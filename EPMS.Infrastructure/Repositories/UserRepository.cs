@@ -1,33 +1,4 @@
-//using System;
-//using System.Threading.Tasks;
-//using System;
-//using System.Threading.Tasks;
-//using EPMS.Domain.Entities;
-//using EPMS.Domain.Interfaces;
-//using EPMS.Infrastructure.Contexts;
-//using Microsoft.EntityFrameworkCore;
 
-//namespace EPMS.Infrastructure.Repositories;
-
-//public class UserRepository : BaseRepository<User, int>, IUserRepository
-//{
-//    public UserRepository(AppDbContext context) : base(context)
-//    {
-//    }
-
-//    public async Task<User?> GetByUsernameAsync(string username)
-//    {
-//        if (string.IsNullOrWhiteSpace(username))
-//        {
-//            throw new ArgumentException("Username must be provided.", nameof(username));
-//        }
-
-//        return await _context.Users
-//            .AsNoTracking()
-//            .Include(u => u.Employee)
-//            .FirstOrDefaultAsync(u => u.Username == username);
-//    }
-//}
 
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
@@ -59,23 +30,6 @@ namespace EPMS.Infrastructure.Repositories
             return users ?? new List<User>();
         }
 
-        // ?? Login ???????? ????????? ??????????????? ????????????? Method
-        public async Task<User?> GetByUsernameAsync(string username)
-        {
-            // ???????????????????? ??????? Cache Key ?????? ??????????????
-            string userCacheKey = $"user_{username}";
-
-            if (!_cache.TryGetValue(userCacheKey, out User? user))
-            {
-                user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Username == username);
-                if (user != null)
-                {
-                    _cache.Set(userCacheKey, user, TimeSpan.FromMinutes(30));
-                }
-            }
-            return user;
-        }
-
         // ?? Data ?????????????????? Cache ????????
         public override async Task<User> CreateAsync(User entity)
         {
@@ -88,7 +42,6 @@ namespace EPMS.Infrastructure.Repositories
         {
             var result = await base.UpdateAsync(entity);
             _cache.Remove(_cacheKey);
-            _cache.Remove($"user_{entity.Username}"); // ??????????????? Cache ????? ????????
             return result;
         }
     }
