@@ -1,0 +1,91 @@
+﻿@page "/user-management"
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IUserBlazorService UserBlazorService
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="color: #111827; font-weight: bold;">User Access Management</MudText>
+
+<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
+    <MudCardContent>
+        <div class="d-flex justify-space-between align-center mb-4">
+            <MudTextField @bind-Value="searchString" Placeholder="Search employees..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="max-width: 300px;" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Style="background-color: #1A56DB;">Assign Role</MudButton>
+        </div>
+
+        @if (UserRecords == null)
+        {
+            <div class="d-flex justify-center mt-4">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <MudTable Items="@UserRecords" T="UserRoleDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh Style="color: #6B7280; font-weight: 600;">Employee</MudTh>
+                    <MudTh Style="color: #6B7280; font-weight: 600;">Username</MudTh>
+                    <MudTh Style="color: #6B7280; font-weight: 600;">Assigned Roles</MudTh>
+                    <MudTh Style="color: #6B7280; font-weight: 600;">Status</MudTh>
+                    <MudTh Style="color: #6B7280; font-weight: 600;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Employee">
+                        <div class="d-flex align-center">
+                            <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
+                                @(string.IsNullOrEmpty(context.FullName) ? "?" : context.FullName.Substring(0, 1))
+                            </MudAvatar>
+                            <div>
+                                <MudText Typo="Typo.body2" Style="color: #111827; font-weight: 500;">@context.FullName</MudText>
+                                <MudText Typo="Typo.caption" Style="color: #6B7280;">@context.EmployeeCode</MudText>
+                            </div>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Username">
+                        <MudText Typo="Typo.body2">@context.Username</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Roles">
+                        @if (context.Roles != null)
+                        {
+                            @foreach (var role in context.Roles)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text" Class="mr-1">@role</MudChip>
+                            }
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        @if (context.IsActive)
+                        {
+                            <MudChip T="string" Size="Size.Small" Style="background-color: #ECFDF5; color: #065F46;">Active</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Size="Size.Small" Style="background-color: #FEF2F2; color: #991B1B;">Inactive</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
+                        <MudIconButton Icon="@Icons.Material.Filled.VpnKey" Color="Color.Warning" Size="Size.Small" Title="Reset Password" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private string searchString = "";
+    private List<UserRoleDto>? UserRecords;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            UserRecords = await UserBlazorService.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+            UserRecords = new List<UserRoleDto>();
+        }
+    }
+}

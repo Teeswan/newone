@@ -88,6 +88,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices(builder.Configuration);
 
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

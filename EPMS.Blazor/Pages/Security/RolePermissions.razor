@@ -1,0 +1,61 @@
+﻿@* @page "/security/role-permissions"
+@using EPMS.Shared.DTOs
+@inject IRoleBlazorService RoleService
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold;">Dynamic RBAC Configuration</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="4">
+        <MudSelect T="int" Label="Select Position/Role" @bind-Value="selectedRoleId" AnchorOrigin="Origin.BottomCenter" OffsetY="true">
+            @foreach (var role in Roles)
+            {
+                <MudSelectItem Value="@role.RoleID">@role.RoleName</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+</MudGrid>
+
+<MudCard Elevation="1" Class="mt-4" Style="border-radius: 8px;">
+    <MudCardContent>
+        <MudText Typo="Typo.subtitle1" Class="mb-3">Functional Permission Mapping</MudText>
+        <MudTable Items="@PermissionLibrary" T="PermissionDto" MultiSelection="true" @bind-SelectedItems="selectedPermissions" Hover="true">
+            <HeaderContent>
+                <MudTh>Module / Feature</MudTh>
+                <MudTh>Permission Code</MudTh>
+                <MudTh>Description</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Module</MudTd>
+                <MudTd><MudChip T="string" Size="Size.Small" Color="Color.Info">@context.PermissionCode</MudChip></MudTd>
+                <MudTd>@context.Description</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePermissions" Class="ml-auto">Save Configuration</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    private int selectedRoleId;
+    private HashSet<PermissionDto> selectedPermissions = new();
+    private List<RoleDto> Roles = new();
+    private List<PermissionDto> PermissionLibrary = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Roles = await RoleService.GetAllRolesAsync();
+        // PermissionLibrary ကို API မှ ဆွဲယူပါမည် (SRS Section 5.1.3 အရ)
+        PermissionLibrary = await RoleService.GetPermissionLibraryAsync();
+    }
+
+    private async Task SavePermissions()
+    {
+        // SRS Section 2.2 အရ Permission Logic ကို သိမ်းဆည်းပါမည်
+        var result = await RoleService.UpdateRolePermissionsAsync(selectedRoleId, selectedPermissions.ToList());
+        if (result)
+        {
+            // Snackbar/Toast ဖြင့် အောင်မြင်ကြောင်းပြရန်
+        }
+    }
+} *@
