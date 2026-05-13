@@ -1,6 +1,7 @@
-﻿@using EPMS.Shared.Requests
+@using EPMS.Shared.Requests
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
+@using System.ComponentModel.DataAnnotations
 @inject IDepartmentBlazorService DeptService
 @inject IPositionBlazorService PosService
 @inject IEmployeeBlazorService EmployeeService
@@ -18,7 +19,9 @@
             <MudGrid Spacing="2">
                 @* --- Basic Section --- *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.EmployeeCode" Label="Employee Code" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" RequiredError="Code is required!" />
+                    <MudTextField @bind-Value="Model.EmployeeCode" Label="Employee Code" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                  Required="true" RequiredError="Code is required!" Placeholder="e.g. EMP-001"
+                                  Validation="@(new Func<string, Task<string?>>(ValidateEmployeeCode))" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="Model.FullName" Label="Full Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" RequiredError="Name is required!" />
@@ -26,21 +29,29 @@
 
                 @* --- Identification & Contact --- *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.NrcNumber" Label="NRC Number" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="12/YAKANA(N)123456" />
+                    <MudTextField @bind-Value="Model.NrcNumber" Label="NRC Number" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="12/YAKANA(N)123456" 
+                                  Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{1,2}/[A-Z]+\([A-Z]\)\d{6}$") ? null : "Invalid NRC format (e.g. 12/ABCDEF(N)123456)"))" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="InputType.Email" />
+                    <MudTextField @bind-Value="Model.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="InputType.Email" 
+                                  Validation="@(new EmailAddressAttribute {ErrorMessage = "Invalid email address"})" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.Phone" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudTextField @bind-Value="Model.Phone" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                  Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^[0-9+ ]{7,15}$") ? null : "Invalid phone number"))" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.EmploymentStatus" Label="Employment Status" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Permanent / Contract" />
+                    <MudSelect T="string" Label="Employment Status" @bind-Value="Model.EmploymentStatus" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Employment status is required!">
+                        <MudSelectItem Value="@("Permanent")">Permanent</MudSelectItem>
+                        <MudSelectItem Value="@("Contract")">Contract</MudSelectItem>
+                        <MudSelectItem Value="@("Probation")">Probation</MudSelectItem>
+                        <MudSelectItem Value="@("Intern")">Intern</MudSelectItem>
+                    </MudSelect>
                 </MudItem>
 
                 @* --- Organization Section --- *@
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Department" @bind-Value="Model.DepartmentId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect T="int?" Label="Department" @bind-Value="Model.DepartmentId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Department is required!">
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
                         @foreach (var dept in departments)
                         {
@@ -49,7 +60,7 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Position" @bind-Value="Model.PositionId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect T="int?" Label="Position" @bind-Value="Model.PositionId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Position is required!">
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Position</MudSelectItem>
                         @foreach (var pos in positions)
                         {
@@ -60,13 +71,14 @@
 
                 @* --- Dates & Finance --- *@
                 <MudItem xs="12" sm="4">
-                    <MudDatePicker Label="Join Date" @bind-Date="Model.JoinDate" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
+                    <MudDatePicker Label="Join Date" @bind-Date="Model.JoinDate" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" Required="true" RequiredError="Join date is required!" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
+                    <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                  Editable="true" Validation="@(new Func<DateTime?, string?>(ValidateDateOfBirth))" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudNumericField @bind-Value="Model.CurrentSalary" Label="Salary (MMK)" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Format="N0" />
+                    <MudNumericField @bind-Value="Model.CurrentSalary" Label="Salary (MMK)" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Format="N0" Min="0" />
                 </MudItem>
 
                 @* --- Hierarchy & Address --- *@
@@ -82,6 +94,13 @@
                 <MudItem xs="12">
                     <MudTextField @bind-Value="Model.Address" Label="Home Address" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
                 </MudItem>
+
+                <MudItem xs="12">
+                    <MudSelect T="bool" Label="Employee Status" @bind-Value="IsActive" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true">
+                        <MudSelectItem Value="true">Active</MudSelectItem>
+                        <MudSelectItem Value="false">Inactive</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
@@ -96,7 +115,10 @@
     [Parameter] public bool IsEdit { get; set; }
     [Parameter] public int EmployeeId { get; set; }
 
+    private bool IsActive { get; set; } = true;
     private MudForm form = null!;
+    private string? originalEmployeeCode;
+    private System.ComponentModel.DataAnnotations.EmailAddressAttribute EmailAddressAttribute = new();
 
 
     private IEnumerable<DepartmentDto> departments = new List<DepartmentDto>();
@@ -107,7 +129,31 @@
     {
         try
         {
-            
+            if (IsEdit && EmployeeId > 0)
+            {
+                var employee = await EmployeeService.GetEmployeeDetailsAsync(EmployeeId);
+                if (employee != null)
+                {
+                    originalEmployeeCode = employee.EmployeeCode;
+                    Model = new CreateEmployeeRequest
+                    {
+                        EmployeeCode = employee.EmployeeCode,
+                        FullName = employee.FullName,
+                        Email = employee.Email,
+                        DepartmentId = employee.DepartmentId,
+                        PositionId = employee.PositionId,
+                        ReportsTo = employee.ReportsTo,
+                        JoinDate = employee.JoinDate,
+                        CurrentSalary = employee.CurrentSalary,
+                        Phone = employee.Phone,
+                        Address = employee.Address,
+                        DateOfBirth = employee.DateOfBirth,
+                        EmploymentStatus = employee.EmploymentStatus,
+                        NrcNumber = employee.NrcNumber
+                    };
+                    IsActive = employee.IsActive ?? false;
+                }
+            }
 
             var deptData = await DeptService.GetAllDepartmentsAsync();
             var posData = await PosService.GetAllPositionsAsync();
@@ -119,8 +165,31 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add("Error loading data from other services: " + ex.Message, Severity.Error);
+            Snackbar.Add("Error loading data: " + ex.Message, Severity.Error);
         }
+    }
+
+    private async Task<string?> ValidateEmployeeCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return null;
+        
+        // If editing and code hasn't changed, it's valid
+        if (IsEdit && code.Equals(originalEmployeeCode, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var isUnique = await EmployeeService.IsEmployeeCodeUniqueAsync(code);
+        return isUnique ? null : "Employee code must be unique!";
+    }
+
+    private string? ValidateDateOfBirth(DateTime? dob)
+    {
+        if (dob == null) return null;
+        
+        var minAge = 18;
+        if (dob.Value > DateTime.Today.AddYears(-minAge))
+            return $"Employee must be at least {minAge} years old.";
+            
+        return null;
     }
 
     private async Task Submit()
@@ -128,7 +197,32 @@
         await form.Validate();
         if (form.IsValid)
         {
-            MudDialog.Close(DialogResult.Ok(Model));
+            if (IsEdit)
+            {
+                var updateRequest = new UpdateEmployeeRequest
+                {
+                    EmployeeCode = Model.EmployeeCode,
+                    FullName = Model.FullName,
+                    Email = Model.Email,
+                    DepartmentId = Model.DepartmentId,
+                    PositionId = Model.PositionId,
+                    ReportsTo = Model.ReportsTo,
+                    JoinDate = Model.JoinDate,
+                    CurrentSalary = Model.CurrentSalary,
+                    Phone = Model.Phone,
+                    Address = Model.Address,
+                    DateOfBirth = Model.DateOfBirth,
+                    EmploymentStatus = Model.EmploymentStatus,
+                    NrcNumber = Model.NrcNumber,
+                    IsActive = IsActive
+                };
+                MudDialog.Close(DialogResult.Ok(updateRequest));
+            }
+            else
+            {
+                Model.IsActive = IsActive;
+                MudDialog.Close(DialogResult.Ok(Model));
+            }
         }
     }
 

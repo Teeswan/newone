@@ -13,10 +13,47 @@ namespace EPMS.Api.Controllers;
 public class EmployeesController : ControllerBase
 {
     private readonly IEmployeeService _service;
+    private readonly IExcelPdfService _excelPdfService;
 
-    public EmployeesController(IEmployeeService service)
+    public EmployeesController(IEmployeeService service, IExcelPdfService excelPdfService)
     {
         _service = service;
+        _excelPdfService = excelPdfService;
+    }
+
+    [HttpGet("export/excel")]
+    // [HasPermission(Permissions.Employees.View)]
+    public async Task<IActionResult> ExportToExcel()
+    {
+        var fileBytes = await _excelPdfService.ExportEmployeesToExcelAsync();
+        return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Employees.xlsx");
+    }
+
+    [HttpGet("export/pdf")]
+    // [HasPermission(Permissions.Employees.View)]
+    public async Task<IActionResult> ExportToPdf()
+    {
+        var fileBytes = await _excelPdfService.ExportEmployeesToPdfAsync();
+        return File(fileBytes, "application/pdf", "Employees.pdf");
+    }
+
+    [HttpPost("import/excel")]
+    // [HasPermission(Permissions.Employees.Manage)]
+    public async Task<ActionResult<int>> ImportFromExcel(IFormFile file, [FromQuery] bool skipFirstRow = true, [FromQuery] string sheetName = "", [FromQuery] bool skipExisting = false)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("Please upload a valid Excel file.");
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var count = await _excelPdfService.ImportEmployeesFromExcelAsync(stream, skipFirstRow, sheetName, skipExisting);
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet]

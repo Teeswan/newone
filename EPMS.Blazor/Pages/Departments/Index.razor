@@ -52,7 +52,7 @@
             <MudTable Items="@departments" Hover="true" Breakpoint="Breakpoint.Sm" MultiSelection="true" @bind-SelectedItems="selectedDepartments" SelectOnRowClick="false">
                 <HeaderContent>
                     <MudTh>
-                        <MudCheckBox T="bool" Checked="@AreAllDepartmentsSelected" CheckedChanged="@ToggleAllDepartments" Size="Size.Small" />
+                        <MudCheckBox T="bool" Checked="@AreAllDepartmentsSelected" CheckedChanged="@((bool value) => ToggleAllDepartments(value))" Size="Size.Small" />
                     </MudTh>
                     <MudTh>Department ID</MudTh>
                     <MudTh>Name</MudTh>
