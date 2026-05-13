@@ -10,8 +10,11 @@ public partial class PipPlan
     public int? EmployeeId { get; set; }
 
     public int? ManagerId { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
 
     public string? Status { get; set; }
+    public string? OverallGoal { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

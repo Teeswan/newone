@@ -10,6 +10,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.AspNetCore.Http;
+using EPMS.Application.Interfaces;
+
 namespace EPMS.Api.Controllers;
 
 [ApiController]
@@ -18,10 +21,12 @@ namespace EPMS.Api.Controllers;
 public class EmployeeKpiController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IExcelPdfService _excelPdfService;
 
-    public EmployeeKpiController(IMediator mediator)
+    public EmployeeKpiController(IMediator mediator, IExcelPdfService excelPdfService)
     {
         _mediator = mediator;
+        _excelPdfService = excelPdfService;
     }
 
     [HttpGet("assignments/{employeeId}/{cycleId}")]
@@ -82,5 +87,31 @@ public class EmployeeKpiController : ControllerBase
         return result.IsSuccess 
             ? Ok(ApiResponse<object>.SuccessResponse(null!, "Cycle snapshots created"))
             : BadRequest(ApiResponse<object>.FailureResponse(result.Message));
+    }
+
+    [HttpPost("excel-bulk-import")]
+    [HasPermission(Permissions.Kpis.Manage)]
+    public async Task<ActionResult<ApiResponse<BulkImportResultDto>>> ExcelBulkImport(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<BulkImportResultDto>.FailureResponse("No file uploaded"));
+
+        using var stream = file.OpenReadStream();
+        var kpis = await _excelPdfService.ImportEmployeeKpiFromExcelAsync(stream);
+
+        var command = new BulkImportEmployeeKpiCommand(new List<EmployeeKpiImportDto>(kpis), null);
+        var result = await _mediator.Send(command);
+
+        return result.IsSuccess
+            ? Ok(ApiResponse<BulkImportResultDto>.SuccessResponse(result.Value!))
+            : BadRequest(ApiResponse<BulkImportResultDto>.FailureResponse(result.Message, result.Errors));
+    }
+
+    [HttpGet("import-template")]
+    [HasPermission(Permissions.Kpis.View)]
+    public async Task<IActionResult> DownloadImportTemplate()
+    {
+        var fileBytes = await _excelPdfService.ExportEmployeeKpiTemplateAsync();
+        return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Employee_KPI_Import_Template.xlsx");
     }
 }
