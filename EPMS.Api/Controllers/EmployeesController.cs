@@ -66,8 +66,15 @@ public class EmployeesController : ControllerBase
     // [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeRequest request)
     {
-        var result = await _service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.EmployeeId }, result);
+        try
+        {
+            var result = await _service.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = result.EmployeeId }, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]

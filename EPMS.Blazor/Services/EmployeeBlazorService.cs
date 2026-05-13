@@ -1,4 +1,4 @@
-﻿using EPMS.Shared.DTOs;
+using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 using System.Net.Http.Json;
 using static System.Net.WebRequestMethods;
@@ -36,7 +36,14 @@ namespace EPMS.Blazor.Services
         public async Task<bool> CreateEmployeeAsync(CreateEmployeeRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/employees", request);
-            return response.IsSuccessStatusCode;
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception(errorContent ?? "Failed to create employee");
+            }
+            
+            return true;
         }
 
         public async Task<bool> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request)

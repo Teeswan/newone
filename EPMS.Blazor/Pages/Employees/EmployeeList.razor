@@ -1,4 +1,4 @@
-﻿@page "/employees"
+@page "/employees"
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 @using EPMS.Blazor.Services
@@ -96,11 +96,18 @@
 
         if (!result.Canceled && result.Data is CreateEmployeeRequest request)
         {
-            var success = await EmployeeService.CreateEmployeeAsync(request);
-            if (success)
+            try
             {
-                Snackbar.Add("Employee created successfully!", Severity.Success);
-                await LoadEmployees();
+                var success = await EmployeeService.CreateEmployeeAsync(request);
+                if (success)
+                {
+                    Snackbar.Add("Employee created successfully!", Severity.Success);
+                    await LoadEmployees();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
             }
         }
     }
