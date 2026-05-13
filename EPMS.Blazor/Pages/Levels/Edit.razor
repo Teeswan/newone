@@ -1,0 +1,128 @@
+@page "/levels/edit/{id}"
+@inject EPMS.Blazor.Services.ILevelBlazorService LevelService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Level</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-6">Edit Level</MudText>
+
+        @if (isLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center" />
+        }
+        else if (levelModel == null)
+        {
+            <MudAlert Severity="Severity.Error">Level not found.</MudAlert>
+        }
+        else
+        {
+            <EditForm Model="levelModel" OnValidSubmit="HandleUpdate">
+                <MudTextField 
+                    T="string"
+                    Label="Level ID" 
+                    @bind-Value="levelId"
+                    Variant="Variant.Outlined"
+                    Style="width: 100%"
+                    Class="mb-4"
+                    Disabled="true" />
+
+                <MudTextField 
+                    T="string"
+                    Label="Level Name" 
+                    @bind-Value="levelModel.LevelName"
+                    Placeholder="Enter level name"
+                    Variant="Variant.Outlined"
+                    Style="width: 100%"
+                    Class="mb-4"
+                    Required="true" />
+
+                <MudTextField 
+                    T="string"
+                    Label="Description" 
+                    @bind-Value="levelModel.LevelDescription"
+                    Placeholder="Enter level description (optional)"
+                    Variant="Variant.Outlined"
+                    Style="width: 100%"
+                    Class="mb-6"
+                    Lines="3" />
+
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Style="width: 100%" OnClick="NavigateBack">
+                            Cancel
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Style="width: 100%">
+                            Update
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private string levelId = string.Empty;
+    private UpdateLevelRequest? levelModel;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadLevel();
+    }
+
+    private async Task LoadLevel()
+    {
+        try
+        {
+            isLoading = true;
+            var level = await LevelService.GetLevelByIdAsync(Id);
+            if (level != null)
+            {
+                levelId = level.LevelId;
+                levelModel = new UpdateLevelRequest
+                {
+                    LevelName = level.LevelName,
+                    LevelDescription = level.LevelDescription
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading level: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (levelModel == null) return;
+
+        try
+        {
+            await LevelService.UpdateLevelAsync(Id, levelModel);
+            Snackbar.Add("Level updated successfully!", Severity.Success);
+            NavigateBack();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating level: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/levels");
+    }
+}

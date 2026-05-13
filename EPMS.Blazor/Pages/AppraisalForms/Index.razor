@@ -1,43 +1,64 @@
 @page "/appraisalforms"
 @inject EPMS.Blazor.Services.IAppraisalFormBlazorService AppraisalFormService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<h3>Appraisal Forms</h3>
+<PageTitle>Appraisal Forms</PageTitle>
 
-<p>
-    <a href="/appraisalforms/create" class="btn btn-primary">Create New</a>
-</p>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4" Class="mb-0">Appraisal Forms</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                    Create New
+                </MudButton>
+            </MudItem>
+        </MudGrid>
 
-@if (appraisalForms == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var form in appraisalForms)
-            {
-                <tr>
-                    <td>@form.FormName</td>
-                    <td>@(form.IsActive == true ? "Active" : "Inactive")</td>
-                    <td>
-                        <a href="/appraisalforms/details/@form.FormId" class="btn btn-info btn-sm">Details</a>
-                        <a href="/appraisalforms/edit/@form.FormId" class="btn btn-warning btn-sm">Edit</a>
-                        <button class="btn btn-danger btn-sm" @onclick="(() => DeleteAppraisalForm(form.FormId))">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+        @if (appraisalForms == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal forms...</MudText>
+            </div>
+        }
+        else if (!appraisalForms.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="ma-4">
+                No appraisal forms found. Create your first appraisal form!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="appraisalForms" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Form Name</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Form Name">@context.FormName</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="@(context.IsActive == true ? Color.Success : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                            @(context.IsActive == true ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.FormId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
+                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.FormId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                            <MudButton Color="Color.Error" OnClick="() => DeleteAppraisalForm(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     private IEnumerable<EPMS.Shared.DTOs.AppraisalFormDto>? appraisalForms;
@@ -55,28 +76,57 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading appraisal forms: {ex.Message}");
+            Snackbar.Add($"Error loading appraisal forms: {ex.Message}", Severity.Error);
             appraisalForms = new List<EPMS.Shared.DTOs.AppraisalFormDto>();
         }
     }
 
-    private async Task DeleteAppraisalForm(int formId)
+    private void NavigateToCreate()
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this appraisal form?");
-        if (confirmed)
+        NavigationManager.NavigateTo("/appraisalforms/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalforms/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalforms/edit/{id}");
+    }
+
+    private async Task DeleteAppraisalForm(EPMS.Shared.DTOs.AppraisalFormDto form)
+    {
+        var parameters = new DialogParameters
         {
-            var success = await AppraisalFormService.DeleteAppraisalFormAsync(formId);
-            if (success)
+            { "ContentText", $"Are you sure you want to delete the appraisal form '{form.FormName}'?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
             {
-                await LoadAppraisalForms();
+                var success = await AppraisalFormService.DeleteAppraisalFormAsync(form.FormId);
+                if (success)
+                {
+                    Snackbar.Add("Appraisal form deleted successfully!", Severity.Success);
+                    await LoadAppraisalForms();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting appraisal form.", Severity.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Error deleting appraisal form.");
+                Snackbar.Add($"Error deleting appraisal form: {ex.Message}", Severity.Error);
             }
         }
     }
-
-    [Inject]
-    public IJSRuntime JSRuntime { get; set; } = default!;
 }

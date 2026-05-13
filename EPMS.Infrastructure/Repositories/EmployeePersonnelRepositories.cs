@@ -1,10 +1,10 @@
-
 using Dapper;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
 using EPMS.Infrastructure.Contexts;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Caching.Memory; 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -110,25 +110,25 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
 }
 
-    public class LevelRepository : BaseRepository<Level, string>, ILevelRepository
+public class LevelRepository : BaseRepository<Level, string>, ILevelRepository
+{
+    public LevelRepository(AppDbContext context) : base(context) { }
+}
+
+public class PositionRepository : BaseRepository<Position, int>, IPositionRepository
+{
+    private readonly string _connectionString;
+
+    public PositionRepository(AppDbContext context, IConfiguration configuration) : base(context)
     {
-        public LevelRepository(AppDbContext context) : base(context) { }
+        ArgumentNullException.ThrowIfNull(configuration);
+        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
     }
 
-    public class PositionRepository : BaseRepository<Position, int>, IPositionRepository
+    public async Task<IEnumerable<Position>> GetPositionsByLevelAsync(string levelId)
     {
-        private readonly string _connectionString;
-
-        public PositionRepository(AppDbContext context, IConfiguration configuration) : base(context)
-        {
-            ArgumentNullException.ThrowIfNull(configuration);
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
-        }
-
-        public async Task<IEnumerable<Position>> GetPositionsByLevelAsync(string levelId)
-        {
-            using IDbConnection db = new SqlConnection(_connectionString);
-            string sql = "SELECT * FROM Positions WHERE LevelId = @LevelId";
-            return await db.QueryAsync<Position>(sql, new { LevelId = levelId });
-        }
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = "SELECT * FROM Positions WHERE LevelId = @LevelId";
+        return await db.QueryAsync<Position>(sql, new { LevelId = levelId });
     }
+}

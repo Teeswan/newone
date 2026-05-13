@@ -1,0 +1,97 @@
+@page "/positions/create"
+@inject EPMS.Blazor.Services.IPositionBlazorService PositionService
+@inject EPMS.Blazor.Services.ILevelBlazorService LevelService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Position</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-6">Create New Position</MudText>
+
+        <EditForm Model="positionModel" OnValidSubmit="HandleCreate">
+            <MudTextField 
+                T="string"
+                Label="Position Title" 
+                @bind-Value="positionModel.PositionTitle"
+                Placeholder="Enter position title"
+                Variant="Variant.Outlined"
+                Style="width: 100%"
+                Class="mb-4"
+                Required="true" />
+
+            <MudSelect 
+                T="string"
+                Label="Level" 
+                @bind-Value="positionModel.LevelId"
+                Placeholder="Select level (optional)"
+                Variant="Variant.Outlined"
+                Style="width: 100%"
+                Class="mb-6"
+                Clearable="true">
+                @if (levels != null)
+                {
+                    @foreach (var level in levels)
+                    {
+                        <MudSelectItem Value="@level.LevelId">@level.LevelName</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Style="width: 100%" OnClick="NavigateBack">
+                        Cancel
+                    </MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Style="width: 100%">
+                        Create
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private CreatePositionRequest positionModel = new();
+    private IEnumerable<LevelDto>? levels;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLevels();
+    }
+
+    private async Task LoadLevels()
+    {
+        try
+        {
+            levels = await LevelService.GetAllLevelsAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading levels: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            await PositionService.CreatePositionAsync(positionModel);
+            Snackbar.Add("Position created successfully!", Severity.Success);
+            NavigateBack();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating position: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/positions");
+    }
+}

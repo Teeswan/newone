@@ -1,86 +1,114 @@
-﻿@page "/pip"
+@page "/pip"
 @using EPMS.Blazor.Services
 @using EPMS.Shared.DTOs
 @inject IPipClientService PipService
-@inject NavigationManager Nav
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <PageTitle>Performance Improvement Plans</PageTitle>
 
-<div class="pip-list-page">
-    <div class="page-header">
-        <h1>Performance Improvement Plans</h1>
-        <button class="btn-primary" @onclick='() => Nav.NavigateTo("/pip/create")'>
-            + New PIP
-        </button>
-    </div>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudPaper Elevation="2" Class="pa-6">
+                <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudItem>
+                        <MudText Typo="Typo.h4">Performance Improvement Plans</MudText>
+                    </MudItem>
+                    <MudItem>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => NavigationManager.NavigateTo("/pip/create"))" StartIcon="@Icons.Material.Filled.Add">
+                            New PIP
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <select @bind="_statusFilter" @bind:after="LoadData">
-            <option value="">All Statuses</option>
-            <option>Active</option>
-            <option>Completed</option>
-            <option>Terminated</option>
-            <option>Extended</option>
-        </select>
-    </div>
+                <MudGrid Class="mt-4">
+                    <MudItem xs="12" sm="4">
+                        <MudSelect T="string" Label="Filter by Status" Value="@_statusFilter" ValueChanged="OnStatusFilterChanged" Variant="Variant.Outlined">
+                            <MudSelectItem T="string" Value="@("All")">All Statuses</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Active")">Active</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Terminated")">Terminated</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Extended")">Extended</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
 
-    @if (_loading)
-    {
-        <div class="loading-spinner">Loading PIPs...</div>
-    }
-    else if (_errorMessage is not null)
-    {
-        <div class="alert alert-danger">@_errorMessage</div>
-    }
-    else if (_plans is not null)
-    {
-        <table class="pip-table">
-            <thead>
-                <tr>
-                    <th>Employee</th>
-                    <th>Manager</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Status</th>
-                    <th>Objectives</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var plan in _plans)
+        <MudItem xs="12" Class="mt-4">
+            <MudPaper Elevation="2">
+                @if (_loading)
                 {
-                    <tr>
-                        <td>@plan.EmployeeName</td>
-                        <td>@plan.ManagerName</td>
-                        <td>@plan.StartDate.ToString("dd MMM yyyy")</td>
-                        <td>@plan.EndDate.ToString("dd MMM yyyy")</td>
-                        <td>
-                            <span class="badge badge-@plan.Status.ToLower()">
-                                @plan.Status
-                            </span>
-                        </td>
-                        <td>
-                            @plan.Objectives.Count(o => o.IsAchieved) / @plan.Objectives.Count
-                        </td>
-                        <td>
-                            <button class="btn-sm btn-outline"
-                                    @onclick='() => Nav.NavigateTo($"/pip/{plan.PipId}")'>
-                                View
-                            </button>
-                        </td>
-                    </tr>
+                    <div class="text-center py-10">
+                        <MudProgressCircular Indeterminate="true" />
+                        <MudText Class="mt-3">Loading PIPs...</MudText>
+                    </div>
                 }
-            </tbody>
-        </table>
-    }
-</div>
+                else if (_errorMessage is not null)
+                {
+                    <MudAlert Severity="Severity.Error" Class="m-4">@_errorMessage</MudAlert>
+                }
+                else if (_plans != null && _plans.Any())
+                {
+                    <MudTable Items="_plans" Hover="true" Striped="true" Class="pa-4">
+                        <HeaderContent>
+                            <MudTh>Employee</MudTh>
+                            <MudTh>Manager</MudTh>
+                            <MudTh>Start Date</MudTh>
+                            <MudTh>End Date</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>Objectives</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+                            <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
+                            <MudTd DataLabel="Start Date">@context.StartDate.ToString("dd MMM yyyy")</MudTd>
+                            <MudTd DataLabel="End Date">@context.EndDate.ToString("dd MMM yyyy")</MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Color="GetStatusColor(context.Status)" Variant="Variant.Filled">
+                                    @context.Status
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Objectives">
+                                @if (context.Objectives.Any())
+                                {
+                                    <MudText>@context.Objectives.Count(o => o.IsAchieved) / @context.Objectives.Count</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Class="text-muted">None</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Actions">
+                                <MudButton Color="Color.Primary" Variant="Variant.Text" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo("/pip/" + context.PipId))">
+                                    View
+                                </MudButton>
+                                <MudButton Color="Color.Secondary" Variant="Variant.Text" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo("/pip/edit/" + context.PipId))">
+                                    Edit
+                                </MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Class="m-4">
+                        No PIPs found. Create your first PIP!
+                    </MudAlert>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 @code {
     private IEnumerable<PipPlanDto>? _plans;
     private bool _loading = true;
     private string? _errorMessage;
-    private string _statusFilter = string.Empty;
+    private string _statusFilter = "All";
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
@@ -93,7 +121,7 @@
             var response = await PipService.GetAllAsync();
             if (response?.Success == true)
             {
-                _plans = string.IsNullOrEmpty(_statusFilter)
+                _plans = _statusFilter == "All"
                     ? response.Data
                     : response.Data?.Where(p => p.Status == _statusFilter);
             }
@@ -105,10 +133,26 @@
         catch (Exception ex)
         {
             _errorMessage = $"Error: {ex.Message}";
+            Snackbar.Add($"Error loading PIPs: {ex.Message}", Severity.Error);
         }
         finally
         {
             _loading = false;
         }
     }
+
+    private async Task OnStatusFilterChanged(string? value)
+    {
+        _statusFilter = value ?? "All";
+        await LoadData();
+    }
+
+    private Color GetStatusColor(string status) => status.ToLower() switch
+    {
+        "active" => Color.Primary,
+        "completed" => Color.Success,
+        "terminated" => Color.Error,
+        "extended" => Color.Warning,
+        _ => Color.Default
+    };
 }

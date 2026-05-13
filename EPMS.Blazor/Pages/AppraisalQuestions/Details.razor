@@ -1,36 +1,63 @@
 @page "/appraisalquestions/details/{Id:int}"
 @inject EPMS.Blazor.Services.IAppraisalQuestionBlazorService AppraisalQuestionService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Appraisal Question Details</h3>
+<PageTitle>Appraisal Question Details</PageTitle>
 
-@if (question == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div>
-        <hr />
-        <dl class="row">
-            <dt class="col-sm-2">Question ID</dt>
-            <dd class="col-sm-10">@question.QuestionId</dd>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Appraisal Question Details</MudText>
+            </MudItem>
+        </MudGrid>
 
-            <dt class="col-sm-2">Question Text</dt>
-            <dd class="col-sm-10">@question.QuestionText</dd>
-
-            <dt class="col-sm-2">Category</dt>
-            <dd class="col-sm-10">@question.Category</dd>
-
-            <dt class="col-sm-2">Required</dt>
-            <dd class="col-sm-10">@(question.IsRequired == true ? "Yes" : "No")</dd>
-        </dl>
-    </div>
-    <div>
-        <a href="/appraisalquestions/edit/@question.QuestionId" class="btn btn-warning">Edit</a>
-        <a href="/appraisalquestions" class="btn btn-secondary">Back to List</a>
-    </div>
-}
+        @if (question == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal question...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" Class="mb-4">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5" Class="truncate">@question.QuestionText</MudText>
+                            <MudSpacer />
+                            <MudChip T="string" Color="@(question.IsRequired == true ? Color.Primary : Color.Secondary)" Variant="Variant.Filled">
+                                @(question.IsRequired == true ? "Required" : "Optional")
+                            </MudChip>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Question ID</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@question.QuestionId</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Category</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@question.Category</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-end">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                Back to List
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                                Edit
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
@@ -46,7 +73,17 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading appraisal question details: {ex.Message}");
+            Snackbar.Add($"Error loading appraisal question details: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalquestions");
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/appraisalquestions/edit/{Id}");
     }
 }

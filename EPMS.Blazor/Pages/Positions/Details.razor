@@ -1,0 +1,294 @@
+@page "/positions/details/{id:int}"
+@using System.Net.Http.Json
+@inject EPMS.Blazor.Services.IPositionBlazorService PositionService
+@inject EPMS.Blazor.Services.IPermissionBlazorService PermissionService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject HttpClient Http
+
+<PageTitle>Position Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudItem>
+            <MudText Typo="Typo.h4">Position Details</MudText>
+        </MudItem>
+        <MudItem>
+            <MudGrid Spacing="2">
+                <MudItem>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="SeedPermissions">
+                        Seed Permissions
+                    </MudButton>
+                </MudItem>
+                <MudItem>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                        Back to List
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center" />
+    }
+    else if (position == null)
+    {
+        <MudAlert Severity="Severity.Error">Position not found.</MudAlert>
+    }
+    else
+    {
+        <MudGrid Spacing="4">
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="3" Class="pa-6">
+                    <MudText Typo="Typo.h5" Class="mb-4">Position Info</MudText>
+                    
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudPaper Class="pa-3 mb-3" Elevation="0" Style="background-color: var(--mud-palette-surface);">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Position ID</MudText>
+                                <MudText Typo="Typo.body1">@position.PositionId</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudPaper Class="pa-3 mb-3" Elevation="0" Style="background-color: var(--mud-palette-surface);">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Title</MudText>
+                                <MudText Typo="Typo.body1">@position.PositionTitle</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudPaper Class="pa-3" Elevation="0" Style="background-color: var(--mud-palette-surface);">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Level</MudText>
+                                <MudText Typo="Typo.body1">@position.LevelName ?? "None"</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-4" />
+
+                    <MudButton Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit" Style="width: 100%">
+                        Edit Position
+                    </MudButton>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="8">
+                <MudPaper Elevation="3" Class="pa-6">
+                    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                        <MudItem>
+                            <MudText Typo="Typo.h5">Assigned Permissions</MudText>
+                        </MudItem>
+                        <MudItem>
+                            <MudButton Color="Color.Primary" OnClick="ShowAssignPermissionDialog" StartIcon="@Icons.Material.Filled.Add">
+                                Assign Permission
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudAlert Severity="Severity.Info" Class="mb-4">
+                        <MudText Typo="Typo.subtitle2">Debug Info:</MudText>
+                        <MudText>All Permissions: @(allPermissions?.Count() ?? 0)</MudText>
+                        <MudText>Assigned Permissions: @(assignedPermissions?.Count() ?? 0)</MudText>
+                        @if (allPermissions != null && allPermissions.Any())
+                        {
+                            <MudText Class="mt-2">Sample permissions: @string.Join(", ", allPermissions.Take(5).Select(p => p.PermissionCode))</MudText>
+                        }
+                    </MudAlert>
+
+                    @if (assignedPermissions == null)
+                    {
+                        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                    }
+                    else if (!assignedPermissions.Any())
+                    {
+                        <MudAlert Severity="Severity.Info">No permissions assigned yet.</MudAlert>
+                    }
+                    else
+                    {
+                        <MudTable Items="@assignedPermissions" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Permission Code</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Permission Code">@context.PermissionCode</MudTd>
+                                <MudTd DataLabel="Description">@context.Description</MudTd>
+                                <MudTd DataLabel="Actions">
+                                    <MudButton 
+                                        Color="Color.Error" 
+                                        Size="Size.Small" 
+                                        Variant="Variant.Outlined"
+                                        OnClick="() => RevokePermission(context)"
+                                        StartIcon="@Icons.Material.Filled.RemoveCircleOutline">
+                                        Revoke
+                                    </MudButton>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PositionDto? position;
+    private IEnumerable<PermissionDto>? assignedPermissions;
+    private IEnumerable<PermissionDto>? allPermissions;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            var positionTask = PositionService.GetPositionByIdAsync(Id);
+            var assignedPermissionsTask = PermissionService.GetPermissionsByPositionAsync(Id);
+            
+            // Directly call API for all permissions to debug
+            var response = await Http.GetAsync("api/Permissions");
+            var content = await response.Content.ReadAsStringAsync();
+            
+            Snackbar.Add($"API Response: {content}", Severity.Info);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                allPermissions = await response.Content.ReadFromJsonAsync<IEnumerable<PermissionDto>>() ?? new List<PermissionDto>();
+            }
+            else
+            {
+                allPermissions = new List<PermissionDto>();
+            }
+
+            await Task.WhenAll(positionTask, assignedPermissionsTask);
+
+            position = await positionTask;
+            assignedPermissions = await assignedPermissionsTask;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ShowAssignPermissionDialog()
+    {
+        if (allPermissions == null || assignedPermissions == null) return;
+
+        var availablePermissions = allPermissions
+            .Where(p => !assignedPermissions.Any(ap => ap.PermissionId == p.PermissionId))
+            .ToList();
+
+        if (!availablePermissions.Any())
+        {
+            Snackbar.Add("All permissions are already assigned.", Severity.Info);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            { "AvailablePermissions", availablePermissions },
+            { "PositionId", Id }
+        };
+
+        var dialog = DialogService.Show<AssignPermissionDialog>("Assign Permission", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task RevokePermission(PermissionDto permission)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to revoke permission '{permission.PermissionCode}'?" },
+            { "ButtonText", "Revoke" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Revoke Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var request = new RevokePermissionRequest
+                {
+                    PositionId = Id,
+                    PermissionId = permission.PermissionId
+                };
+
+                var success = await PermissionService.RevokePermissionAsync(request);
+                if (success)
+                {
+                    Snackbar.Add("Permission revoked successfully!", Severity.Success);
+                    await LoadData();
+                }
+                else
+                {
+                    Snackbar.Add("Error revoking permission.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error revoking permission: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task SeedPermissions()
+    {
+        try
+        {
+            Snackbar.Add("Seeding permissions... Please wait...", Severity.Info);
+            
+            var response = await Http.PostAsync("api/Permissions/seed", null);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Permissions seeded successfully! {content}", Severity.Success);
+                await LoadData();
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Error seeding (status: {(int)response.StatusCode}): {content}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error seeding: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/positions");
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/positions/edit/{Id}");
+    }
+}
