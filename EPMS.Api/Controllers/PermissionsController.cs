@@ -166,19 +166,12 @@ public class PermissionsController : ControllerBase
             await _employeeRepository.UpdateAsync(adminEmployee);
         }
 
-        // 5. Seed Admin user
-        var allUsers = await _userRepository.GetAllAsync();
-        var adminUser = allUsers.FirstOrDefault(u => u.Username == "admin");
-        
-        if (adminUser == null)
+        // 5. Set admin username and password
+        if (string.IsNullOrEmpty(adminEmployee.Username))
         {
-            adminUser = new User 
-            { 
-                Username = "admin", 
-                PasswordHash = "admin123",
-                EmployeeId = adminEmployee.EmployeeId
-            };
-            await _userRepository.CreateAsync(adminUser);
+            adminEmployee.Username = "admin";
+            adminEmployee.PasswordHash = "admin123";
+            await _employeeRepository.UpdateAsync(adminEmployee);
         }
 
         return Ok(new 
