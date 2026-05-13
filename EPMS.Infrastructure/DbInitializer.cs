@@ -168,15 +168,15 @@ public static class DbInitializer
         ";
         using (var cmd = new SqlCommand(seedPosPermissions, connection)) cmd.ExecuteNonQuery();
 
-        // 4. Seed Employee with login credentials
-        string seedUser = @"
-            DECLARE @AdminPosId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
-            IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001')
-            BEGIN
-                INSERT INTO Employees (EmployeeCode, FullName, PositionId, Username, PasswordHash) 
-                VALUES ('EMP001', 'System Admin', @AdminPosId, 'admin', 'admin123');
-            END
-        ";
-        using (var cmd = new SqlCommand(seedUser, connection)) cmd.ExecuteNonQuery();
+        // // 4. Seed Employee with login credentials
+        // string seedUser = @"
+        //     DECLARE @AdminPosId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
+        //     IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001')
+        //     BEGIN
+        //         INSERT INTO Employees (EmployeeCode, FullName, PositionId, Username, PasswordHash) 
+        //         VALUES ('EMP001', 'System Admin', @AdminPosId, 'admin', 'admin123');
+        //     END
+        // ";
+        // using (var cmd = new SqlCommand(seedUser, connection)) cmd.ExecuteNonQuery();
     }
 }
