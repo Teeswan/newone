@@ -1,82 +1,91 @@
 @page "/performanceevaluations/create"
 @using EPMS.Shared.Requests
-@inject EPMS.Blazor.Services.IPerformanceEvaluationBlazorService PerformanceEvaluationService
+@using EPMS.Domain.Enums
+@using EPMS.Blazor.Services
+@inject IPerformanceEvaluationBlazorService PerformanceEvaluationService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Create Performance Evaluation</h3>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">Create Performance Evaluation</MudText>
+        <MudDivider Class="mb-6" />
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <EditForm Model="@createRequest" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <MudForm Model="@createRequest" @ref="@form" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Employee ID" @bind-Value="createRequest.EmployeeId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Cycle ID" @bind-Value="createRequest.CycleId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Form ID" @bind-Value="createRequest.FormId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="PerformanceEvaluationStatus?" Label="Status" @bind-Value="createRequest.Status" Variant="Variant.Outlined">
+                        @foreach (PerformanceEvaluationStatus status in Enum.GetValues(typeof(PerformanceEvaluationStatus)))
+                        {
+                            <MudSelectItem T="PerformanceEvaluationStatus?" Value="@status">@status</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Self Rating" @bind-Value="createRequest.SelfRating" Variant="Variant.Outlined" Min="0" Max="5" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Manager Rating" @bind-Value="createRequest.ManagerRating" Variant="Variant.Outlined" Min="0" Max="5" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Self Comments" @bind-Value="createRequest.SelfComments" Variant="Variant.Outlined" Lines="3" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Manager Comments" @bind-Value="createRequest.ManagerComments" Variant="Variant.Outlined" Lines="3" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Final Rating Score" @bind-Value="createRequest.FinalRatingScore" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6" Class="d-flex align-center">
+                    <MudCheckBox T="bool" @bind-Value="isFinalizedValue" Label="Is Finalized" Color="Color.Primary" />
+                </MudItem>
 
-            <div class="form-group mb-3">
-                <label for="employeeId" class="form-label">Employee ID</label>
-                <InputNumber id="employeeId" class="form-control" @bind-Value="createRequest.EmployeeId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="cycleId" class="form-label">Cycle ID</label>
-                <InputNumber id="cycleId" class="form-control" @bind-Value="createRequest.CycleId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="selfRating" class="form-label">Self Rating</label>
-                <InputNumber id="selfRating" class="form-control" @bind-Value="createRequest.SelfRating" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="managerRating" class="form-label">Manager Rating</label>
-                <InputNumber id="managerRating" class="form-control" @bind-Value="createRequest.ManagerRating" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="selfComments" class="form-label">Self Comments</label>
-                <InputTextArea id="selfComments" class="form-control" @bind-Value="createRequest.SelfComments" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="managerComments" class="form-label">Manager Comments</label>
-                <InputTextArea id="managerComments" class="form-control" @bind-Value="createRequest.ManagerComments" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="finalRatingScore" class="form-label">Final Rating Score</label>
-                <InputNumber id="finalRatingScore" class="form-control" @bind-Value="createRequest.FinalRatingScore" />
-            </div>
-
-            <div class="form-check mb-3">
-                <InputCheckbox id="isFinalized" class="form-check-input" @bind-Value="isFinalizedValue" />
-                <label for="isFinalized" class="form-check-label">Is Finalized</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a href="/performanceevaluations" class="btn btn-secondary">Cancel</a>
-        </EditForm>
-    </div>
-</div>
+                <MudItem xs="12" Class="d-flex justify-end mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Create</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
 
 @code {
-    private CreatePerformanceEvaluationRequest createRequest = new();
+    private MudForm? form;
+    private CreatePerformanceEvaluationRequest createRequest = new() { Status = PerformanceEvaluationStatus.Draft };
     private bool isFinalizedValue { get; set; } = false;
 
     private async Task HandleValidSubmit()
     {
-        createRequest.IsFinalized = isFinalizedValue;
-        if (isFinalizedValue)
+        await form!.Validate();
+        if (form.IsValid)
         {
-            createRequest.FinalizedAt = DateTime.Now;
-        }
-        try
-        {
-            await PerformanceEvaluationService.CreatePerformanceEvaluationAsync(createRequest);
-            NavigationManager.NavigateTo("/performanceevaluations");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error creating performance evaluation: {ex.Message}");
+            createRequest.IsFinalized = isFinalizedValue;
+            if (isFinalizedValue)
+            {
+                createRequest.FinalizedAt = DateTime.Now;
+            }
+
+            try
+            {
+                await PerformanceEvaluationService.CreatePerformanceEvaluationAsync(createRequest);
+                Snackbar.Add("Performance evaluation created successfully.", Severity.Success);
+                NavigationManager.NavigateTo("/performanceevaluations");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error creating performance evaluation: {ex.Message}", Severity.Error);
+            }
         }
     }
+
+    private void Cancel() => NavigationManager.NavigateTo("/performanceevaluations");
 }

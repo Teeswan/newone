@@ -1,70 +1,110 @@
 @page "/performanceoutcomes/details/{Id:int}"
-@inject EPMS.Blazor.Services.IPerformanceOutcomeBlazorService PerformanceOutcomeService
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IPerformanceOutcomeBlazorService PerformanceOutcomeService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Performance Outcome Details</h3>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+            <MudText Typo="Typo.h4">Performance Outcome Details</MudText>
+            <MudChip T="string" Color="@GetStatusColor(outcome?.ApprovalStatus)">@(outcome?.ApprovalStatus ?? "N/A")</MudChip>
+        </MudStack>
+        <MudDivider Class="mb-6" />
 
-@if (outcome == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div>
-        <hr />
-        <dl class="row">
-            <dt class="col-sm-3">Outcome ID</dt>
-            <dd class="col-sm-9">@outcome.OutcomeId</dd>
+        @if (outcome == null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Outcome ID</MudText>
+                    <MudText Typo="Typo.body1">@outcome.OutcomeId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Employee ID</MudText>
+                    <MudText Typo="Typo.body1">@outcome.EmployeeId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Cycle ID</MudText>
+                    <MudText Typo="Typo.body1">@outcome.CycleId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Evaluation ID</MudText>
+                    <MudText Typo="Typo.body1">@(outcome.EvalId?.ToString() ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Recommendation Type</MudText>
+                    <MudText Typo="Typo.body1">@outcome.RecommendationType</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Old Position ID</MudText>
+                    <MudText Typo="Typo.body1">@(outcome.OldPositionId?.ToString() ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">New Position ID</MudText>
+                    <MudText Typo="Typo.body1">@(outcome.NewPositionId?.ToString() ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Old Level ID</MudText>
+                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(outcome.OldLevelId) ? "N/A" : outcome.OldLevelId)</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">New Level ID</MudText>
+                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(outcome.NewLevelId) ? "N/A" : outcome.NewLevelId)</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Effective Date</MudText>
+                    <MudText Typo="Typo.body1">@(outcome.EffectiveDate?.ToString("yyyy-MM-dd") ?? "N/A")</MudText>
+                </MudItem>
 
-            <dt class="col-sm-3">Employee ID</dt>
-            <dd class="col-sm-9">@outcome.EmployeeId</dd>
-
-            <dt class="col-sm-3">Cycle ID</dt>
-            <dd class="col-sm-9">@outcome.CycleId</dd>
-
-            <dt class="col-sm-3">Recommendation Type</dt>
-            <dd class="col-sm-9">@outcome.RecommendationType</dd>
-
-            <dt class="col-sm-3">Old Position ID</dt>
-            <dd class="col-sm-9">@outcome.OldPositionId</dd>
-
-            <dt class="col-sm-3">New Position ID</dt>
-            <dd class="col-sm-9">@outcome.NewPositionId</dd>
-
-            <dt class="col-sm-3">Old Level ID</dt>
-            <dd class="col-sm-9">@outcome.OldLevelId</dd>
-
-            <dt class="col-sm-3">New Level ID</dt>
-            <dd class="col-sm-9">@outcome.NewLevelId</dd>
-
-            <dt class="col-sm-3">Approval Status</dt>
-            <dd class="col-sm-9">@outcome.ApprovalStatus</dd>
-
-            <dt class="col-sm-3">Effective Date</dt>
-            <dd class="col-sm-9">@outcome.EffectiveDate?.ToString("yyyy-MM-dd")</dd>
-        </dl>
-    </div>
-    <div>
-        <a href="/performanceoutcomes/edit/@outcome.OutcomeId" class="btn btn-warning">Edit</a>
-        <a href="/performanceoutcomes" class="btn btn-secondary">Back to List</a>
-    </div>
-}
+                <MudItem xs="12" Class="d-flex justify-end mt-6">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList" Class="mr-2">Back to List</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit">Edit</MudButton>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
     public int Id { get; set; }
 
-    private EPMS.Shared.DTOs.PerformanceOutcomeDto? outcome;
+    private PerformanceOutcomeDto? outcome;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             outcome = await PerformanceOutcomeService.GetPerformanceOutcomeByIdAsync(Id);
+            if (outcome == null)
+            {
+                Snackbar.Add("Performance outcome not found.", Severity.Error);
+                NavigationManager.NavigateTo("/performanceoutcomes");
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading performance outcome details: {ex.Message}");
+            Snackbar.Add($"Error loading performance outcome details: {ex.Message}", Severity.Error);
+            NavigationManager.NavigateTo("/performanceoutcomes");
         }
+    }
+
+    private void BackToList() => NavigationManager.NavigateTo("/performanceoutcomes");
+    private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceoutcomes/edit/{Id}");
+
+    private Color GetStatusColor(string? status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => Color.Warning,
+            "approved" => Color.Success,
+            "rejected" => Color.Error,
+            _ => Color.Default
+        };
     }
 }

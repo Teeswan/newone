@@ -4,6 +4,8 @@ using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace EPMS.Api.Controllers;
 
@@ -68,6 +70,15 @@ public class PerformanceEvaluationsController : ControllerBase
         var result = await _service.UpdateAsync(id, request);
         if (result == null) return NotFound();
         return Ok(result);
+    }
+
+    [HttpPost("{id}/submit-self-assessment")]
+    [HasPermission(Permissions.PerformanceEvaluations.Manage)]
+    public async Task<ActionResult> SubmitSelfAssessment(int id)
+    {
+        var result = await _service.SubmitSelfAssessmentAsync(id);
+        if (!result) return NotFound();
+        return Ok();
     }
 
     [HttpDelete("{id}")]

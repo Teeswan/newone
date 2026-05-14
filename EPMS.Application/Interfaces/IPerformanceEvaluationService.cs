@@ -11,5 +11,6 @@ public interface IPerformanceEvaluationService
     Task<IEnumerable<PerformanceEvaluationDto>> GetByCycleIdAsync(int cycleId);
     Task<PerformanceEvaluationDto> CreateAsync(CreatePerformanceEvaluationRequest request);
     Task<PerformanceEvaluationDto?> UpdateAsync(int evalId, UpdatePerformanceEvaluationRequest request);
+    Task<bool> SubmitSelfAssessmentAsync(int evalId);
     Task<bool> DeleteAsync(int evalId);
 }
