@@ -1,4 +1,4 @@
-﻿using EPMS.Shared.DTOs;
+using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 
 namespace EPMS.Blazor.Services
@@ -12,5 +12,9 @@ namespace EPMS.Blazor.Services
         Task<bool> CreateEmployeeAsync(CreateEmployeeRequest request);
         Task<bool> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request);
         Task<bool> DeleteEmployeeAsync(int id);
+        Task<bool> IsEmployeeCodeUniqueAsync(string code);
+        Task<byte[]> ExportToExcelAsync();
+        Task<byte[]> ExportToPdfAsync();
+        Task<int> ImportFromExcelAsync(Stream fileStream, string fileName);
     }
 }

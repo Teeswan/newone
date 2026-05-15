@@ -21,6 +21,21 @@ public class MappingProfile : Profile
         CreateMap<CreateAppraisalQuestionRequest, AppraisalQuestion>();
         CreateMap<UpdateAppraisalQuestionRequest, AppraisalQuestion>();
 
+        // Appraisal Response Mappings
+        CreateMap<AppraisalResponse, AppraisalResponseDto>();
+        CreateMap<CreateAppraisalResponseRequest, AppraisalResponse>();
+        CreateMap<UpdateAppraisalResponseRequest, AppraisalResponse>();
+
+        // Performance Evaluation Mappings
+        CreateMap<PerformanceEvaluation, PerformanceEvaluationDto>();
+        CreateMap<CreatePerformanceEvaluationRequest, PerformanceEvaluation>();
+        CreateMap<UpdatePerformanceEvaluationRequest, PerformanceEvaluation>();
+
+        // Performance Outcome Mappings
+        CreateMap<PerformanceOutcome, PerformanceOutcomeDto>();
+        CreateMap<CreatePerformanceOutcomeRequest, PerformanceOutcome>();
+        CreateMap<UpdatePerformanceOutcomeRequest, PerformanceOutcome>();
+
         CreateMap<AppraisalCycle, AppraisalCycleDto>();
         CreateMap<CreateAppraisalCycleRequest, AppraisalCycle>();
         CreateMap<UpdateAppraisalCycleRequest, AppraisalCycle>();

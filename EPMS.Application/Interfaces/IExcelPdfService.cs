@@ -18,6 +18,7 @@ public interface IExcelPdfService
     Task<byte[]> ExportPerformanceOutcomesToExcelAsync();
     Task<byte[]> ExportDepartmentsToExcelAsync();
     Task<byte[]> ExportTeamsToExcelAsync();
+    Task<byte[]> ExportEmployeesToExcelAsync();
 
     // Excel Import
     Task<int> ImportAppraisalCyclesFromExcelAsync(Stream fileStream);
@@ -29,6 +30,7 @@ public interface IExcelPdfService
     Task<int> ImportPerformanceOutcomesFromExcelAsync(Stream fileStream);
     Task<int> ImportDepartmentsFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
     Task<int> ImportTeamsFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
+    Task<int> ImportEmployeesFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
     Task<IEnumerable<KpiImportDto>> ImportKpiMasterFromExcelAsync(Stream fileStream);
     Task<byte[]> ExportKpiMasterTemplateAsync();
     Task<IEnumerable<EmployeeKpiImportDto>> ImportEmployeeKpiFromExcelAsync(Stream fileStream);
@@ -44,4 +46,5 @@ public interface IExcelPdfService
     Task<byte[]> ExportPerformanceOutcomesToPdfAsync();
     Task<byte[]> ExportDepartmentsToPdfAsync();
     Task<byte[]> ExportTeamsToPdfAsync();
+    Task<byte[]> ExportEmployeesToPdfAsync();
 }

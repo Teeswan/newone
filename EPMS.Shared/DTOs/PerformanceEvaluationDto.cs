@@ -1,3 +1,5 @@
+using EPMS.Domain.Enums;
+
 namespace EPMS.Shared.DTOs;
 
 public class PerformanceEvaluationDto
@@ -5,6 +7,8 @@ public class PerformanceEvaluationDto
     public int EvalId { get; set; }
     public int? EmployeeId { get; set; }
     public int? CycleId { get; set; }
+    public int FormId { get; set; }
+    public PerformanceEvaluationStatus Status { get; set; }
     public int? SelfRating { get; set; }
     public int? ManagerRating { get; set; }
     public string? SelfComments { get; set; }

@@ -14,11 +14,12 @@ public class EmployeeDto
     public string? ManagerName { get; set; }
     public bool? IsActive { get; set; }
     public string? Phone { get; set; }
+    public DateTime? JoinDate { get; set; }
+    public string? EmploymentStatus { get; set; }
 }
 
 public class EmployeeDetailDto : EmployeeDto
 {
-    public DateTime? JoinDate { get; set; }
     public decimal? CurrentSalary { get; set; }
     public string? NrcNumber { get; set; }
     public bool? PromotionEligibility { get; set; }
@@ -30,6 +31,5 @@ public class EmployeeDetailDto : EmployeeDto
     public string? EmergencyPhone { get; set; }
     public string? BankName { get; set; }
     public string? BankAccountNumber { get; set; }
-    public string? EmploymentStatus { get; set; }
     public byte[]? ProfilePicture { get; set; }
 }

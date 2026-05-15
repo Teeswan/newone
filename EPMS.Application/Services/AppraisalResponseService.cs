@@ -2,19 +2,28 @@ using AutoMapper;
 using EPMS.Application.Interfaces;
 using EPMS.Domain.Interfaces;
 using EPMS.Domain.Entities;
+using EPMS.Domain.Enums;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EPMS.Application.Services;
 
 public class AppraisalResponseService : IAppraisalResponseService
 {
     private readonly IAppraisalResponseRepository _repository;
+    private readonly IPerformanceEvaluationRepository _evaluationRepository;
     private readonly IMapper _mapper;
 
-    public AppraisalResponseService(IAppraisalResponseRepository repository, IMapper mapper)
+    public AppraisalResponseService(
+        IAppraisalResponseRepository repository, 
+        IPerformanceEvaluationRepository evaluationRepository,
+        IMapper mapper)
     {
         _repository = repository;
+        _evaluationRepository = evaluationRepository;
         _mapper = mapper;
     }
 
@@ -30,9 +39,24 @@ public class AppraisalResponseService : IAppraisalResponseService
         return _mapper.Map<AppraisalResponseDto?>(entity);
     }
 
-    public async Task<IEnumerable<AppraisalResponseDto>> GetByEvalIdAsync(int evalId)
+    public async Task<IEnumerable<AppraisalResponseDto>> GetByEvalIdAsync(int evalId, int? currentEmployeeId = null)
     {
         var entities = await _repository.GetByEvalIdAsync(evalId);
+        var evaluation = await _evaluationRepository.GetByIdAsync(evalId);
+
+        if (evaluation != null && currentEmployeeId.HasValue)
+        {
+            // If the viewer is NOT the employee being reviewed
+            if (evaluation.EmployeeId != currentEmployeeId)
+            {
+                // If status is not yet SelfSubmitted, hide 'Self' responses
+                if (evaluation.Status < PerformanceEvaluationStatus.SelfSubmitted)
+                {
+                    entities = entities.Where(r => r.RespondentRole != "Self");
+                }
+            }
+        }
+
         return _mapper.Map<IEnumerable<AppraisalResponseDto>>(entities);
     }
 

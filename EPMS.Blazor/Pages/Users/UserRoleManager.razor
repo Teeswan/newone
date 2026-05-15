@@ -1,4 +1,4 @@
-﻿@page "/users/manage-roles"
+@page "/users/manage-roles"
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
 @inject IUserBlazorService UserBlazorService
@@ -35,7 +35,6 @@ else
 }
 
 @code {
-    private string searchString = "";
     private List<UserRoleDto>? UserRecords;
 
     protected override async Task OnInitializedAsync()

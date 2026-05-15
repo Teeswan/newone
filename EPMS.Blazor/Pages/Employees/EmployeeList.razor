@@ -1,4 +1,4 @@
-@page "/employees"
+﻿@page "/employees"
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 @using EPMS.Blazor.Services
@@ -6,23 +6,40 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Employee Management</MudText>
 
 <MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
     <MudCardContent>
-        @* Toolbar: Search and Add *@
-        <div class="d-flex justify-space-between align-center mb-4">
+        @* Toolbar: Search and Actions *@
+        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
             <MudTextField @bind-Value="searchString" Placeholder="Search employees..."
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
                           IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;" />
 
-            <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="OpenAddDialog"
-                       Style="background-color: #1A56DB; font-weight: 600;">
-                Add Employee
-            </MudButton>
+            <div class="d-flex gap-2">
+                <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.FileUpload">
+                            Import Excel
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
+                    <MudMenuItem OnClick="ExportExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
+                    <MudMenuItem OnClick="ExportPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
+                </MudMenu>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="OpenAddDialog"
+                           Style="background-color: #1A56DB; font-weight: 600;">
+                    Add Employee
+                </MudButton>
+            </div>
         </div>
 
         @if (Employees == null)
@@ -39,17 +56,28 @@
                     <MudTh Style="font-weight: 600;">Code</MudTh>
                     <MudTh Style="font-weight: 600;">Full Name</MudTh>
                     <MudTh Style="font-weight: 600;">Position</MudTh>
-                    <MudTh Style="font-weight: 600;">Reports To</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: center;">Reports To</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: center;">Status</MudTh>
                     <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
-                    <MudTd DataLabel="Name">@context.FullName</MudTd>
+                    <MudTd DataLabel="Full Name">@context.FullName</MudTd>
                     <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
-                    <MudTd DataLabel="Manager">
+                    <MudTd DataLabel="Reports To" Style="text-align: center;">
                         <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
                             @(context.ManagerName ?? "No Manager")
                         </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Status" Style="text-align: center;">
+                        @if (context.IsActive ?? false)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
+                        }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
                         @* View Details *@
@@ -85,6 +113,7 @@
     private async Task LoadEmployees()
     {
         Employees = await EmployeeService.GetEmployeesAsync();
+        StateHasChanged();
     }
 
     // 1. Create Logic (Open Dialog)
@@ -152,11 +181,67 @@
 
     private void ViewDetails(int id) => Navigation.NavigateTo($"/employees/details/{id}");
 
+    private async Task ExportExcel()
+    {
+        try
+        {
+            var bytes = await EmployeeService.ExportToExcelAsync();
+            await JSRuntime.InvokeVoidAsync("saveAsFile", "Employees.xlsx", Convert.ToBase64String(bytes));
+            Snackbar.Add("Excel exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportPdf()
+    {
+        try
+        {
+            var bytes = await EmployeeService.ExportToPdfAsync();
+            await JSRuntime.InvokeVoidAsync("saveAsFile", "Employees.pdf", Convert.ToBase64String(bytes));
+            Snackbar.Add("PDF exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ImportExcel(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+
+            var count = await EmployeeService.ImportFromExcelAsync(ms, file.Name);
+            Snackbar.Add($"Successfully imported {count} employees!", Severity.Success);
+            await LoadEmployees();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error);
+        }
+    }
+
     private bool FilterFunc(EmployeeDto element)
     {
         if (string.IsNullOrWhiteSpace(searchString)) return true;
         if (element.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         if (element.EmployeeCode.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        
+        var statusText = (element.IsActive ?? false) ? "Active" : "Inactive";
+        if (statusText.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        
+        if (!string.IsNullOrEmpty(element.ManagerName) && element.ManagerName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (!string.IsNullOrEmpty(element.PositionTitle) && element.PositionTitle.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        
         return false;
     }
 }

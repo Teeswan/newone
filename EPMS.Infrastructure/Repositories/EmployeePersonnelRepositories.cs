@@ -35,12 +35,11 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
             using IDbConnection db = new SqlConnection(_connectionString);
             string sql = @"
-                SELECT e.*, d.DepartmentName, p.PositionTitle, m.FullName as ManagerName
+                SELECT e.*, d.DepartmentName, p.PositionTitle, m.EmployeeId as ManagerId, m.FullName
                 FROM Employees e
                 LEFT JOIN Departments d ON e.DepartmentId = d.DepartmentId
                 LEFT JOIN Positions p ON e.PositionId = p.PositionId
-                LEFT JOIN Employees m ON e.ReportsTo = m.EmployeeId
-                WHERE e.IsActive = 1";
+                LEFT JOIN Employees m ON e.ReportsTo = m.EmployeeId";
 
             employees = await db.QueryAsync<Employee, Department, Position, Employee, Employee>(
                 sql,
@@ -51,7 +50,7 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
                     employee.ReportsToNavigation = manager;
                     return employee;
                 },
-                splitOn: "DepartmentName,PositionTitle,ManagerName");
+                splitOn: "DepartmentName,PositionTitle,ManagerId");
 
 
             _cache.Set(_cacheKey, employees, TimeSpan.FromMinutes(30));
@@ -63,14 +62,14 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
     public async Task<IEnumerable<Employee>> GetEmployeesByDepartmentAsync(int departmentId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT * FROM Employees WHERE DepartmentId = @DepartmentId AND IsActive = 1";
+        string sql = "SELECT * FROM Employees WHERE DepartmentId = @DepartmentId";
         return await db.QueryAsync<Employee>(sql, new { DepartmentId = departmentId });
     }
 
     public async Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT * FROM Employees WHERE ReportsTo = @ManagerId AND IsActive = 1";
+        string sql = "SELECT * FROM Employees WHERE ReportsTo = @ManagerId";
         return await db.QueryAsync<Employee>(sql, new { ManagerId = managerId });
     }
 

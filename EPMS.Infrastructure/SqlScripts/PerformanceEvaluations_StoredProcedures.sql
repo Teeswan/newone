@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_GetAll
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT EvalID, EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    SELECT EvalID, EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
            SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt
     FROM PerformanceEvaluations;
 END
@@ -17,7 +17,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_GetById
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT EvalID, EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    SELECT EvalID, EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
            SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt
     FROM PerformanceEvaluations
     WHERE EvalID = @EvalID;
@@ -29,7 +29,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_GetByEmployeeId
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT EvalID, EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    SELECT EvalID, EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
            SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt
     FROM PerformanceEvaluations
     WHERE EmployeeID = @EmployeeID;
@@ -41,7 +41,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_GetByCycleId
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT EvalID, EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    SELECT EvalID, EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
            SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt
     FROM PerformanceEvaluations
     WHERE CycleID = @CycleID;
@@ -52,6 +52,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_Create
     @EmployeeID INT = NULL,
     @CycleID INT = NULL,
     @FormID INT = NULL,
+    @Status INT = 1,
     @SelfRating INT = NULL,
     @ManagerRating INT = NULL,
     @SelfComments NVARCHAR(MAX) = NULL,
@@ -62,12 +63,12 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_Create
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO PerformanceEvaluations (EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    INSERT INTO PerformanceEvaluations (EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
         SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt)
-    VALUES (@EmployeeID, @CycleID, @FormID, @SelfRating, @ManagerRating,
+    VALUES (@EmployeeID, @CycleID, @FormID, @Status, @SelfRating, @ManagerRating,
         @SelfComments, @ManagerComments, @FinalRatingScore, @IsFinalized, @FinalizedAt);
 
-    SELECT EvalID, EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    SELECT EvalID, EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
            SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt
     FROM PerformanceEvaluations
     WHERE EvalID = SCOPE_IDENTITY();
@@ -79,6 +80,7 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_Update
     @EmployeeID INT = NULL,
     @CycleID INT = NULL,
     @FormID INT = NULL,
+    @Status INT = NULL,
     @SelfRating INT = NULL,
     @ManagerRating INT = NULL,
     @SelfComments NVARCHAR(MAX) = NULL,
@@ -93,6 +95,7 @@ BEGIN
     SET EmployeeID = @EmployeeID,
         CycleID = @CycleID,
         FormID = @FormID,
+        Status = ISNULL(@Status, Status),
         SelfRating = @SelfRating,
         ManagerRating = @ManagerRating,
         SelfComments = @SelfComments,
@@ -102,7 +105,7 @@ BEGIN
         FinalizedAt = @FinalizedAt
     WHERE EvalID = @EvalID;
 
-    SELECT EvalID, EmployeeID, CycleID, FormID, SelfRating, ManagerRating,
+    SELECT EvalID, EmployeeID, CycleID, FormID, Status, SelfRating, ManagerRating,
            SelfComments, ManagerComments, FinalRatingScore, IsFinalized, FinalizedAt
     FROM PerformanceEvaluations
     WHERE EvalID = @EvalID;
