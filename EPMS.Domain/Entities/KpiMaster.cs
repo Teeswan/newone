@@ -17,7 +17,7 @@ public class KpiMaster
     public int? PositionId { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public int? CreatedByUserId { get; private set; }
+    public int? CreatedByEmployeeId { get; private set; }
 
     // Navigation properties ( Member 2 )
     public virtual Position? Position { get; private set; }
@@ -33,7 +33,7 @@ public class KpiMaster
         PriorityLevel priorityLevel,
         KpiDirection direction,
         int? positionId,
-        int? createdByUserId)
+        int? createdByEmployeeId)
     {
         ArgumentNullException.ThrowIfNull(kpiName);
         ValidateWeightBand(priorityLevel, weightPercent);
@@ -50,7 +50,7 @@ public class KpiMaster
             PositionId = positionId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
-            CreatedByUserId = createdByUserId
+            CreatedByEmployeeId = createdByEmployeeId
         };
     }
 

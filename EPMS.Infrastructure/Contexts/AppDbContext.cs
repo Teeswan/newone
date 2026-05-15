@@ -138,7 +138,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AuditId).HasColumnName("AuditID");
             entity.Property(e => e.ActionType).HasMaxLength(10);
             entity.Property(e => e.ChangedAt).HasDefaultValueSql("(sysdatetimeoffset())");
-            entity.Property(e => e.ChangedByUserId).HasColumnName("ChangedByUserID");
+            entity.Property(e => e.ChangedByEmployeeId).HasColumnName("ChangedByEmployeeID");
             entity.Property(e => e.RecordId).HasColumnName("RecordID");
             entity.Property(e => e.TableName).HasMaxLength(100);
         });

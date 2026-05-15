@@ -11,7 +11,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.KpiMaster.Commands;
 
-public record BulkImportKpiMasterCommand(List<KpiImportDto> Kpis, int? UserId) : IRequest<Result<BulkImportResultDto>>;
+public record BulkImportKpiMasterCommand(List<KpiImportDto> Kpis, int? EmployeeId) : IRequest<Result<BulkImportResultDto>>;
 
 public record KpiImportDto(
     string KpiName,
@@ -58,11 +58,11 @@ public class BulkImportKpiMasterCommandHandler : IRequestHandler<BulkImportKpiMa
                     importDto.PriorityLevel,
                     importDto.Direction,
                     importDto.PositionId,
-                    request.UserId);
+                    request.EmployeeId);
 
                 await _repository.AddAsync(kpi);
                 result.Imported++;
-                await _auditLogService.LogAsync("KpiMaster", "Import", kpi.KpiId, $"Imported KPI: {kpi.KpiName}", request.UserId);
+                await _auditLogService.LogAsync("KpiMaster", "Import", kpi.KpiId, $"Imported KPI: {kpi.KpiName}", request.EmployeeId);
             }
             catch (Exception ex)
             {

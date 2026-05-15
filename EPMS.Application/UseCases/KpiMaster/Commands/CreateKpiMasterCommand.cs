@@ -20,7 +20,7 @@ public record CreateKpiMasterCommand : IRequest<Result<int>>
     public PriorityLevel PriorityLevel { get; init; }
     public KpiDirection Direction { get; init; }
     public int? PositionId { get; init; }
-    public int? CreatedByUserId { get; init; }
+    public int? CreatedByEmployeeId { get; init; }
 
     public class Validator : AbstractValidator<CreateKpiMasterCommand>
     {
@@ -66,12 +66,12 @@ public class CreateKpiMasterCommandHandler : IRequestHandler<CreateKpiMasterComm
             request.PriorityLevel,
             request.Direction,
             request.PositionId,
-            request.CreatedByUserId);
+            request.CreatedByEmployeeId);
 
         await _repository.AddAsync(kpi);
 
         await _cacheService.RemoveByPatternAsync("kpimaster:list:*");
-        await _auditLogService.LogAsync("KpiMaster", "Create", kpi.KpiId, $"Created KPI: {kpi.KpiName}", request.CreatedByUserId);
+        await _auditLogService.LogAsync("KpiMaster", "Create", kpi.KpiId, $"Created KPI: {kpi.KpiName}", request.CreatedByEmployeeId);
 
         return Result<int>.Success(kpi.KpiId);
     }

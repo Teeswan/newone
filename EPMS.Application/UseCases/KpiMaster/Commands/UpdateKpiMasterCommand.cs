@@ -20,7 +20,7 @@ public record UpdateKpiMasterCommand : IRequest<Result>
     public PriorityLevel PriorityLevel { get; init; }
     public KpiDirection Direction { get; init; }
     public int? PositionId { get; init; }
-    public int? UpdatedByUserId { get; init; }
+    public int? UpdatedByEmployeeId { get; init; }
 
     public class Validator : AbstractValidator<UpdateKpiMasterCommand>
     {
@@ -77,7 +77,7 @@ public class UpdateKpiMasterCommandHandler : IRequestHandler<UpdateKpiMasterComm
 
         await _cacheService.RemoveAsync($"kpimaster:id:{kpi.KpiId}");
         await _cacheService.RemoveByPatternAsync("kpimaster:list:*");
-        await _auditLogService.LogAsync("KpiMaster", "Update", kpi.KpiId, $"Updated KPI: {kpi.KpiName}", request.UpdatedByUserId);
+        await _auditLogService.LogAsync("KpiMaster", "Update", kpi.KpiId, $"Updated KPI: {kpi.KpiName}", request.UpdatedByEmployeeId);
 
         return Result.Success();
     }
