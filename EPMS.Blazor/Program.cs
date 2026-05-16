@@ -48,7 +48,6 @@ builder.Services.AddScoped<IPositionBlazorService, PositionBlazorService>();
 builder.Services.AddScoped<IPermissionBlazorService, PermissionBlazorService>();
 builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
 builder.Services.AddScoped<IEmployeeBlazorService, EmployeeBlazorService>();
-builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
 builder.Services.AddScoped<IKpiMasterBlazorService, KpiMasterBlazorService>();
 builder.Services.AddScoped<IEmployeeKpiBlazorService, EmployeeKpiBlazorService>();
 builder.Services.AddScoped<IMeetingBlazorService, MeetingBlazorService>();

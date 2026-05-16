@@ -30,7 +30,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     INSERT INTO AppraisalQuestions (QuestionText, Category, IsRequired)
-    VALUES (@QuestionText, @Category, @IsRequired);
+    VALUES (@QuestionText, @Category, ISNULL(@IsRequired, 1));
 
     SELECT QuestionID, QuestionText, Category, IsRequired
     FROM AppraisalQuestions
@@ -49,7 +49,7 @@ BEGIN
     UPDATE AppraisalQuestions
     SET QuestionText = @QuestionText,
         Category = @Category,
-        IsRequired = @IsRequired
+        IsRequired = ISNULL(@IsRequired, 1)
     WHERE QuestionID = @QuestionID;
 
     SELECT QuestionID, QuestionText, Category, IsRequired
