@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using EPMS.Shared.Responses;
 
@@ -8,11 +8,13 @@ namespace EPMS.Api.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IWebHostEnvironment env)
         {
             _next = next;
             _logger = logger;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -27,8 +29,11 @@ namespace EPMS.Api.Middleware
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";
 
-                var response = ApiResponse<object>.Fail(
-                    "An unexpected error occurred. Please try again later.");
+                var message = _env.IsDevelopment() 
+                    ? $"[DEV] {ex.Message} | Inner: {ex.InnerException?.Message}" 
+                    : "An unexpected error occurred. Please try again later.";
+
+                var response = ApiResponse<object>.Fail(message);
 
                 await context.Response.WriteAsync(
                     JsonSerializer.Serialize(response,

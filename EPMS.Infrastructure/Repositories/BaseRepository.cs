@@ -93,7 +93,15 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
             return false;
         }
 
-        _dbSet.Remove(entity);
+        if (entity is ISoftDelete softDeleteEntity)
+        {
+            softDeleteEntity.IsDeleted = true;
+            _context.Entry(entity).State = EntityState.Modified;
+        }
+        else
+        {
+            _dbSet.Remove(entity);
+        }
 
         try
         {

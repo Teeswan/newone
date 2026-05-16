@@ -1,4 +1,4 @@
-﻿@page "/employees"
+@page "/employees"
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 @using EPMS.Blazor.Services
@@ -55,6 +55,8 @@
                 <HeaderContent>
                     <MudTh Style="font-weight: 600;">Code</MudTh>
                     <MudTh Style="font-weight: 600;">Full Name</MudTh>
+                    <MudTh Style="font-weight: 600;">Department</MudTh>
+                    <MudTh Style="font-weight: 600;">Team</MudTh>
                     <MudTh Style="font-weight: 600;">Position</MudTh>
                     <MudTh Style="font-weight: 600; text-align: center;">Reports To</MudTh>
                     <MudTh Style="font-weight: 600; text-align: center;">Status</MudTh>
@@ -63,6 +65,20 @@
                 <RowTemplate>
                     <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
                     <MudTd DataLabel="Full Name">@context.FullName</MudTd>
+                    <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Team">
+                        @if (!string.IsNullOrEmpty(context.TeamNames))
+                        {
+                            @foreach (var team in context.TeamNames.Split(", "))
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Class="mr-1">@team</MudChip>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No Team</MudText>
+                        }
+                    </MudTd>
                     <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
                     <MudTd DataLabel="Reports To" Style="text-align: center;">
                         <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
@@ -80,17 +96,12 @@
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        @* View Details *@
-                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info"
-                                       Size="Size.Small" OnClick="@(() => ViewDetails(context.EmployeeId))" />
-
-                        @* Edit *@
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
-                                       Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
-
-                        @* Delete *@
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
-                                       Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                            <MudMenuItem Icon="@Icons.Material.Filled.Visibility" IconColor="Color.Info" OnClick="@(() => ViewDetails(context.EmployeeId))">View Details</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Edit" IconColor="Color.Warning" OnClick="@(() => OpenEditDialog(context))">Edit Employee</MudMenuItem>
+                            <MudDivider DividerType="DividerType.FullWidth" Class="my-1" />
+                            <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(() => DeleteEmployee(context))">Delete Employee</MudMenuItem>
+                        </MudMenu>
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -152,29 +163,43 @@
 
         if (!result.Canceled && result.Data is UpdateEmployeeRequest request)
         {
-            var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
-            if (success)
+            try
             {
-                Snackbar.Add("Employee updated successfully!", Severity.Success);
-                await LoadEmployees();
+                var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
+                if (success)
+                {
+                    Snackbar.Add("Employee updated successfully!", Severity.Success);
+                    await LoadEmployees();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Update failed: {ex.Message}", Severity.Error);
             }
         }
     }
 
     // 3. Delete Logic (Confirmation)
-    private async Task DeleteEmployee(int id)
+    private async Task DeleteEmployee(EmployeeDto employee)
     {
         bool? confirm = await DialogService.ShowMessageBox("Warning",
-            "Are you sure you want to delete this employee? This action cannot be undone.",
+            $"Are you sure you want to delete {employee.FullName}? This will hide the employee from all active lists.",
             yesText: "Delete", cancelText: "Cancel");
 
         if (confirm == true)
         {
-            var success = await EmployeeService.DeleteEmployeeAsync(id);
-            if (success)
+            try
             {
-                Snackbar.Add("Employee deleted!", Severity.Info);
-                await LoadEmployees();
+                var success = await EmployeeService.DeleteEmployeeAsync(employee.EmployeeId);
+                if (success)
+                {
+                    Snackbar.Add("Employee deleted successfully!", Severity.Info);
+                    await LoadEmployees();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error);
             }
         }
     }
@@ -241,6 +266,8 @@
         
         if (!string.IsNullOrEmpty(element.ManagerName) && element.ManagerName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         if (!string.IsNullOrEmpty(element.PositionTitle) && element.PositionTitle.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (!string.IsNullOrEmpty(element.DepartmentName) && element.DepartmentName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (!string.IsNullOrEmpty(element.TeamNames) && element.TeamNames.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         
         return false;
     }
