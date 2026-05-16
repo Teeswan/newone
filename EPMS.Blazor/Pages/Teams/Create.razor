@@ -1,0 +1,134 @@
+@page "/teams/create"
+@inject EPMS.Blazor.Services.ITeamBlazorService TeamService
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject EPMS.Blazor.Services.IEmployeeBlazorService EmployeeService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Team</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.AddBusiness" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Create Team</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">Add a new team to your organization</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-8" />
+
+        <EditForm Model="team" OnValidSubmit="HandleValidSubmit">
+            <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
+                <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-primary">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                    Team Information
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField 
+                            @bind-Value="team.TeamName" 
+                            Label="Team Name" 
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Groups" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudSelect 
+                            @bind-Value="team.ManagerId" 
+                            Label="Manager"
+                            Required="false"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            T="int?"
+                            Clearable="true"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Person">
+                            @if (employees != null)
+                            {
+                                @foreach (var emp in employees)
+                                {
+                                    <MudSelectItem T="int?" Value="@((int?)emp.EmployeeId)">@emp.FullName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSelect 
+                            @bind-Value="team.DepartmentId" 
+                            Label="Department"
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            T="int?"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Domain">
+                            @if (departments != null)
+                            {
+                                @foreach (var dept in departments)
+                                {
+                                    <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudGrid>
+                <MudItem xs="12" Class="pt-4">
+                    <MudButtonGroup>
+                        <MudTooltip Text="Save and create this team" Arrow="true">
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
+                                Create Team
+                            </MudButton>
+                        </MudTooltip>
+                        <MudTooltip Text="Cancel and go back to list" Arrow="true">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                Cancel
+                            </MudButton>
+                        </MudTooltip>
+                    </MudButtonGroup>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private CreateTeamRequest team = new();
+    private IEnumerable<DepartmentDto>? departments;
+    private IEnumerable<EmployeeDto>? employees;
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await DepartmentService.GetAllDepartmentsAsync();
+        employees = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await TeamService.CreateTeamAsync(team);
+            Snackbar.Add("Team created successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+            NavigationManager.NavigateTo("/teams");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating team: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/teams");
+    }
+}

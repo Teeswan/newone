@@ -1,0 +1,101 @@
+@page "/appraisalcycles/details/{Id:int}"
+@inject EPMS.Blazor.Services.IAppraisalCycleBlazorService AppraisalCycleService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Appraisal Cycle Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Appraisal Cycle Details</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (appraisalCycle == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal cycle...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" Class="mb-4">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5">@appraisalCycle.CycleName</MudText>
+                            <MudSpacer />
+                            <MudChip T="string" Color="GetStatusColor(appraisalCycle.CycleStatus)" Variant="Variant.Filled">
+                                @appraisalCycle.CycleStatus
+                            </MudChip>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Cycle ID</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@appraisalCycle.CycleId</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Start Date</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@appraisalCycle.StartDate.ToString("dd MMM yyyy")</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">End Date</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@appraisalCycle.EndDate.ToString("dd MMM yyyy")</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-end">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                Back to List
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                                Edit
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EPMS.Shared.DTOs.AppraisalCycleDto? appraisalCycle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            appraisalCycle = await AppraisalCycleService.GetAppraisalCycleByIdAsync(Id);
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Error loading appraisal cycle details: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalcycles");
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/appraisalcycles/edit/{Id}");
+    }
+
+    private Color GetStatusColor(string? status) => status?.ToLower() switch
+    {
+        "draft" => Color.Secondary,
+        "active" => Color.Primary,
+        "completed" => Color.Success,
+        _ => Color.Default
+    };
+}

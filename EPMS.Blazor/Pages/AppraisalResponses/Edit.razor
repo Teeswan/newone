@@ -1,0 +1,167 @@
+@page "/appraisalresponses/edit/{Id:long}"
+@using EPMS.Shared.Requests
+@using EPMS.Domain.Enums
+@inject EPMS.Blazor.Services.IAppraisalResponseBlazorService AppraisalResponseService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Appraisal Response</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Edit Appraisal Response</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (updateRequest == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal response...</MudText>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@updateRequest" OnValidSubmit="HandleValidSubmit">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Evaluation ID" 
+                                         @bind-Value="updateRequest.EvalId" 
+                                         Required="true"
+                                         RequiredError="Evaluation ID is required"
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Question ID" 
+                                         @bind-Value="updateRequest.QuestionId" 
+                                         Required="true"
+                                         RequiredError="Question ID is required"
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Respondent ID" 
+                                         @bind-Value="updateRequest.RespondentId" 
+                                         Required="true"
+                                         RequiredError="Respondent ID is required"
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Respondent Employee ID" 
+                                         @bind-Value="updateRequest.RespondentEmployeeId" 
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="string" 
+                                   Label="Respondent Role" 
+                                   @bind-Value="updateRequest.RespondentRole" 
+                                   Required="true"
+                                   RequiredError="Respondent Role is required"
+                                   Variant="Variant.Outlined"
+                                   Style="width: 100%">
+                            @foreach (var role in Enum.GetNames(typeof(RespondentRole)))
+                            {
+                                <MudSelectItem Value="@role">@role</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string" 
+                                      Label="Answer Text" 
+                                      @bind-Value="updateRequest.AnswerText" 
+                                      Variant="Variant.Outlined"
+                                      Lines="3"
+                                      Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" 
+                                         Label="Rating Value" 
+                                         @bind-Value="updateRequest.RatingValue" 
+                                         Variant="Variant.Outlined"
+                                         Style="width: 100%"
+                                         Min="0"
+                                         Max="5" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSwitch T="bool?" 
+                                   Label="Is Anonymous" 
+                                   @bind-Checked="updateRequest.IsAnonymous" 
+                                   Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                            Cancel
+                        </MudButton>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                            Save Changes
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+
+    private UpdateAppraisalResponseRequest? updateRequest;
+    private bool isAnonymousValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await AppraisalResponseService.GetAppraisalResponseByIdAsync((int)Id);
+        if (response != null)
+        {
+            updateRequest = new UpdateAppraisalResponseRequest
+            {
+                EvalId = response.EvalId,
+                QuestionId = response.QuestionId,
+                RespondentId = response.RespondentId,
+                RespondentEmployeeId = response.RespondentEmployeeId,
+                RespondentRole = response.RespondentRole,
+                AnswerText = response.AnswerText,
+                RatingValue = response.RatingValue,
+                IsAnonymous = response.IsAnonymous
+            };
+            isAnonymousValue = response.IsAnonymous ?? false;
+        }
+        else
+        {
+            Snackbar.Add("Appraisal response not found.", Severity.Error);
+            NavigationManager.NavigateTo("/appraisalresponses");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (updateRequest != null)
+        {
+            try
+            {
+                await AppraisalResponseService.UpdateAppraisalResponseAsync((int)Id, updateRequest);
+                Snackbar.Add("Appraisal response updated successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/appraisalresponses");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error updating appraisal response: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalresponses");
+    }
+}

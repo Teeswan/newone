@@ -1,0 +1,456 @@
+@page "/departments"
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Departments</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Department Management</MudText>
+
+<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
+    <MudCardContent>
+        @* Toolbar: Search and Actions *@
+        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
+            <div class="d-flex gap-2">
+                <MudTextField @bind-Value="searchQuery" Placeholder="Search departments..."
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;" />
+
+                <MudSelect T="string" @bind-Value="activeFilter" Label="Filter by Status" Variant="Variant.Outlined" Class="mt-0" Style="min-width: 150px;">
+                    <MudSelectItem Value="@("all")">All Departments</MudSelectItem>
+                    <MudSelectItem Value="@("active")">Active Only</MudSelectItem>
+                    <MudSelectItem Value="@("inactive")">Inactive Only</MudSelectItem>
+                </MudSelect>
+
+                <MudSelect T="string" @bind-Value="sortBy" Label="Sort by" Variant="Variant.Outlined" Class="mt-0" Style="min-width: 150px;">
+                    <MudSelectItem Value="@("name-asc")">Name (A-Z)</MudSelectItem>
+                    <MudSelectItem Value="@("name-desc")">Name (Z-A)</MudSelectItem>
+                    <MudSelectItem Value="@("id-asc")">ID (Low → High)</MudSelectItem>
+                    <MudSelectItem Value="@("id-desc")">ID (High → Low)</MudSelectItem>
+                </MudSelect>
+            </div>
+
+            <div class="d-flex gap-2">
+                <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.FileUpload">
+                            Import Excel
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
+                    <MudMenuItem OnClick="ExportToExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
+                    <MudMenuItem OnClick="ExportToPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
+                </MudMenu>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="NavigateToCreate"
+                           Style="background-color: #1A56DB; font-weight: 600;">
+                    Create New
+                </MudButton>
+
+                @if (selectedDepartments.Any())
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               OnClick="DeleteSelected">
+                        Delete Selected (@selectedDepartments.Count)
+                    </MudButton>
+                }
+
+                <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.Refresh"
+                           OnClick="LoadDepartments">
+                    Refresh
+                </MudButton>
+            </div>
+        </div>
+
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Domain" Color="Color.Primary" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count()</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">Total Departments</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count(d => d.IsActive)</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">Active Departments</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count(d => !d.IsActive)</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">Inactive Departments</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Color="Color.Warning" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count(d => d.ParentDepartmentId.HasValue)</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">With Parent</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        @if (isLoading)
+        {
+            <div class="d-flex justify-center my-4">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else if (!SortedDepartments.Any())
+        {
+            <div class="text-center py-12">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Info" Class="mb-4" />
+                <MudText Typo="Typo.h5" Class="fw-bold mb-2 text-grey">
+                    @(string.IsNullOrWhiteSpace(searchQuery) ? "No departments found" : "No departments match your search")
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-6 text-grey">
+                    @(string.IsNullOrWhiteSpace(searchQuery) ? "Get started by creating your first department!" : "Try adjusting your search or filter criteria.")
+                </MudText>
+                @if (string.IsNullOrWhiteSpace(searchQuery))
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large">
+                        Create First Department
+                    </MudButton>
+                }
+            </div>
+        }
+        else
+        {
+            <MudTable Items="@PagedDepartments" T="DepartmentDto" Hover="true" Breakpoint="Breakpoint.Sm"
+                      MultiSelection="true" @bind-SelectedItems="selectedDepartments" SelectOnRowClick="false"
+                      Elevation="0" Filter="new Func<DepartmentDto,bool>(d => true)">
+                <HeaderContent>
+                    <MudTh Style="font-weight: 600;"></MudTh>
+                    <MudTh Style="font-weight: 600;">Department ID</MudTh>
+                    <MudTh Style="font-weight: 600;">Name</MudTh>
+                    <MudTh Style="font-weight: 600;">Parent Department</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: center;">Active</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd></MudTd>
+                    <MudTd DataLabel="Department ID">@context.DepartmentId</MudTd>
+                    <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Parent Department">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                            @(context.ParentDepartmentName ?? "None")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Active" Style="text-align: center;">
+                        @if (context.IsActive)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudTooltip Text="View details" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => NavigateToDetails(context.DepartmentId))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Edit department" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => NavigateToEdit(context.DepartmentId))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Delete department" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context))" />
+                        </MudTooltip>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private IEnumerable<DepartmentDto>? departments;
+    private HashSet<DepartmentDto> selectedDepartments = new();
+    private string searchQuery = string.Empty;
+    private string activeFilter = "all";
+    private string sortBy = "name-asc";
+    private int pageSize = 10;
+    private int currentPage = 0;
+    private bool isLoading = false;
+
+    private IEnumerable<DepartmentDto> FilteredDepartments
+    {
+        get
+        {
+            if (departments == null)
+                return Enumerable.Empty<DepartmentDto>();
+
+            var filtered = departments.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                filtered = filtered.Where(d => 
+                    d.DepartmentName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    (d.ParentDepartmentName != null && d.ParentDepartmentName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            if (activeFilter == "active")
+            {
+                filtered = filtered.Where(d => d.IsActive);
+            }
+            else if (activeFilter == "inactive")
+            {
+                filtered = filtered.Where(d => !d.IsActive);
+            }
+
+            return filtered;
+        }
+    }
+
+    private IEnumerable<DepartmentDto> SortedDepartments
+    {
+        get
+        {
+            var sorted = FilteredDepartments.AsEnumerable();
+
+            sorted = sortBy switch
+            {
+                "name-asc" => sorted.OrderBy(d => d.DepartmentName),
+                "name-desc" => sorted.OrderByDescending(d => d.DepartmentName),
+                "id-asc" => sorted.OrderBy(d => d.DepartmentId),
+                "id-desc" => sorted.OrderByDescending(d => d.DepartmentId),
+                _ => sorted.OrderBy(d => d.DepartmentName)
+            };
+
+            return sorted;
+        }
+    }
+
+    private IEnumerable<DepartmentDto> PagedDepartments => SortedDepartments;
+
+    private bool AreAllDepartmentsSelected => FilteredDepartments.Any() && selectedDepartments.Count == FilteredDepartments.Count();
+
+    private void ToggleAllDepartments(bool value)
+    {
+        if (departments == null)
+            return;
+
+        if (value)
+        {
+            selectedDepartments = new HashSet<DepartmentDto>(FilteredDepartments);
+        }
+        else
+        {
+            selectedDepartments.Clear();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDepartments();
+    }
+
+    private async Task LoadDepartments()
+    {
+        isLoading = true;
+        try
+        {
+            departments = await DepartmentService.GetAllDepartmentsAsync();
+            Snackbar.Add("Departments refreshed successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; config.VisibleStateDuration = 2000; });
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Error loading departments: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+            departments = new List<DepartmentDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/departments/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/departments/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/departments/edit/{id}");
+    }
+
+    private async Task DeleteDepartment(DepartmentDto dept)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete this department?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await DepartmentService.DeleteDepartmentAsync(dept.DepartmentId);
+                if (success)
+                {
+                    Snackbar.Add("Department deleted successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                    await LoadDepartments();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting department.", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting department: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+            }
+        }
+    }
+
+    private async Task DeleteSelected()
+    {
+        if (!selectedDepartments.Any())
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete {selectedDepartments.Count} selected departments?" },
+            { "ButtonText", "Delete All" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            int deletedCount = 0;
+            try
+            {
+                foreach (var dept in selectedDepartments.ToList())
+                {
+                    var success = await DepartmentService.DeleteDepartmentAsync(dept.DepartmentId);
+                    if (success)
+                    {
+                        deletedCount++;
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    Snackbar.Add($"Successfully deleted {deletedCount} departments!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                    selectedDepartments.Clear();
+                    await LoadDepartments();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting departments.", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting departments: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+            }
+        }
+    }
+
+    private async Task ImportExcel(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+
+            var count = await DepartmentService.ImportFromExcelAsync(ms, true, "", false);
+            Snackbar.Add($"Successfully imported {count} departments!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+            await LoadDepartments();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            var fileBytes = await DepartmentService.ExportToExcelAsync();
+            await JSRuntime.InvokeVoidAsync("saveAsFile", "Departments.xlsx", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("Excel file downloaded successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to Excel: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+        }
+    }
+
+    private async Task ExportToPdf()
+    {
+        try
+        {
+            var fileBytes = await DepartmentService.ExportToPdfAsync();
+            await JSRuntime.InvokeVoidAsync("saveAsFile", "Departments.pdf", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("PDF file downloaded successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to PDF: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+        }
+    }
+
+    private async Task ShowImportDialog()
+    {
+        Snackbar.Add("Opening import dialog...", Severity.Info, config => { config.Icon = Icons.Material.Filled.Info; });
+        var dialog = DialogService.Show<ImportDepartmentDialog>("Import Departments");
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await LoadDepartments();
+        }
+    }
+}

@@ -1,0 +1,28 @@
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@ContentText</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="@Color" OnClick="Submit">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string ContentText { get; set; } = "Are you sure?";
+
+    [Parameter]
+    public string ButtonText { get; set; } = "Ok";
+
+    [Parameter] 
+    public Color Color { get; set; } = Color.Primary;
+
+    private void Cancel() => MudDialog.Cancel();
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

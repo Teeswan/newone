@@ -1,0 +1,144 @@
+@page "/appraisalcycles/edit/{Id:int}"
+@inject EPMS.Blazor.Services.IAppraisalCycleBlazorService AppraisalCycleService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Appraisal Cycle</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Edit Appraisal Cycle</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (updateRequest == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal cycle...</MudText>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@updateRequest" OnValidSubmit="HandleValidSubmit">
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField T="string" 
+                                  Label="Cycle Name" 
+                                  @bind-Value="updateRequest.CycleName" 
+                                  Required="true"
+                                  RequiredError="Cycle name is required"
+                                  Variant="Variant.Outlined"
+                                  Style="width: 100%" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker T="DateTime?" 
+                                   Label="Start Date" 
+                                   @bind-Date="startDate" 
+                                   Required="true"
+                                   RequiredError="Start date is required"
+                                   Variant="Variant.Outlined"
+                                   Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker T="DateTime?" 
+                                   Label="End Date" 
+                                   @bind-Date="endDate" 
+                                   Required="true"
+                                   RequiredError="End date is required"
+                                   Variant="Variant.Outlined"
+                                   Style="width: 100%" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="string" 
+                               Label="Cycle Status" 
+                               @bind-Value="updateRequest.CycleStatus" 
+                               Required="true"
+                               RequiredError="Status is required"
+                               Variant="Variant.Outlined"
+                               Style="width: 100%">
+                            <MudSelectItem T="string" Value="@("Draft")">Draft</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Active")">Active</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
+                            Cancel
+                        </MudButton>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                            Save Changes
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EPMS.Shared.Requests.UpdateAppraisalCycleRequest? updateRequest;
+    private EPMS.Shared.DTOs.AppraisalCycleDto? originalCycle;
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            originalCycle = await AppraisalCycleService.GetAppraisalCycleByIdAsync(Id);
+            if (originalCycle != null)
+            {
+                updateRequest = new EPMS.Shared.Requests.UpdateAppraisalCycleRequest
+                {
+                    CycleName = originalCycle.CycleName,
+                    StartDate = originalCycle.StartDate,
+                    EndDate = originalCycle.EndDate,
+                    CycleStatus = originalCycle.CycleStatus
+                };
+                startDate = originalCycle.StartDate.ToDateTime(TimeOnly.MinValue);
+                endDate = originalCycle.EndDate.ToDateTime(TimeOnly.MinValue);
+            }
+            else
+            {
+                Snackbar.Add("Appraisal cycle not found.", Severity.Error);
+                NavigationManager.NavigateTo("/appraisalcycles");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Error loading appraisal cycle: {ex.Message}", Severity.Error);
+            NavigationManager.NavigateTo("/appraisalcycles");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (updateRequest != null && startDate.HasValue && endDate.HasValue)
+        {
+            updateRequest.StartDate = DateOnly.FromDateTime(startDate.Value);
+            updateRequest.EndDate = DateOnly.FromDateTime(endDate.Value);
+
+            try
+            {
+                await AppraisalCycleService.UpdateAppraisalCycleAsync(Id, updateRequest);
+                Snackbar.Add("Appraisal cycle updated successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/appraisalcycles");
+            }
+            catch (HttpRequestException ex)
+            {
+                Snackbar.Add($"Error updating appraisal cycle: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalcycles");
+    }
+}

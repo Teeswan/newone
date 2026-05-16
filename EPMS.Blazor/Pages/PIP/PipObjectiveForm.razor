@@ -1,0 +1,26 @@
+@using EPMS.Shared.Requests
+
+<div class="objective-form-item">
+    <div class="objective-form-header">
+        <h4>Objective #@Index</h4>
+        <button type="button" class="btn-icon btn-danger" @onclick="OnRemove">?</button>
+    </div>
+    <div class="form-group">
+        <label>Description *</label>
+        <InputTextArea class="form-control" rows="2"
+                       @bind-Value="Objective.ObjectiveDescription"
+                       placeholder="Describe what the employee needs to achieve..." />
+    </div>
+    <div class="form-group">
+        <label>Success Criteria</label>
+        <InputTextArea class="form-control" rows="2"
+                       @bind-Value="Objective.SuccessCriteria"
+                       placeholder="How will success be measured?" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public CreatePipObjectiveRequest Objective { get; set; } = null!;
+    [Parameter] public int Index { get; set; }
+    [Parameter] public EventCallback OnRemove { get; set; }
+}

@@ -1,0 +1,159 @@
+@page "/teams/edit/{id:int}"
+@inject EPMS.Blazor.Services.ITeamBlazorService TeamService
+@inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject EPMS.Blazor.Services.IEmployeeBlazorService EmployeeService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Team</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Warning" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Edit Team</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">Update team information</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-8" />
+
+        @if (team == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            </div>
+        }
+        else
+        {
+            <EditForm Model="team" OnValidSubmit="HandleValidSubmit">
+                <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
+                    <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-warning">
+                        <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" />
+                        Update Team Details
+                    </MudText>
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudTextField 
+                                @bind-Value="team.TeamName" 
+                                Label="Team Name" 
+                                Required="true"
+                                Variant="Variant.Outlined"
+                                Style="width: 100%"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Groups" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect 
+                                @bind-Value="team.ManagerId" 
+                                Label="Manager"
+                                Required="false"
+                                Variant="Variant.Outlined"
+                                Style="width: 100%"
+                                T="int?"
+                                Clearable="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Person">
+                                @if (employees != null)
+                                {
+                                    @foreach (var emp in employees)
+                                    {
+                                        <MudSelectItem T="int?" Value="@((int?)emp.EmployeeId)">@emp.FullName</MudSelectItem>
+                                    }
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudSelect 
+                                @bind-Value="team.DepartmentId" 
+                                Label="Department"
+                                Required="true"
+                                Variant="Variant.Outlined"
+                                Style="width: 100%"
+                                T="int?"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Domain">
+                                @if (departments != null)
+                                {
+                                    @foreach (var dept in departments)
+                                    {
+                                        <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                    }
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudGrid>
+                    <MudItem xs="12" Class="pt-4">
+                        <MudButtonGroup>
+                            <MudTooltip Text="Save changes to this team" Arrow="true">
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
+                                    Save Changes
+                                </MudButton>
+                            </MudTooltip>
+                            <MudTooltip Text="Cancel and go back to list" Arrow="true">
+                                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                    Cancel
+                                </MudButton>
+                            </MudTooltip>
+                        </MudButtonGroup>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateTeamRequest? team;
+    private IEnumerable<DepartmentDto>? departments;
+    private IEnumerable<EmployeeDto>? employees;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var teamDto = await TeamService.GetTeamByIdAsync(Id);
+        if (teamDto != null)
+        {
+            team = new UpdateTeamRequest
+            {
+                TeamName = teamDto.TeamName,
+                ManagerId = teamDto.ManagerId,
+                DepartmentId = teamDto.DepartmentId
+            };
+        }
+        departments = await DepartmentService.GetAllDepartmentsAsync();
+        employees = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (team != null)
+        {
+            try
+            {
+                await TeamService.UpdateTeamAsync(Id, team);
+                Snackbar.Add("Team updated successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                NavigationManager.NavigateTo("/teams");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error updating team: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/teams");
+    }
+}

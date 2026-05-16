@@ -1,0 +1,85 @@
+@page "/appraisalforms/details/{Id:int}"
+@inject EPMS.Blazor.Services.IAppraisalFormBlazorService AppraisalFormService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Appraisal Form Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4">Appraisal Form Details</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (form == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal form...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" Class="mb-4">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5">@form.FormName</MudText>
+                            <MudSpacer />
+                            <MudChip T="string" Color="@(form.IsActive == true ? Color.Success : Color.Secondary)" Variant="Variant.Filled">
+                                @(form.IsActive == true ? "Active" : "Inactive")
+                            </MudChip>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Form ID</MudText>
+                                    <MudText Typo="Typo.body1" Class="mb-3">@form.FormId</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-end">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                Back to List
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                                Edit
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EPMS.Shared.DTOs.AppraisalFormDto? form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            form = await AppraisalFormService.GetAppraisalFormByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading appraisal form details: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/appraisalforms");
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/appraisalforms/edit/{Id}");
+    }
+}

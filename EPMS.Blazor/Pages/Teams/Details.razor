@@ -1,0 +1,95 @@
+@page "/teams/details/{id:int}"
+@inject EPMS.Blazor.Services.ITeamBlazorService TeamService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Team Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Team Details</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">View complete team information</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-8" />
+
+        @if (team == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            </div>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
+                        <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-primary">
+                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                            Basic Information
+                        </MudText>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Team ID</MudText>
+                                <MudChip Color="Color.Primary" Size="Size.Medium" T="int">@team.TeamId</MudChip>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Name</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-bold">@team.TeamName</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Manager</MudText>
+                                <MudText Typo="Typo.body1">@(team.ManagerName ?? "None")</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Department</MudText>
+                                <MudText Typo="Typo.body1">@(team.DepartmentName ?? "None")</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        }
+
+        <MudDivider Class="my-8" />
+
+        <MudButtonGroup>
+            <MudTooltip Text="Edit this team" Arrow="true">
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                    Edit Team
+                </MudButton>
+            </MudTooltip>
+            <MudTooltip Text="Go back to teams list" Arrow="true">
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to List
+                </MudButton>
+            </MudTooltip>
+        </MudButtonGroup>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private TeamDto? team;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        team = await TeamService.GetTeamByIdAsync(Id);
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/teams/edit/{Id}");
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/teams");
+    }
+}

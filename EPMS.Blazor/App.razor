@@ -1,0 +1,36 @@
+<CascadingAuthenticationState>
+    <MudThemeProvider />
+    <MudPopoverProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <MudPaper Class="mt-20 mx-auto" Elevation="3" MaxWidth="MaxWidth.Small">
+                        <MudContainer Class="pa-8">
+                            <MudText GutterBottom="true" Typo="Typo.h5" Color="Color.Error" Align="Align.Center">
+                                Access Denied
+                            </MudText>
+                            <MudText Align="Align.Center" Class="mb-6">
+                                You do not have permission to view this page. Please log in.
+                            </MudText>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Href="/login">
+                                Go to Login Page
+                            </MudButton>
+                        </MudContainer>
+                    </MudPaper>
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <MudText GutterBottom="true" Typo="Typo.h5">
+                    Sorry, there's nothing at this address.
+                </MudText>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

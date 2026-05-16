@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="7.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Components\Widgets\" />
+    <Folder Include="Components\Shared\" />
+    <Folder Include="Services\Interfaces\" />
+    <Folder Include="Services\Implementation\" />
+    <Folder Include="Services\HttpClients\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EPMS.Shared\EPMS.Shared.csproj" />
+    <ProjectReference Include="..\EPMS.Application\EPMS.Application.csproj" />
+  </ItemGroup>
+
+</Project>

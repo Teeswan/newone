@@ -1,0 +1,227 @@
+@page "/debug"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Blazored.LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILocalStorageService LocalStorage
+@inject HttpClient Http
+@inject EPMS.Blazor.Services.IPermissionBlazorService PermissionService
+@inject EPMS.Blazor.Services.IPositionBlazorService PositionService
+
+<PageTitle>Debug Info</PageTitle>
+
+<MudContainer>
+    <MudPaper Elevation="3" Class="pa-6 mb-4">
+        <MudText Typo="Typo.h4" Class="mb-6">Debug Information</MudText>
+
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">1. Quick Fix: Seed All Permissions</MudText>
+        <MudButton OnClick="SeedPermissions" Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Refresh">
+            Seed All Permissions & Admin
+        </MudButton>
+
+        <MudDivider Class="my-6" />
+
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">2. Auth Token</MudText>
+        <MudTextField 
+            T="string"
+            Label="Token from LocalStorage"
+            Value="@token"
+            Variant="Variant.Outlined"
+            Style="width: 100%"
+            Lines="3"
+            ReadOnly="true" />
+
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">3. Current User Claims</MudText>
+        @if (claims != null)
+        {
+            <MudTable Items="@claims" Hover="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>Claim Type</MudTh>
+                    <MudTh>Claim Value</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Type</MudTd>
+                    <MudTd>@context.Value</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+
+        <MudDivider Class="my-6" />
+
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">4. Test API Calls</MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="3">
+                <MudButton OnClick="TestPositionsApi" Color="Color.Primary" Style="width: 100%" Variant="Variant.Outlined">
+                    Test Positions
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudButton OnClick="TestPermissionsApi" Color="Color.Secondary" Style="width: 100%" Variant="Variant.Outlined">
+                    Test Permissions
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudButton OnClick="TestLevelsApi" Color="Color.Info" Style="width: 100%" Variant="Variant.Outlined">
+                    Test Levels
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudButton OnClick="LoadAllData" Color="Color.Tertiary" Style="width: 100%" Variant="Variant.Outlined">
+                    Load All Data
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (!string.IsNullOrEmpty(apiResult))
+        {
+            <MudText Typo="Typo.h6" Class="mt-4 mb-2">5. API Result</MudText>
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                @apiResult
+            </MudAlert>
+        }
+    </MudPaper>
+
+    <MudPaper Elevation="3" Class="pa-6">
+        <MudText Typo="Typo.h5" Class="mb-4">Database Data</MudText>
+
+        <MudText Typo="Typo.h6" Class="mb-2">All Permissions (@(allPermissions?.Count() ?? 0))</MudText>
+        @if (allPermissions != null && allPermissions.Any())
+        {
+            <MudTable Items="@allPermissions" Hover="true" Dense="true" Breakpoint="Breakpoint.Md">
+                <HeaderContent>
+                    <MudTh>ID</MudTh>
+                    <MudTh>Permission Code</MudTh>
+                    <MudTh>Description</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.PermissionId</MudTd>
+                    <MudTd>@context.PermissionCode</MudTd>
+                    <MudTd>@context.Description</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning">No permissions found! Click "Seed All Permissions & Admin" above.</MudAlert>
+        }
+
+        <MudDivider Class="my-6" />
+
+        <MudText Typo="Typo.h6" Class="mb-2">All Positions (@(allPositions?.Count() ?? 0))</MudText>
+        @if (allPositions != null && allPositions.Any())
+        {
+            <MudTable Items="@allPositions" Hover="true" Dense="true" Breakpoint="Breakpoint.Md">
+                <HeaderContent>
+                    <MudTh>ID</MudTh>
+                    <MudTh>Title</MudTh>
+                    <MudTh>Level</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.PositionId</MudTd>
+                    <MudTd>@context.PositionTitle</MudTd>
+                    <MudTd>@context.LevelName</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning">No positions found!</MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string? token;
+    private IEnumerable<System.Security.Claims.Claim>? claims;
+    private IEnumerable<PermissionDto>? allPermissions;
+    private IEnumerable<PositionDto>? allPositions;
+    private string apiResult = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDebugInfo();
+    }
+
+    private async Task LoadDebugInfo()
+    {
+        token = await LocalStorage.GetItemAsync<string>("authToken");
+        
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claims = authState.User.Claims;
+    }
+
+    private async Task LoadAllData()
+    {
+        try
+        {
+            allPermissions = await PermissionService.GetAllPermissionsAsync();
+            allPositions = await PositionService.GetAllPositionsAsync();
+            apiResult = "Data loaded successfully!";
+        }
+        catch (Exception ex)
+        {
+            apiResult = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private async Task SeedPermissions()
+    {
+        try
+        {
+            apiResult = "Seeding permissions...";
+            var response = await Http.PostAsync("api/Permissions/seed", null);
+            var content = await response.Content.ReadAsStringAsync();
+            apiResult = $"Seed result: Status {(int)response.StatusCode} - {response.ReasonPhrase}\n{content}";
+            
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadAllData();
+            }
+        }
+        catch (Exception ex)
+        {
+            apiResult = $"Error seeding: {ex.Message}";
+        }
+    }
+
+    private async Task TestPositionsApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Positions");
+            var content = await response.Content.ReadAsStringAsync();
+            apiResult = $"Positions API: Status {(int)response.StatusCode} - {response.ReasonPhrase}\nContent: {content}";
+        }
+        catch (Exception ex)
+        {
+            apiResult = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task TestPermissionsApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Permissions");
+            var content = await response.Content.ReadAsStringAsync();
+            apiResult = $"Permissions API: Status {(int)response.StatusCode} - {response.ReasonPhrase}\nContent: {content}";
+        }
+        catch (Exception ex)
+        {
+            apiResult = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task TestLevelsApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Levels");
+            var content = await response.Content.ReadAsStringAsync();
+            apiResult = $"Levels API: Status {(int)response.StatusCode} - {response.ReasonPhrase}\nContent: {content}";
+        }
+        catch (Exception ex)
+        {
+            apiResult = $"Error: {ex.Message}";
+        }
+    }
+}

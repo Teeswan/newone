@@ -1,0 +1,134 @@
+@page "/appraisalquestions"
+@inject EPMS.Blazor.Services.IAppraisalQuestionBlazorService AppraisalQuestionService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Appraisal Questions</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4" Class="mb-0">Appraisal Questions</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                    Create New
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (appraisalQuestions == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal questions...</MudText>
+            </div>
+        }
+        else if (!appraisalQuestions.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="ma-4">
+                No appraisal questions found. Create your first appraisal question!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="appraisalQuestions" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Question Text</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Required</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Question Text">@context.QuestionText</MudTd>
+                    <MudTd DataLabel="Category">@context.Category</MudTd>
+                    <MudTd DataLabel="Required">
+                        <MudChip T="string" Color="@(context.IsRequired == true ? Color.Primary : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                            @(context.IsRequired == true ? "Yes" : "No")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.QuestionId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
+                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.QuestionId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                            <MudButton Color="Color.Error" OnClick="() => DeleteAppraisalQuestion(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private IEnumerable<EPMS.Shared.DTOs.AppraisalQuestionDto>? appraisalQuestions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppraisalQuestions();
+    }
+
+    private async Task LoadAppraisalQuestions()
+    {
+        try
+        {
+            appraisalQuestions = await AppraisalQuestionService.GetAllAppraisalQuestionsAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading appraisal questions: {ex.Message}", Severity.Error);
+            appraisalQuestions = new List<EPMS.Shared.DTOs.AppraisalQuestionDto>();
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/appraisalquestions/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalquestions/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalquestions/edit/{id}");
+    }
+
+    private async Task DeleteAppraisalQuestion(EPMS.Shared.DTOs.AppraisalQuestionDto question)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete the appraisal question?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await AppraisalQuestionService.DeleteAppraisalQuestionAsync(question.QuestionId);
+                if (success)
+                {
+                    Snackbar.Add("Appraisal question deleted successfully!", Severity.Success);
+                    await LoadAppraisalQuestions();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting appraisal question.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting appraisal question: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

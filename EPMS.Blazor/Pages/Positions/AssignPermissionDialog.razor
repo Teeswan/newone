@@ -1,0 +1,120 @@
+@inject EPMS.Blazor.Services.IPermissionBlazorService PermissionService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex align-center mb-4">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.AssignmentTurnedIn" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold mb-0">Assign Permissions</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">Select one or more permissions to assign</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-6" />
+
+        @if (AvailablePermissions == null || !AvailablePermissions.Any())
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4" Icon="@Icons.Material.Filled.Warning">
+                No permissions available! Please click "Seed Permissions" on the Position Details page first!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@AvailablePermissions" T="PermissionDto" Hover="true" Elevation="0"
+                      MultiSelection="true" @bind-SelectedItems="selectedPermissions" SelectOnRowClick="false"
+                      Style="max-height: 400px; overflow-y: auto;">
+                <HeaderContent>
+                    <MudTh></MudTh>
+                    <MudTh Style="font-weight: 600;">Code</MudTh>
+                    <MudTh Style="font-weight: 600;">Description</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd></MudTd>
+                    <MudTd DataLabel="Code">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@context.PermissionCode</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            <MudText Typo="Typo.caption" Class="text-grey mt-4">
+                @selectedPermissions.Count permission(s) selected
+            </MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudTooltip Text="Cancel and close dialog" Arrow="true">
+            <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Close">
+                Cancel
+            </MudButton>
+        </MudTooltip>
+        <MudTooltip Text="Assign selected permissions" Arrow="true">
+            <MudButton Color="Color.Primary" OnClick="Assign" Disabled="!selectedPermissions.Any()"
+                       Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save">
+                Assign @selectedPermissions.Count
+            </MudButton>
+        </MudTooltip>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public IEnumerable<PermissionDto> AvailablePermissions { get; set; } = new List<PermissionDto>();
+
+    [Parameter]
+    public int PositionId { get; set; }
+
+    private HashSet<PermissionDto> selectedPermissions = new();
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task Assign()
+    {
+        if (!selectedPermissions.Any()) return;
+
+        try
+        {
+            int assignedCount = 0;
+            foreach (var perm in selectedPermissions)
+            {
+                var request = new AssignPermissionRequest
+                {
+                    PositionId = PositionId,
+                    PermissionId = perm.PermissionId
+                };
+
+                var success = await PermissionService.AssignPermissionAsync(request);
+                if (success)
+                {
+                    assignedCount++;
+                }
+            }
+
+            if (assignedCount > 0)
+            {
+                Snackbar.Add($"{assignedCount} permission(s) assigned successfully!", Severity.Success, 
+                    config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                MudDialog?.Close();
+            }
+            else
+            {
+                Snackbar.Add("No permissions were assigned.", Severity.Warning, 
+                    config => { config.Icon = Icons.Material.Filled.Warning; });
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error assigning permissions: {ex.Message}", Severity.Error, 
+                config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+        }
+    }
+}

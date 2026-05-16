@@ -1,0 +1,112 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@using EPMS.Shared.DTOs
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using EPMS.Client.Identity 
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="d-flex justify-center align-center" Style="min-height: 100vh;">
+    <MudPaper Elevation="12" Class="pa-10" Rounded="true">
+        <div class="text-center mb-8">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mx-auto mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Insights" Size="Size.Large" />
+            </MudAvatar>
+            <MudText Typo="Typo.h3" Class="fw-bold text-primary mb-2">Employee Performance</MudText>
+            <MudText Typo="Typo.h5" Class="text-secondary mb-2">Management System</MudText>
+            <MudText Typo="Typo.body2" Class="text-grey">
+                Please sign in to continue
+            </MudText>
+        </div>
+
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            
+            <MudTextField 
+                T="string"
+                Label="Username" 
+                @bind-Value="loginModel.Username"
+                Placeholder="Enter your username"
+                Variant="Variant.Outlined"
+                Style="width: 100%"
+                Class="mb-4"
+                Immediate="true" />
+
+            <MudTextField 
+                T="string"
+                Label="Password" 
+                @bind-Value="loginModel.Password"
+                InputType="InputType.Password"
+                Placeholder="Enter your password"
+                Variant="Variant.Outlined"
+                Style="width: 100%"
+                Class="mb-6"
+                Immediate="true" />
+
+            <MudButton 
+                ButtonType="ButtonType.Submit"
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                Style="width: 100%"
+                Size="Size.Large"
+                Class="mt-2">
+                <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Login" />
+                Sign In
+            </MudButton>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-6" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ErrorOutline" Closable="true">
+                    @errorMessage
+                </MudAlert>
+            }
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginRequestDto loginModel = new();
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var rawJson = await response.Content.ReadAsStringAsync();
+                var result = System.Text.Json.JsonSerializer.Deserialize<LoginResponseDto>(rawJson, 
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (result != null && !string.IsNullOrWhiteSpace(result.Token))
+                {
+                    await LocalStorage.SetItemAsync("authToken", result.Token);
+                    ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication(result.Token);
+                    Navigation.NavigateTo("/");
+                    Snackbar.Add("Welcome back! Login successful.", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                }
+                else
+                {
+                    errorMessage = "Login failed - no token received.";
+                }
+            }
+            else
+            {
+                errorMessage = "Invalid username or password. Please try again.";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Server error - please check your connection and try again.";
+        }
+    }
+}

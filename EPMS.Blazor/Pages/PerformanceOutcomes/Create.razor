@@ -1,0 +1,88 @@
+@page "/performanceoutcomes/create"
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IPerformanceOutcomeBlazorService PerformanceOutcomeService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">Create Performance Outcome</MudText>
+        <MudDivider Class="mb-6" />
+
+        <MudForm Model="@createRequest" @ref="@form" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Employee ID" @bind-Value="createRequest.EmployeeId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Cycle ID" @bind-Value="createRequest.CycleId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Evaluation ID" @bind-Value="createRequest.EvalId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Recommendation Type" @bind-Value="createRequest.RecommendationType" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Old Position ID" @bind-Value="createRequest.OldPositionId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="New Position ID" @bind-Value="createRequest.NewPositionId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Old Level ID" @bind-Value="createRequest.OldLevelId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="New Level ID" @bind-Value="createRequest.NewLevelId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="Approval Status" @bind-Value="createRequest.ApprovalStatus" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                        <MudSelectItem Value="@("Approved")">Approved</MudSelectItem>
+                        <MudSelectItem Value="@("Rejected")">Rejected</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Effective Date" @bind-Date="effectiveDateValue" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex justify-end mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Create</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm? form;
+    private CreatePerformanceOutcomeRequest createRequest = new() { ApprovalStatus = "Pending" };
+    private DateTime? effectiveDateValue { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        await form!.Validate();
+        if (form.IsValid)
+        {
+            if (effectiveDateValue.HasValue)
+            {
+                createRequest.EffectiveDate = DateOnly.FromDateTime(effectiveDateValue.Value);
+            }
+
+            try
+            {
+                await PerformanceOutcomeService.CreatePerformanceOutcomeAsync(createRequest);
+                Snackbar.Add("Performance outcome created successfully.", Severity.Success);
+                NavigationManager.NavigateTo("/performanceoutcomes");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error creating performance outcome: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => NavigationManager.NavigateTo("/performanceoutcomes");
+}

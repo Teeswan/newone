@@ -1,0 +1,109 @@
+@page "/one-on-one-meetings/create"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@inject IMeetingBlazorService MeetingService
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">Schedule 1:1 Meetings</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudForm Model="@createDto" @ref="@form">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Start Date" @bind-Date="selectedDate" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTimePicker Label="Start Time" @bind-Time="selectedTime" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Duration (minutes)" @bind-Value="createDto.DurationMinutes" Min="15" Max="180" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Gap Between Meetings (minutes)" @bind-Value="createDto.GapMinutes" Min="0" Max="60" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Location (or Meeting Link)" @bind-Value="createDto.Location" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Discussion Points" @bind-Value="createDto.DiscussionPoints" Lines="3" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudCheckBox Label="Ad-Hoc Meeting" @bind-Value="createDto.IsAdHoc" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                        <MudText>Employee selection coming soon. For now, meetings are scheduled for test employees only.</MudText>
+                    </MudAlert>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit" Disabled="@isSubmitting">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
+                <span>Scheduling...</span>
+            }
+            else
+            {
+                <span>Schedule Meetings</span>
+            }
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="GoBack">Cancel</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    private CreateMeetingDto createDto = new()
+    {
+        DurationMinutes = 45,
+        GapMinutes = 15,
+        EmployeeIds = new List<int> { 2 } // Test employee ID
+    };
+    private MudForm? form;
+    private DateTime? selectedDate = DateTime.Today;
+    private TimeSpan? selectedTime = new TimeSpan(9, 0, 0);
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        if (form == null)
+            return;
+
+        await form.Validate();
+        if (!form.IsValid)
+            return;
+
+        isSubmitting = true;
+        try
+        {
+            if (selectedDate.HasValue && selectedTime.HasValue)
+            {
+                createDto.ScheduledDateTime = selectedDate.Value.Date.Add(selectedTime.Value);
+                createDto.ManagerId = 3; // Test manager ID
+            }
+            await MeetingService.ScheduleBulkMeetingsAsync(createDto);
+            Snackbar.Add("Meetings scheduled successfully!", Severity.Success);
+            NavManager.NavigateTo("/one-on-one-meetings");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavManager.NavigateTo("/one-on-one-meetings");
+    }
+}

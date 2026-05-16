@@ -1,0 +1,273 @@
+@page "/one-on-one-meetings/{id:int}"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@inject IMeetingBlazorService MeetingService
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h4" Class="mb-0">1:1 Meeting Details</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="GoBack">
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Class="me-1" />
+                        Back
+                    </MudButton>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (isLoading)
+                {
+                    <div class="text-center py-8">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                        <MudText Typo="Typo.body1" Class="mt-4">Loading...</MudText>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4">
+                        @errorMessage
+                    </MudAlert>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="LoadMeeting">
+                        <MudIcon Icon="@Icons.Material.Filled.Refresh" Class="me-1" />
+                        Retry
+                    </MudButton>
+                }
+                else if (meeting == null)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-4">
+                        Meeting not found.
+                    </MudAlert>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GoBack">
+                        Back to List
+                    </MudButton>
+                }
+                else
+                {
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="pa-4" Elevation="0">
+                                <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Secondary">Date & Time</MudText>
+                                <MudText Typo="Typo.h6">@meeting.ScheduledDateTime?.ToString("F")</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="pa-4" Elevation="0">
+                                <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Secondary">Location</MudText>
+                                <MudText Typo="Typo.h6">@meeting.Location</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="pa-4" Elevation="0">
+                                <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Secondary">Manager</MudText>
+                                <MudText Typo="Typo.h6">@meeting.ManagerName</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="pa-4" Elevation="0">
+                                <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Secondary">Employee</MudText>
+                                <MudText Typo="Typo.h6">@meeting.EmployeeName</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudChip T="string" Color="Color.Primary" Size="Size.Medium" Class="mb-4">@meeting.MeetingStatus</MudChip>
+                        </MudItem>
+                        @if (!string.IsNullOrEmpty(meeting.DiscussionPoints))
+                        {
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.subtitle1" Class="mb-2">Discussion Points</MudText>
+                                <MudPaper Class="pa-4 bg-light" Elevation="1">
+                                    <MudText Typo="Typo.body1">@meeting.DiscussionPoints</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                        @if (!string.IsNullOrEmpty(meeting.MeetingSummary))
+                        {
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.subtitle1" Class="mb-2">Meeting Summary</MudText>
+                                <MudPaper Class="pa-4 bg-light" Elevation="1">
+                                    <MudText Typo="Typo.body1">@meeting.MeetingSummary</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                @if (meeting != null && meeting.CanJoin && (meeting.MeetingStatus == "Scheduled" || meeting.MeetingStatus == "InProgress"))
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="JoinMeeting">
+                        <MudIcon Icon="@Icons.Material.Filled.VideoCall" Class="me-1" />
+                        Join Meeting
+                    </MudButton>
+                }
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+
+    @if (meeting != null)
+    {
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5" Class="mb-0">Meeting Notes</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudTextField 
+                                Label="Add Note" 
+                                @bind-Value="newNoteContent" 
+                                Variant="Variant.Outlined" 
+                                Lines="4" 
+                                Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect 
+                                T="string"
+                                Label="Note Type" 
+                                @bind-Value="newNoteType" 
+                                Variant="Variant.Outlined"
+                                Margin="Margin.Dense">
+                                <MudSelectItem T="string" Value="@("Shared")">Shared (Both)</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("Private")">Private (Manager Only)</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6" Class="d-flex align-items-end">
+                            <MudButton 
+                                Variant="Variant.Filled" 
+                                Color="Color.Primary" 
+                                OnClick="AddNote"
+                                FullWidth="true"
+                                Size="Size.Large">
+                                <MudIcon Icon="@Icons.Material.Filled.AddComment" Class="me-1" />
+                                Add Note
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-6" />
+
+                    @if (notes == null || !notes.Any())
+                    {
+                        <div class="text-center py-8">
+                            <MudIcon Icon="@Icons.Material.Filled.Notes" Size="Size.Large" Color="Color.Secondary" />
+                            <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Secondary">No notes yet.</MudText>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var note in notes.OrderByDescending(n => n.CreatedAt))
+                        {
+                            <MudPaper Class="pa-4 mb-4" Elevation="1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <MudText Typo="Typo.subtitle1" Class="mb-1">
+                                            @note.AuthorName
+                                            @if (note.NoteType == "Private")
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="ms-2">@("Private")</MudChip>
+                                            }
+                                            else
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="ms-2">@("Shared")</MudChip>
+                                            }
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@note.CreatedAt?.ToString("g")</MudText>
+                                    </div>
+                                </div>
+                                <MudText Typo="Typo.body1" Class="mt-3">@note.NoteContent</MudText>
+                            </MudPaper>
+                        }
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private MeetingDto? meeting;
+    private List<MeetingNoteDto> notes = new();
+    private string newNoteContent = string.Empty;
+    private string newNoteType = "Shared";
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadMeeting();
+    }
+
+    private async Task LoadMeeting()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            meeting = await MeetingService.GetMeetingByIdAsync(Id);
+            notes = (await MeetingService.GetNotesAsync(Id)).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading meeting: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddNote()
+    {
+        if (string.IsNullOrWhiteSpace(newNoteContent))
+        {
+            Snackbar.Add("Please type a note first!", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var noteDto = new AddMeetingNoteDto
+            {
+                NoteContent = newNoteContent,
+                NoteType = newNoteType
+            };
+            await MeetingService.AddNoteAsync(Id, noteDto);
+            Snackbar.Add("Note added successfully!", Severity.Success);
+            newNoteContent = string.Empty;
+            await LoadMeeting();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task JoinMeeting()
+    {
+        try
+        {
+            var joinUrl = await MeetingService.JoinMeetingAsync(Id);
+            NavManager.NavigateTo(joinUrl);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void GoBack()
+    {
+        NavManager.NavigateTo("/one-on-one-meetings");
+    }
+}

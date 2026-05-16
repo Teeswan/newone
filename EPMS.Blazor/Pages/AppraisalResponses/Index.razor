@@ -1,0 +1,160 @@
+@page "/appraisalresponses"
+@inject EPMS.Blazor.Services.IAppraisalResponseBlazorService AppraisalResponseService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Appraisal Responses</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudItem>
+                <MudText Typo="Typo.h4" Class="mb-0">Appraisal Responses</MudText>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                    Create New
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (appraisalResponses == null)
+        {
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText Class="mt-3">Loading appraisal responses...</MudText>
+            </div>
+        }
+        else if (!appraisalResponses.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="ma-4">
+                No appraisal responses found. Create your first appraisal response!
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="appraisalResponses" Hover="true" Breakpoint="Breakpoint.Md" Elevation="0" Dense="true">
+                <HeaderContent>
+                    <MudTh>Eval ID</MudTh>
+                    <MudTh>Question ID</MudTh>
+                    <MudTh>Respondent ID</MudTh>
+                    <MudTh>Answer</MudTh>
+                    <MudTh>Rating</MudTh>
+                    <MudTh>Anonymous</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Eval ID">@context.EvalId</MudTd>
+                    <MudTd DataLabel="Question ID">@context.QuestionId</MudTd>
+                    <MudTd DataLabel="Respondent ID">@context.RespondentId</MudTd>
+                    <MudTd DataLabel="Answer" Class="max-w-2xs">
+                        <MudText Typo="Typo.body2" Class="truncate" Tooltip="@context.AnswerText">
+                            @context.AnswerText
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Rating">
+                        <MudChip T="int" Color="GetRatingColor(context.RatingValue)" Variant="Variant.Filled" Size="Size.Small">
+                            @context.RatingValue
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Anonymous">
+                        <MudChip T="string" Color="@(context.IsAnonymous == true ? Color.Warning : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                            @(context.IsAnonymous == true ? "Yes" : "No")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails((int)context.ResponseId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
+                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit((int)context.ResponseId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                            <MudButton Color="Color.Error" OnClick="() => DeleteAppraisalResponse(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private IEnumerable<EPMS.Shared.DTOs.AppraisalResponseDto>? appraisalResponses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppraisalResponses();
+    }
+
+    private async Task LoadAppraisalResponses()
+    {
+        try
+        {
+            appraisalResponses = await AppraisalResponseService.GetAllAppraisalResponsesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading appraisal responses: {ex.Message}", Severity.Error);
+            appraisalResponses = new List<EPMS.Shared.DTOs.AppraisalResponseDto>();
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/appraisalresponses/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalresponses/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/appraisalresponses/edit/{id}");
+    }
+
+    private async Task DeleteAppraisalResponse(EPMS.Shared.DTOs.AppraisalResponseDto response)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete this appraisal response?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await AppraisalResponseService.DeleteAppraisalResponseAsync((int)response.ResponseId);
+                if (success)
+                {
+                    Snackbar.Add("Appraisal response deleted successfully!", Severity.Success);
+                    await LoadAppraisalResponses();
+                }
+                else
+                {
+                    Snackbar.Add("Error deleting appraisal response.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting appraisal response: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private Color GetRatingColor(int? rating)
+    {
+        if (!rating.HasValue) return Color.Secondary;
+        
+        return rating switch
+        {
+            >= 4 and <= 5 => Color.Success,
+            >= 3 => Color.Warning,
+            _ => Color.Error
+        };
+    }
+}
