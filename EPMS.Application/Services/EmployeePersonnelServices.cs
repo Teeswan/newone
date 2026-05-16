@@ -69,6 +69,11 @@ public class EmployeeService : IEmployeeService
         _mapper.Map(request, entity);
         entity.EmployeeId = id;
 
+        // Ensure IDs are explicitly set from the request to avoid mapping issues
+        entity.DepartmentId = request.DepartmentId;
+        entity.PositionId = request.PositionId;
+        entity.ReportsTo = request.ReportsTo;
+
         if (request.TeamIds != null)
         {
             // Just provide the IDs, the repository will handle the actual attachment

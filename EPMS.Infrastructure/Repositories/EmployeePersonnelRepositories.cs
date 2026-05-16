@@ -263,15 +263,6 @@ public class EmployeeRepository(AppDbContext context, IConfiguration configurati
             }
         }
 
-        // Ensure related entities are not treated as new or updated
-        _context.Entry(existingEmployee).Reference(e => e.Department).IsModified = false;
-        _context.Entry(existingEmployee).Reference(e => e.Position).IsModified = false;
-        _context.Entry(existingEmployee).Reference(e => e.ReportsToNavigation).IsModified = false;
-
-        existingEmployee.Department = null;
-        existingEmployee.Position = null;
-        existingEmployee.ReportsToNavigation = null;
-
         await _context.SaveChangesAsync();
         
         // CRITICAL: Clear cache so the list reflects the new data
