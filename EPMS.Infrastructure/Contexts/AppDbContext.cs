@@ -265,6 +265,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("LevelID");
             entity.Property(e => e.LevelName).HasMaxLength(100);
+            entity.Property(e => e.LevelDescription).HasMaxLength(500);
         });
 
         modelBuilder.Entity<MeetingNote>(entity =>
