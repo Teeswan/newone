@@ -57,8 +57,8 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.View)]
+    
+    [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAll()
     {
         var result = await _service.GetAllAsync();
@@ -66,48 +66,43 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.View)]
+    [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<EmployeeDetailDto>> GetById(int id)
-    {
+    { 
         var result = await _service.GetByIdAsync(id);
         if (result == null) return NotFound();
         return Ok(result);
     }
 
     [HttpGet("code/{code}")]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.View)]
+     [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<EmployeeDto>> GetByCode(string code)
-    {
+    { 
         var result = await _service.GetByCodeAsync(code);
         if (result == null) return NotFound();
         return Ok(result);
     }
 
     [HttpGet("department/{departmentId}")]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.View)]
+    [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetByDepartment(int departmentId)
-    {
+    { 
         var result = await _service.GetByDepartmentAsync(departmentId);
         return Ok(result);
     }
 
     [HttpGet("reports/{managerId}")]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.View)]
+    [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetDirectReports(int managerId)
-    {
+    { 
         var result = await _service.GetDirectReportsAsync(managerId);
         return Ok(result);
     }
 
     [HttpPost]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.Manage)]
+    [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeRequest request)
-    {
+    { 
         try
         {
             var result = await _service.CreateAsync(request);
@@ -115,27 +110,25 @@ public class EmployeesController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(ex.Message);
         }
     }
 
     [HttpPut("{id}")]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.Manage)]
+    [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<EmployeeDto>> Update(int id, UpdateEmployeeRequest request)
-    {
+    { 
         var result = await _service.UpdateAsync(id, request);
         if (result == null) return NotFound();
         return Ok(result);
     }
 
     [HttpDelete("{id}")]
-    [AllowAnonymous]
-    // [HasPermission(Permissions.Employees.Manage)]
+    [HasPermission(Permissions.Employees.Manage)]
     public async Task<IActionResult> Delete(int id)
-    {
-        var deleted = await _service.DeleteAsync(id);
-        if (!deleted) return NotFound();
+    { 
+        var result = await _service.DeleteAsync(id);
+        if (!result) return NotFound();
         return NoContent();
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EPMS.Domain.Entities;
+using EPMS.Domain.Enums;
 using EPMS.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -118,6 +119,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsAnonymous).HasDefaultValue(false);
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
             entity.Property(e => e.RespondentId).HasColumnName("RespondentID");
+            entity.Property(e => e.RespondentEmployeeId).HasColumnName("RespondentEmployeeID");
 
             entity.HasOne(d => d.Eval).WithMany(p => p.AppraisalResponses)
                 .HasForeignKey(d => d.EvalId)
@@ -139,7 +141,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AuditId).HasColumnName("AuditID");
             entity.Property(e => e.ActionType).HasMaxLength(10);
             entity.Property(e => e.ChangedAt).HasDefaultValueSql("(sysdatetimeoffset())");
-            entity.Property(e => e.ChangedByUserId).HasColumnName("ChangedByUserID");
+            entity.Property(e => e.ChangedByEmployeeId).HasColumnName("ChangedByEmployeeID");
             entity.Property(e => e.RecordId).HasColumnName("RecordID");
             entity.Property(e => e.TableName).HasMaxLength(100);
         });
@@ -343,6 +345,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EvalId).HasColumnName("EvalID");
             entity.Property(e => e.CycleId).HasColumnName("CycleID");
             entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
+            entity.Property(e => e.Status).HasColumnName("Status").HasConversion<int>().HasDefaultValue(PerformanceEvaluationStatus.Draft);
 
             entity.Property(e => e.FormId).HasColumnName("FormID");
 

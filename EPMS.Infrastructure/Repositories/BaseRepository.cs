@@ -53,40 +53,29 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        // Get the primary key property name
-        var keyProperty = _context.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.FirstOrDefault();
-        if (keyProperty != null)
+        var primaryKey = _dbSet.EntityType.FindPrimaryKey();
+        if (primaryKey != null)
         {
-            var keyValue = keyProperty.PropertyInfo?.GetValue(entity);
-            if (keyValue != null)
-            {
-                // Check if an entity with the same ID is already being tracked
-                var trackedEntity = _dbSet.Local.FirstOrDefault(e => 
-                    Equals(keyProperty.PropertyInfo?.GetValue(e), keyValue));
-
-                if (trackedEntity != null)
+            var keyValues = primaryKey.Properties.Select(p => 
+                entity.GetType().GetProperty(p.Name)?.GetValue(entity)).ToArray();
+            
+            var trackedEntry = _context.ChangeTracker.Entries<T>()
+                .FirstOrDefault(e => 
                 {
-                    // If the tracked entity is a DIFFERENT instance than the one we're updating
-                    if (!ReferenceEquals(trackedEntity, entity))
-                    {
-                        // Detach the existing tracked entity so we can track the new one
-                        _context.Entry(trackedEntity).State = EntityState.Detached;
-                    }
-                }
+                    var entryKey = e.Metadata.FindPrimaryKey();
+                    if (entryKey == null) return false;
+                    var entryKeyValues = entryKey.Properties.Select(p => 
+                        e.Entity.GetType().GetProperty(p.Name)?.GetValue(e.Entity)).ToArray();
+                    return keyValues.SequenceEqual(entryKeyValues);
+                });
+
+            if (trackedEntry != null && trackedEntry.Entity != entity)
+            {
+                _context.Entry(trackedEntry.Entity).State = EntityState.Detached;
             }
         }
 
-        var entry = _context.Entry(entity);
-        if (entry.State == EntityState.Detached)
-        {
-            _dbSet.Attach(entity);
-            entry.State = EntityState.Modified;
-        }
-        else
-        {
-            entry.State = EntityState.Modified;
-        }
-        
+        _dbSet.Update(entity);
         await _context.SaveChangesAsync();
         return entity;
     }

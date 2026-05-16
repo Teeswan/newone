@@ -308,6 +308,19 @@ public class PositionRepository(AppDbContext context, IConfiguration configurati
         return await db.QueryAsync<Position>(sql, new { PositionId = positionId });
     }
 
+    public override async Task<IEnumerable<Position>> GetAllAsync()
+    {
+        return await _dbSet.Include(p => p.Level)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public override async Task<Position?> GetByIdAsync(int id)
+    {
+        return await _dbSet.Include(p => p.Level)
+            .FirstOrDefaultAsync(p => p.PositionId == id);
+    }
+
     public async Task<IEnumerable<Position>> GetPositionsByLevelAsync(string levelId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);

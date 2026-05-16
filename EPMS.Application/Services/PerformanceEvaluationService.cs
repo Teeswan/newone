@@ -2,6 +2,7 @@ using AutoMapper;
 using EPMS.Application.Interfaces;
 using EPMS.Domain.Interfaces;
 using EPMS.Domain.Entities;
+using EPMS.Domain.Enums;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 
@@ -56,6 +57,16 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
 
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<PerformanceEvaluationDto?>(updated);
+    }
+
+    public async Task<bool> SubmitSelfAssessmentAsync(int evalId)
+    {
+        var evaluation = await _repository.GetByIdAsync(evalId);
+        if (evaluation == null) return false;
+
+        evaluation.Status = PerformanceEvaluationStatus.SelfSubmitted;
+        await _repository.UpdateAsync(evaluation);
+        return true;
     }
 
     public async Task<bool> DeleteAsync(int evalId)

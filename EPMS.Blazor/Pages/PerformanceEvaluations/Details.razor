@@ -1,70 +1,122 @@
 @page "/performanceevaluations/details/{Id:int}"
-@inject EPMS.Blazor.Services.IPerformanceEvaluationBlazorService PerformanceEvaluationService
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IPerformanceEvaluationBlazorService PerformanceEvaluationService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Performance Evaluation Details</h3>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+            <MudText Typo="Typo.h4">Performance Evaluation Details</MudText>
+            <MudChip T="string" Color="@GetStatusColor(eval?.Status ?? EPMS.Domain.Enums.PerformanceEvaluationStatus.Draft)">@(eval?.Status.ToString() ?? "N/A")</MudChip>
+        </MudStack>
+        <MudDivider Class="mb-6" />
 
-@if (eval == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div>
-        <hr />
-        <dl class="row">
-            <dt class="col-sm-3">Evaluation ID</dt>
-            <dd class="col-sm-9">@eval.EvalId</dd>
+        @if (eval == null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Evaluation ID</MudText>
+                    <MudText Typo="Typo.body1">@eval.EvalId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Employee ID</MudText>
+                    <MudText Typo="Typo.body1">@eval.EmployeeId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Cycle ID</MudText>
+                    <MudText Typo="Typo.body1">@eval.CycleId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Form ID</MudText>
+                    <MudText Typo="Typo.body1">@eval.FormId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Self Rating</MudText>
+                    <MudRating SelectedValue="@(eval.SelfRating ?? 0)" ReadOnly="true" MaxValue="5" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Manager Rating</MudText>
+                    <MudRating SelectedValue="@(eval.ManagerRating ?? 0)" ReadOnly="true" MaxValue="5" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Self Comments</MudText>
+                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(eval.SelfComments) ? "No comments provided." : eval.SelfComments)</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Manager Comments</MudText>
+                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(eval.ManagerComments) ? "No comments provided." : eval.ManagerComments)</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Final Rating Score</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">@eval.FinalRatingScore</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Finalized Status</MudText>
+                    <MudText Typo="Typo.body1">
+                        @if (eval.IsFinalized == true)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-1" />
+                            <span>Finalized on @eval.FinalizedAt?.ToString("g")</span>
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Pending" Color="Color.Warning" Size="Size.Small" Class="mr-1" />
+                            <span>Pending Finalization</span>
+                        }
+                    </MudText>
+                </MudItem>
 
-            <dt class="col-sm-3">Employee ID</dt>
-            <dd class="col-sm-9">@eval.EmployeeId</dd>
-
-            <dt class="col-sm-3">Cycle ID</dt>
-            <dd class="col-sm-9">@eval.CycleId</dd>
-
-            <dt class="col-sm-3">Self Rating</dt>
-            <dd class="col-sm-9">@eval.SelfRating</dd>
-
-            <dt class="col-sm-3">Manager Rating</dt>
-            <dd class="col-sm-9">@eval.ManagerRating</dd>
-
-            <dt class="col-sm-3">Self Comments</dt>
-            <dd class="col-sm-9">@eval.SelfComments</dd>
-
-            <dt class="col-sm-3">Manager Comments</dt>
-            <dd class="col-sm-9">@eval.ManagerComments</dd>
-
-            <dt class="col-sm-3">Final Rating Score</dt>
-            <dd class="col-sm-9">@eval.FinalRatingScore</dd>
-
-            <dt class="col-sm-3">Finalized</dt>
-            <dd class="col-sm-9">@(eval.IsFinalized == true ? "Yes" : "No")</dd>
-
-            <dt class="col-sm-3">Finalized At</dt>
-            <dd class="col-sm-9">@eval.FinalizedAt?.ToString("g")</dd>
-        </dl>
-    </div>
-    <div>
-        <a href="/performanceevaluations/edit/@eval.EvalId" class="btn btn-warning">Edit</a>
-        <a href="/performanceevaluations" class="btn btn-secondary">Back to List</a>
-    </div>
-}
+                <MudItem xs="12" Class="d-flex justify-end mt-6">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList" Class="mr-2">Back to List</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit">Edit</MudButton>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
     public int Id { get; set; }
 
-    private EPMS.Shared.DTOs.PerformanceEvaluationDto? eval;
+    private PerformanceEvaluationDto? eval;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             eval = await PerformanceEvaluationService.GetPerformanceEvaluationByIdAsync(Id);
+            if (eval == null)
+            {
+                Snackbar.Add("Performance evaluation not found.", Severity.Error);
+                NavigationManager.NavigateTo("/performanceevaluations");
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading performance evaluation details: {ex.Message}");
+            Snackbar.Add($"Error loading performance evaluation details: {ex.Message}", Severity.Error);
+            NavigationManager.NavigateTo("/performanceevaluations");
         }
+    }
+
+    private void BackToList() => NavigationManager.NavigateTo("/performanceevaluations");
+    private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceevaluations/edit/{Id}");
+
+    private Color GetStatusColor(EPMS.Domain.Enums.PerformanceEvaluationStatus status)
+    {
+        return status switch
+        {
+            EPMS.Domain.Enums.PerformanceEvaluationStatus.Draft => Color.Default,
+            EPMS.Domain.Enums.PerformanceEvaluationStatus.SelfSubmitted => Color.Primary,
+            EPMS.Domain.Enums.PerformanceEvaluationStatus.ManagerReviewed => Color.Info,
+            EPMS.Domain.Enums.PerformanceEvaluationStatus.Finalized => Color.Success,
+            _ => Color.Default
+        };
     }
 }

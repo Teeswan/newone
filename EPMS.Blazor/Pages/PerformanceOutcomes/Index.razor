@@ -1,54 +1,59 @@
 @page "/performanceoutcomes"
-@inject EPMS.Blazor.Services.IPerformanceOutcomeBlazorService PerformanceOutcomeService
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IPerformanceOutcomeBlazorService PerformanceOutcomeService
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
-<h3>Performance Outcomes</h3>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+        <MudText Typo="Typo.h4">Performance Outcomes</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="NavigateToCreate">
+            Create New
+        </MudButton>
+    </MudStack>
 
-<p>
-    <a href="/performanceoutcomes/create" class="btn btn-primary">Create New</a>
-</p>
-
-@if (performanceOutcomes == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Outcome ID</th>
-                <th>Employee ID</th>
-                <th>Cycle ID</th>
-                <th>Recommendation</th>
-                <th>Status</th>
-                <th>Effective Date</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var outcome in performanceOutcomes)
-            {
-                <tr>
-                    <td>@outcome.OutcomeId</td>
-                    <td>@outcome.EmployeeId</td>
-                    <td>@outcome.CycleId</td>
-                    <td>@outcome.RecommendationType</td>
-                    <td>@outcome.ApprovalStatus</td>
-                    <td>@outcome.EffectiveDate?.ToString("yyyy-MM-dd")</td>
-                    <td>
-                        <a href="/performanceoutcomes/details/@outcome.OutcomeId" class="btn btn-info btn-sm">Details</a>
-                        <a href="/performanceoutcomes/edit/@outcome.OutcomeId" class="btn btn-warning btn-sm">Edit</a>
-                        <button class="btn btn-danger btn-sm" @onclick="(() => DeletePerformanceOutcome(outcome.OutcomeId))">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    <MudTable Items="@performanceOutcomes" Hover="true" Bordered="true" Striped="true" Loading="@loading" Class="mb-4">
+        <HeaderContent>
+            <MudTh>Outcome ID</MudTh>
+            <MudTh>Employee ID</MudTh>
+            <MudTh>Cycle ID</MudTh>
+            <MudTh>Recommendation</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Effective Date</MudTh>
+            <MudTh Style="text-align:right">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Outcome ID">@context.OutcomeId</MudTd>
+            <MudTd DataLabel="Employee ID">@context.EmployeeId</MudTd>
+            <MudTd DataLabel="Cycle ID">@context.CycleId</MudTd>
+            <MudTd DataLabel="Recommendation">@context.RecommendationType</MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip T="string" Color="@GetStatusColor(context.ApprovalStatus)" Size="Size.Small">@context.ApprovalStatus</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Effective Date">@context.EffectiveDate?.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd DataLabel="Actions" Style="text-align:right">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" OnClick="@(() => NavigateToDetails(context.OutcomeId))" Title="Details" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" OnClick="@(() => NavigateToEdit(context.OutcomeId))" Title="Edit" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeletePerformanceOutcome(context.OutcomeId))" Title="Delete" />
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No performance outcomes found.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudContainer>
 
 @code {
-    private IEnumerable<EPMS.Shared.DTOs.PerformanceOutcomeDto>? performanceOutcomes;
+    private IEnumerable<PerformanceOutcomeDto>? performanceOutcomes;
+    private bool loading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,34 +62,56 @@ else
 
     private async Task LoadPerformanceOutcomes()
     {
+        loading = true;
         try
         {
             performanceOutcomes = await PerformanceOutcomeService.GetAllPerformanceOutcomesAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading performance outcomes: {ex.Message}");
-            performanceOutcomes = new List<EPMS.Shared.DTOs.PerformanceOutcomeDto>();
+            Snackbar.Add($"Error loading performance outcomes: {ex.Message}", Severity.Error);
+            performanceOutcomes = new List<PerformanceOutcomeDto>();
+        }
+        finally
+        {
+            loading = false;
         }
     }
 
+    private void NavigateToCreate() => NavigationManager.NavigateTo("/performanceoutcomes/create");
+    private void NavigateToDetails(int id) => NavigationManager.NavigateTo($"/performanceoutcomes/details/{id}");
+    private void NavigateToEdit(int id) => NavigationManager.NavigateTo($"/performanceoutcomes/edit/{id}");
+
     private async Task DeletePerformanceOutcome(int outcomeId)
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this performance outcome?");
-        if (confirmed)
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete this performance outcome?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
         {
             var success = await PerformanceOutcomeService.DeletePerformanceOutcomeAsync(outcomeId);
             if (success)
             {
+                Snackbar.Add("Performance outcome deleted successfully.", Severity.Success);
                 await LoadPerformanceOutcomes();
             }
             else
             {
-                Console.WriteLine("Error deleting performance outcome.");
+                Snackbar.Add("Error deleting performance outcome.", Severity.Error);
             }
         }
     }
 
-    [Inject]
-    public IJSRuntime JSRuntime { get; set; } = default!;
+    private Color GetStatusColor(string? status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => Color.Warning,
+            "approved" => Color.Success,
+            "rejected" => Color.Error,
+            _ => Color.Default
+        };
+    }
 }

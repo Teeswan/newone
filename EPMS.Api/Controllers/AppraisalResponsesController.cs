@@ -3,7 +3,12 @@ using EPMS.Infrastructure.Authorization;
 using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using EPMS.Application.UseCases.Appraisal.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System;
 
 namespace EPMS.Api.Controllers;
 
@@ -13,11 +18,24 @@ public class AppraisalResponsesController : ControllerBase
 {
     private readonly IAppraisalResponseService _service;
     private readonly IExcelPdfService _excelPdfService;
+    private readonly IMediator _mediator;
 
-    public AppraisalResponsesController(IAppraisalResponseService service, IExcelPdfService excelPdfService)
+    public AppraisalResponsesController(IAppraisalResponseService service, IExcelPdfService excelPdfService, IMediator mediator)
     {
         _service = service;
         _excelPdfService = excelPdfService;
+        _mediator = mediator;
+    }
+
+    [HttpPost("batch")]
+    [HasPermission(Permissions.AppraisalResponses.Manage)]
+    public async Task<ActionResult> SubmitBatch([FromBody] SubmitAppraisalBatchCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (result.IsSuccess)
+            return Ok(result.Value);
+
+        return BadRequest(new { result.Message, result.Errors });
     }
 
     [HttpGet]
@@ -41,8 +59,17 @@ public class AppraisalResponsesController : ControllerBase
     [HasPermission(Permissions.AppraisalResponses.View)]                
     public async Task<ActionResult<IEnumerable<AppraisalResponseDto>>> GetByEvalId(int evalId)
     {
-        var result = await _service.GetByEvalIdAsync(evalId);
+        var currentEmployeeId = GetCurrentEmployeeId();
+        var result = await _service.GetByEvalIdAsync(evalId, currentEmployeeId);
         return Ok(result);
+    }
+
+    private int? GetCurrentEmployeeId()
+    {
+        var employeeIdClaim = User.FindFirst("EmployeeId")?.Value;
+        if (string.IsNullOrEmpty(employeeIdClaim) || !int.TryParse(employeeIdClaim, out int employeeId))
+            return null;
+        return employeeId;
     }
 
     [HttpPost]

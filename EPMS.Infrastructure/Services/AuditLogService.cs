@@ -15,7 +15,7 @@ public class AuditLogService : IAuditLogService
         _context = context;
     }
 
-    public async Task LogAsync(string entityName, string action, int? recordId, string details, int? userId = null)
+    public async Task LogAsync(string entityName, string action, int? recordId, string details, int? employeeId = null)
     {
         var auditLog = new AuditLog
         {
@@ -24,7 +24,7 @@ public class AuditLogService : IAuditLogService
             RecordId = recordId ?? 0,
             OldData = null,
             NewData = details,
-            ChangedByUserId = userId ?? 0,
+            ChangedByEmployeeId = employeeId ?? 0,
             ChangedAt = DateTime.UtcNow
         };
 

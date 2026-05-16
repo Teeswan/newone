@@ -9,7 +9,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.KpiAssignment.Commands;
 
-public record FinaliseKpiAssignmentCommand(int EmployeeId, int CycleId, int? UserId) : IRequest<Result>;
+public record FinaliseKpiAssignmentCommand(int EmployeeId, int CycleId, int? ModifiedByEmployeeId) : IRequest<Result>;
 
 public class FinaliseKpiAssignmentCommandHandler : IRequestHandler<FinaliseKpiAssignmentCommand, Result>
 {
@@ -40,7 +40,7 @@ public class FinaliseKpiAssignmentCommandHandler : IRequestHandler<FinaliseKpiAs
             await _repository.UpdateAsync(assignment);
         }
 
-        await _auditLogService.LogAsync("EmployeeKpiAssignment", "Finalise", null, $"Finalised assignments for employee {request.EmployeeId} cycle {request.CycleId}", request.UserId);
+        await _auditLogService.LogAsync("EmployeeKpiAssignment", "Finalise", null, $"Finalised assignments for employee {request.EmployeeId} cycle {request.CycleId}", request.ModifiedByEmployeeId);
 
         return Result.Success();
     }

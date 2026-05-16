@@ -39,9 +39,13 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto?> UpdateAsync(int id, UpdateTeamRequest request)
     {
-        var entity = _mapper.Map<Team>(request);
-        entity.TeamId = id;
-        var updated = await _repository.UpdateAsync(entity);
+        var existingEntity = await _repository.GetByIdAsync(id);
+        if (existingEntity == null) return null;
+
+        _mapper.Map(request, existingEntity);
+        existingEntity.TeamId = id;
+        
+        var updated = await _repository.UpdateAsync(existingEntity);
         return _mapper.Map<TeamDto?>(updated);
     }
 
