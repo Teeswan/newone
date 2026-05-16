@@ -1,4 +1,4 @@
-﻿using EPMS.Application.Interfaces;
+using EPMS.Application.Interfaces;
 using EPMS.Shared.Requests;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +7,7 @@ namespace EPMS.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     public sealed class PipController : ControllerBase
     {
         private readonly IPipService _pipService;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -62,6 +62,7 @@ namespace EPMS.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(p => p.Employee)
                 .Include(p => p.Manager)
+                .Include(p => p.PipObjectives)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync(ct);
         }

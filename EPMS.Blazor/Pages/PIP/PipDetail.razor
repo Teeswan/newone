@@ -31,10 +31,9 @@
                 </MudItem>
                 <MudItem>
                     <MudChip T="string" Color="GetStatusColor(_plan.Status)" Variant="Variant.Filled" Class="mr-3">@_plan.Status</MudChip>
-                    <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip/edit/" + PipId))" StartIcon="@Icons.Material.Filled.Edit" Class="mr-2">
-                        Edit
-                    </MudButton>
-                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip"))" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined"
+                               OnClick="@(() => NavigationManager.NavigateTo("/pip"))"
+                               StartIcon="@Icons.Material.Filled.ArrowBack">
                         Back
                     </MudButton>
                 </MudItem>
@@ -45,7 +44,9 @@
                     <MudCard>
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="text-muted">Duration</MudText>
-                            <MudText Typo="Typo.h5">@_plan.StartDate.ToString("dd MMM") – @_plan.EndDate.ToString("dd MMM yyyy")</MudText>
+                            <MudText Typo="Typo.h6">
+                                @_plan.StartDate.ToString("dd MMM") – @_plan.EndDate.ToString("dd MMM yyyy")
+                            </MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -53,7 +54,7 @@
                     <MudCard>
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="text-muted">Objectives Achieved</MudText>
-                            <MudText Typo="Typo.h5">
+                            <MudText Typo="Typo.h6">
                                 @_plan.Objectives.Count(o => o.IsAchieved) / @_plan.Objectives.Count
                             </MudText>
                         </MudCardContent>
@@ -63,7 +64,7 @@
                     <MudCard>
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="text-muted">Meetings Held</MudText>
-                            <MudText Typo="Typo.h5">@_plan.Meetings.Count</MudText>
+                            <MudText Typo="Typo.h6">@_plan.Meetings.Count</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -78,23 +79,57 @@
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText Typo="Typo.body1">@_plan.OverallGoal</MudText>
+                        <MudText>@_plan.OverallGoal</MudText>
                     </MudCardContent>
                 </MudCard>
             }
         </MudPaper>
 
+        <!-- Objectives Section -->
         <MudPaper Elevation="2" Class="pa-6 mb-4">
             <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
                 <MudItem>
                     <MudText Typo="Typo.h5">Objectives</MudText>
                 </MudItem>
                 <MudItem>
-                    <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="ShowAddObjective" StartIcon="@Icons.Material.Filled.Add">
+                    <MudButton Color="Color.Secondary" Variant="Variant.Outlined"
+                               OnClick="ShowAddObjective"
+                               StartIcon="@Icons.Material.Filled.Add">
                         Add Objective
                     </MudButton>
                 </MudItem>
             </MudGrid>
+
+            <!-- Inline Add Objective Form -->
+            @if (_showAddObjective)
+            {
+                <MudPaper Elevation="1" Class="pa-4 mb-4" Style="border-left: 4px solid var(--mud-palette-secondary)">
+                    <MudText Typo="Typo.h6" Class="mb-3">New Objective</MudText>
+                    <MudTextField Label="Objective Description"
+                                  @bind-Value="_newObjective.ObjectiveDescription"
+                                  Variant="Variant.Outlined" Lines="3"
+                                  Class="mb-3" Style="width:100%" />
+                    <MudTextField Label="Success Criteria"
+                                  @bind-Value="_newObjective.SuccessCriteria"
+                                  Variant="Variant.Outlined" Lines="2"
+                                  Class="mb-3" Style="width:100%" />
+                    <MudGrid Justify="Justify.FlexEnd">
+                        <MudItem>
+                            <MudButton Variant="Variant.Outlined"
+                                       OnClick="() => _showAddObjective = false"
+                                       Class="mr-2">
+                                Cancel
+                            </MudButton>
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                                       OnClick="SubmitObjective"
+                                       Disabled="_savingObjective"
+                                       StartIcon="@Icons.Material.Filled.Save">
+                                @(_savingObjective ? "Saving..." : "Save Objective")
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
 
             @foreach (var obj in _plan.Objectives)
             {
@@ -109,23 +144,80 @@
             }
         </MudPaper>
 
+        <!-- Meetings Section -->
         <MudPaper Elevation="2" Class="pa-6">
             <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
                 <MudItem>
                     <MudText Typo="Typo.h5">Review Meetings</MudText>
                 </MudItem>
                 <MudItem>
-                    <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="ShowScheduleMeeting" StartIcon="@Icons.Material.Filled.Add">
+                    <MudButton Color="Color.Secondary" Variant="Variant.Outlined"
+                               OnClick="ShowScheduleMeeting"
+                               StartIcon="@Icons.Material.Filled.Add">
                         Schedule Meeting
                     </MudButton>
                 </MudItem>
             </MudGrid>
 
+            <!-- Inline Schedule Meeting Form -->
+            @if (_showScheduleMeeting)
+            {
+                <MudPaper Elevation="1" Class="pa-4 mb-4" Style="border-left: 4px solid var(--mud-palette-secondary)">
+                    <MudText Typo="Typo.h6" Class="mb-3">New Meeting</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker Label="Meeting Date"
+                                           @bind-Date="_meetingDateOnly"
+                                           Variant="Variant.Outlined"
+                                           Style="width:100%" Class="mb-3" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect T="string" Label="Progress Status"
+                                       @bind-Value="_newMeeting.ProgressStatus"
+                                       Variant="Variant.Outlined"
+                                       Style="width:100%" Class="mb-3">
+                                <MudSelectItem T="string" Value="@("On Track")">On Track</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("At Risk")">At Risk</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("Behind Schedule")">Behind Schedule</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField Label="Discussion Points"
+                                          @bind-Value="_newMeeting.DiscussionPoints"
+                                          Variant="Variant.Outlined" Lines="3"
+                                          Style="width:100%" Class="mb-3" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField Label="Next Steps"
+                                          @bind-Value="_newMeeting.NextSteps"
+                                          Variant="Variant.Outlined" Lines="2"
+                                          Style="width:100%" Class="mb-3" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudGrid Justify="Justify.FlexEnd">
+                        <MudItem>
+                            <MudButton Variant="Variant.Outlined"
+                                       OnClick="() => _showScheduleMeeting = false"
+                                       Class="mr-2">
+                                Cancel
+                            </MudButton>
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                                       OnClick="SubmitMeeting"
+                                       Disabled="_savingMeeting"
+                                       StartIcon="@Icons.Material.Filled.Save">
+                                @(_savingMeeting ? "Saving..." : "Schedule Meeting")
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
+
             @foreach (var meeting in _plan.Meetings.OrderBy(m => m.MeetingDate))
             {
                 <PipMeetingCard Meeting="meeting"
-                               OnUpdate="HandleMeetingUpdate"
-                               OnDelete="HandleMeetingDelete" />
+                                OnUpdate="HandleMeetingUpdate"
+                                OnDelete="HandleMeetingDelete" />
             }
 
             @if (!_plan.Meetings.Any())
@@ -133,47 +225,6 @@
                 <MudAlert Severity="Severity.Info">No meetings scheduled yet.</MudAlert>
             }
         </MudPaper>
-
-        @if (_showAddObjective)
-        {
-            <MudDialog>
-                <DialogContent>
-                    <MudText Typo="Typo.h6" Class="mb-4">Add Objective</MudText>
-                    <MudForm Model="_newObjective">
-                        <MudTextField Label="Objective Description" @bind-Value="_newObjective.ObjectiveDescription" Variant="Variant.Outlined" Lines="3" Class="mb-3" Style="width: 100%" />
-                        <MudTextField Label="Success Criteria" @bind-Value="_newObjective.SuccessCriteria" Variant="Variant.Outlined" Lines="2" Style="width: 100%" />
-                    </MudForm>
-                </DialogContent>
-                <DialogActions>
-                    <MudButton OnClick="() => _showAddObjective = false">Cancel</MudButton>
-                    <MudButton Color="Color.Primary" OnClick="SubmitObjective">Add Objective</MudButton>
-                </DialogActions>
-            </MudDialog>
-        }
-
-        @if (_showScheduleMeeting)
-        {
-            <MudDialog>
-                <DialogContent>
-                    <MudText Typo="Typo.h6" Class="mb-4">Schedule Meeting</MudText>
-                    <MudForm Model="_newMeeting">
-                        <MudDatePicker Label="Meeting Date" @bind-Date="_meetingDateOnly" Variant="Variant.Outlined" Class="mb-3" Style="width: 100%" />
-                        <MudSelect T="string" Label="Progress Status" @bind-Value="_newMeeting.ProgressStatus" Variant="Variant.Outlined" Class="mb-3" Style="width: 100%">
-                            <MudSelectItem T="string" Value="@("On Track")">On Track</MudSelectItem>
-                            <MudSelectItem T="string" Value="@("At Risk")">At Risk</MudSelectItem>
-                            <MudSelectItem T="string" Value="@("Behind Schedule")">Behind Schedule</MudSelectItem>
-                            <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
-                        <MudTextField Label="Discussion Points" @bind-Value="_newMeeting.DiscussionPoints" Variant="Variant.Outlined" Lines="3" Class="mb-3" Style="width: 100%" />
-                        <MudTextField Label="Next Steps" @bind-Value="_newMeeting.NextSteps" Variant="Variant.Outlined" Lines="2" Style="width: 100%" />
-                    </MudForm>
-                </DialogContent>
-                <DialogActions>
-                    <MudButton OnClick="() => _showScheduleMeeting = false">Cancel</MudButton>
-                    <MudButton Color="Color.Primary" OnClick="SubmitMeeting">Schedule Meeting</MudButton>
-                </DialogActions>
-            </MudDialog>
-        }
     }
 </MudContainer>
 
@@ -184,6 +235,8 @@
     private bool _loading = true;
     private bool _showAddObjective;
     private bool _showScheduleMeeting;
+    private bool _savingObjective;
+    private bool _savingMeeting;
     private DateTime? _meetingDateOnly;
 
     private CreatePipObjectiveRequest _newObjective = new();
@@ -216,6 +269,7 @@
     {
         _newObjective = new CreatePipObjectiveRequest { PipId = PipId };
         _showAddObjective = true;
+        _showScheduleMeeting = false;
     }
 
     private void ShowScheduleMeeting()
@@ -227,48 +281,70 @@
             ProgressStatus = "On Track"
         };
         _showScheduleMeeting = true;
+        _showAddObjective = false;
     }
 
     private async Task SubmitObjective()
     {
-        var response = await PipService.AddObjectiveAsync(_newObjective);
-        if (response?.Success == true)
+        _savingObjective = true;
+        try
         {
-            _showAddObjective = false;
-            Snackbar.Add("Objective added!", Severity.Success);
-            await LoadPlan();
+            var response = await PipService.AddObjectiveAsync(_newObjective);
+            if (response?.Success == true)
+            {
+                _showAddObjective = false;
+                Snackbar.Add("Objective added!", Severity.Success);
+                await LoadPlan();
+            }
+            else
+            {
+                Snackbar.Add(response?.Message ?? "Failed to add objective.", Severity.Error);
+            }
         }
-        else
+        finally
         {
-            Snackbar.Add(response?.Message ?? "Failed to add objective.", Severity.Error);
+            _savingObjective = false;
         }
     }
 
     private async Task SubmitMeeting()
     {
-        if (_meetingDateOnly.HasValue)
+        _savingMeeting = true;
+        try
         {
-            _newMeeting.MeetingDate = _meetingDateOnly.Value.Date.Add(new TimeSpan(10, 0, 0));
-        }
+            if (_meetingDateOnly.HasValue)
+                _newMeeting.MeetingDate = _meetingDateOnly.Value.Date.Add(new TimeSpan(10, 0, 0));
 
-        var response = await PipService.AddMeetingAsync(_newMeeting);
-        if (response?.Success == true)
-        {
-            _showScheduleMeeting = false;
-            Snackbar.Add("Meeting scheduled!", Severity.Success);
-            await LoadPlan();
+            var response = await PipService.AddMeetingAsync(_newMeeting);
+            if (response?.Success == true)
+            {
+                _showScheduleMeeting = false;
+                Snackbar.Add("Meeting scheduled!", Severity.Success);
+                await LoadPlan();
+            }
+            else
+            {
+                Snackbar.Add(response?.Message ?? "Failed to schedule meeting.", Severity.Error);
+            }
         }
-        else
+        finally
         {
-            Snackbar.Add(response?.Message ?? "Failed to schedule meeting.", Severity.Error);
+            _savingMeeting = false;
         }
     }
 
     private async Task HandleObjectiveUpdate(UpdatePipObjectiveRequest request)
     {
-        await PipService.UpdateObjectiveAsync(request);
-        Snackbar.Add("Objective updated!", Severity.Success);
-        await LoadPlan();
+        var response = await PipService.UpdateObjectiveAsync(request);
+        if (response?.Success == true)
+        {
+            Snackbar.Add("Objective updated!", Severity.Success);
+            await LoadPlan();
+        }
+        else
+        {
+            Snackbar.Add(response?.Message ?? "Failed to update.", Severity.Error);
+        }
     }
 
     private async Task HandleObjectiveDelete(int objectiveId)
@@ -289,9 +365,16 @@
 
     private async Task HandleMeetingUpdate(UpdatePipMeetingRequest request)
     {
-        await PipService.UpdateMeetingAsync(request);
-        Snackbar.Add("Meeting updated!", Severity.Success);
-        await LoadPlan();
+        var response = await PipService.UpdateMeetingAsync(request);
+        if (response?.Success == true)
+        {
+            Snackbar.Add("Meeting updated!", Severity.Success);
+            await LoadPlan();
+        }
+        else
+        {
+            Snackbar.Add(response?.Message ?? "Failed to update.", Severity.Error);
+        }
     }
 
     private async Task HandleMeetingDelete(int meetingId)

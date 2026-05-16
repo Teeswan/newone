@@ -15,13 +15,16 @@
                 <MudText Typo="Typo.h4">Create New PIP</MudText>
             </MudItem>
             <MudItem>
-                <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip"))">
+                <MudButton Color="Color.Default" Variant="Variant.Outlined"
+                           OnClick="@(() => NavigationManager.NavigateTo("/pip"))">
                     ← Back to List
                 </MudButton>
             </MudItem>
         </MudGrid>
 
-        <EditForm Model="_request" OnValidSubmit="HandleSubmit">
+        <!-- ↓ Changed OnValidSubmit to OnSubmit -->
+        <EditForm Model="_request" OnSubmit="HandleSubmit">
+
             <MudCard Class="mb-6">
                 <MudCardHeader>
                     <CardHeaderContent>
@@ -31,19 +34,29 @@
                 <MudCardContent>
                     <MudGrid>
                         <MudItem xs="12" sm="6">
-                            <MudNumericField T="int" Label="Employee ID" @bind-Value="_request.EmployeeId" Variant="Variant.Outlined" Required="true" />
+                            <MudNumericField T="int" Label="Employee ID"
+                                             @bind-Value="_request.EmployeeId"
+                                             Variant="Variant.Outlined" Required="true" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudNumericField T="int" Label="Manager ID" @bind-Value="_request.ManagerId" Variant="Variant.Outlined" Required="true" />
+                            <MudNumericField T="int" Label="Manager ID"
+                                             @bind-Value="_request.ManagerId"
+                                             Variant="Variant.Outlined" Required="true" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudDatePicker Label="Start Date" @bind-Date="_startDate" Variant="Variant.Outlined" Required="true" />
+                            <MudDatePicker Label="Start Date"
+                                           @bind-Date="_startDate"
+                                           Variant="Variant.Outlined" Required="true" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudDatePicker Label="End Date" @bind-Date="_endDate" Variant="Variant.Outlined" Required="true" />
+                            <MudDatePicker Label="End Date"
+                                           @bind-Date="_endDate"
+                                           Variant="Variant.Outlined" Required="true" />
                         </MudItem>
                         <MudItem xs="12">
-                            <MudTextField Label="Overall Goal" @bind-Value="_request.OverallGoal" Variant="Variant.Outlined" Lines="4" />
+                            <MudTextField Label="Overall Goal"
+                                          @bind-Value="_request.OverallGoal"
+                                          Variant="Variant.Outlined" Lines="4" />
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
@@ -55,7 +68,9 @@
                         <MudText Typo="Typo.h6">Objectives</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
-                        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Small" OnClick="AddObjective" StartIcon="@Icons.Material.Filled.Add">
+                        <MudButton Color="Color.Secondary" Variant="Variant.Outlined"
+                                   Size="Size.Small" OnClick="AddObjective"
+                                   StartIcon="@Icons.Material.Filled.Add">
                             Add Objective
                         </MudButton>
                     </CardHeaderActions>
@@ -63,7 +78,9 @@
                 <MudCardContent>
                     @if (!_request.Objectives.Any())
                     {
-                        <MudAlert Severity="Severity.Info">Add at least one objective to define improvement targets.</MudAlert>
+                        <MudAlert Severity="Severity.Info">
+                            Add at least one objective to define improvement targets.
+                        </MudAlert>
                     }
                     else
                     {
@@ -71,16 +88,27 @@
                         {
                             var index = i;
                             <MudPaper Class="pa-4 mb-4" Elevation="0">
-                                <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+                                <MudGrid Justify="Justify.SpaceBetween"
+                                         AlignItems="AlignItems.Center" Class="mb-2">
                                     <MudItem>
-                                        <MudText Typo="Typo.subtitle1"><strong>Objective @(index + 1)</strong></MudText>
+                                        <MudText Typo="Typo.subtitle1">
+                                            <strong>Objective @(index + 1)</strong>
+                                        </MudText>
                                     </MudItem>
                                     <MudItem>
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => RemoveObjective(index)" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error" Size="Size.Small"
+                                                       OnClick="() => RemoveObjective(index)" />
                                     </MudItem>
                                 </MudGrid>
-                                <MudTextField Label="Objective Description" @bind-Value="_request.Objectives[index].ObjectiveDescription" Variant="Variant.Outlined" Lines="3" Class="mb-2" Style="width: 100%" Required="true" />
-                                <MudTextField Label="Success Criteria" @bind-Value="_request.Objectives[index].SuccessCriteria" Variant="Variant.Outlined" Lines="2" Style="width: 100%" />
+                                <MudTextField Label="Objective Description"
+                                              @bind-Value="_request.Objectives[index].ObjectiveDescription"
+                                              Variant="Variant.Outlined" Lines="3"
+                                              Class="mb-2" Style="width: 100%" Required="true" />
+                                <MudTextField Label="Success Criteria"
+                                              @bind-Value="_request.Objectives[index].SuccessCriteria"
+                                              Variant="Variant.Outlined" Lines="2"
+                                              Style="width: 100%" />
                             </MudPaper>
                         }
                     }
@@ -101,14 +129,20 @@
 
             <MudGrid Justify="Justify.FlexEnd">
                 <MudItem>
-                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip"))" Class="mr-3">
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined"
+                               OnClick="@(() => NavigationManager.NavigateTo("/pip"))"
+                               Class="mr-3">
                         Cancel
                     </MudButton>
-                    <MudButton Type="submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="_submitting" StartIcon="@(_submitting ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.Check)">
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Color="Color.Primary" Variant="Variant.Filled"
+                               Disabled="_submitting"
+                               StartIcon="@(_submitting ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.Check)">
                         @(_submitting ? "Creating..." : "Create PIP")
                     </MudButton>
                 </MudItem>
             </MudGrid>
+
         </EditForm>
     </MudPaper>
 </MudContainer>
@@ -150,37 +184,49 @@
         _submitting = true;
         _errors.Clear();
 
-        if (_startDate.HasValue)
+        try
         {
-            _request.StartDate = DateOnly.FromDateTime(_startDate.Value);
-        }
+            // Map DateTime? to DateOnly
+            if (_startDate.HasValue)
+                _request.StartDate = DateOnly.FromDateTime(_startDate.Value);
 
-        if (_endDate.HasValue)
-        {
-            _request.EndDate = DateOnly.FromDateTime(_endDate.Value);
-        }
+            if (_endDate.HasValue)
+                _request.EndDate = DateOnly.FromDateTime(_endDate.Value);
 
-        var validator = new CreatePipPlanValidator();
-        var result = await validator.ValidateAsync(_request);
-        if (!result.IsValid)
+            // FluentValidation client-side
+            var validator = new CreatePipPlanValidator();
+            var validationResult = await validator.ValidateAsync(_request);
+            if (!validationResult.IsValid)
+            {
+                _errors = validationResult.Errors
+                    .Select(e => e.ErrorMessage).ToList();
+                Snackbar.Add("Please fix the validation errors!", Severity.Warning);
+                return;
+            }
+
+            var response = await PipService.CreatePipAsync(_request);
+
+            if (response?.Success == true)
+            {
+                Snackbar.Add("PIP created successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/pip/" + response.Data!.PipId);
+            }
+            else
+            {
+                _errors = response?.Errors
+                    ?? new List<string> { "Failed to create PIP." };
+                Snackbar.Add(_errors.FirstOrDefault()
+                    ?? "Failed to create PIP.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
         {
-            _errors = result.Errors.Select(e => e.ErrorMessage).ToList();
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            _errors.Add(ex.Message);
+        }
+        finally
+        {
             _submitting = false;
-            return;
         }
-
-        var response = await PipService.CreatePipAsync(_request);
-        if (response?.Success == true)
-        {
-            Snackbar.Add("PIP created successfully!", Severity.Success);
-            NavigationManager.NavigateTo("/pip/" + response.Data!.PipId);
-        }
-        else
-        {
-            _errors = response?.Errors ?? new List<string> { "Failed to create PIP." };
-            Snackbar.Add(_errors.FirstOrDefault() ?? "Failed to create PIP.", Severity.Error);
-        }
-
-        _submitting = false;
     }
 }
