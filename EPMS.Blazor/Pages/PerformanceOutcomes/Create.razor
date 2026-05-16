@@ -1,86 +1,88 @@
 @page "/performanceoutcomes/create"
 @using EPMS.Shared.Requests
-@inject EPMS.Blazor.Services.IPerformanceOutcomeBlazorService PerformanceOutcomeService
+@using EPMS.Blazor.Services
+@inject IPerformanceOutcomeBlazorService PerformanceOutcomeService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Create Performance Outcome</h3>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">Create Performance Outcome</MudText>
+        <MudDivider Class="mb-6" />
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <EditForm Model="@createRequest" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <MudForm Model="@createRequest" @ref="@form" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Employee ID" @bind-Value="createRequest.EmployeeId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Cycle ID" @bind-Value="createRequest.CycleId" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Evaluation ID" @bind-Value="createRequest.EvalId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Recommendation Type" @bind-Value="createRequest.RecommendationType" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="Old Position ID" @bind-Value="createRequest.OldPositionId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField Label="New Position ID" @bind-Value="createRequest.NewPositionId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Old Level ID" @bind-Value="createRequest.OldLevelId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="New Level ID" @bind-Value="createRequest.NewLevelId" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="Approval Status" @bind-Value="createRequest.ApprovalStatus" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                        <MudSelectItem Value="@("Approved")">Approved</MudSelectItem>
+                        <MudSelectItem Value="@("Rejected")">Rejected</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Effective Date" @bind-Date="effectiveDateValue" Variant="Variant.Outlined" />
+                </MudItem>
 
-            <div class="form-group mb-3">
-                <label for="employeeId" class="form-label">Employee ID</label>
-                <InputNumber id="employeeId" class="form-control" @bind-Value="createRequest.EmployeeId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="cycleId" class="form-label">Cycle ID</label>
-                <InputNumber id="cycleId" class="form-control" @bind-Value="createRequest.CycleId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="recommendationType" class="form-label">Recommendation Type</label>
-                <InputText id="recommendationType" class="form-control" @bind-Value="createRequest.RecommendationType" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="oldPositionId" class="form-label">Old Position ID</label>
-                <InputNumber id="oldPositionId" class="form-control" @bind-Value="createRequest.OldPositionId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="newPositionId" class="form-label">New Position ID</label>
-                <InputNumber id="newPositionId" class="form-control" @bind-Value="createRequest.NewPositionId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="oldLevelId" class="form-label">Old Level ID</label>
-                <InputText id="oldLevelId" class="form-control" @bind-Value="createRequest.OldLevelId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="newLevelId" class="form-label">New Level ID</label>
-                <InputText id="newLevelId" class="form-control" @bind-Value="createRequest.NewLevelId" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="approvalStatus" class="form-label">Approval Status</label>
-                <InputText id="approvalStatus" class="form-control" @bind-Value="createRequest.ApprovalStatus" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="effectiveDate" class="form-label">Effective Date</label>
-                <InputDate id="effectiveDate" class="form-control" @bind-Value="effectiveDateValue" />
-            </div>
-
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a href="/performanceoutcomes" class="btn btn-secondary">Cancel</a>
-        </EditForm>
-    </div>
-</div>
+                <MudItem xs="12" Class="d-flex justify-end mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Create</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
 
 @code {
-    private CreatePerformanceOutcomeRequest createRequest = new();
+    private MudForm? form;
+    private CreatePerformanceOutcomeRequest createRequest = new() { ApprovalStatus = "Pending" };
     private DateTime? effectiveDateValue { get; set; }
 
     private async Task HandleValidSubmit()
     {
-        if (effectiveDateValue.HasValue)
+        await form!.Validate();
+        if (form.IsValid)
         {
-            createRequest.EffectiveDate = DateOnly.FromDateTime(effectiveDateValue.Value);
-        }
-        try
-        {
-            await PerformanceOutcomeService.CreatePerformanceOutcomeAsync(createRequest);
-            NavigationManager.NavigateTo("/performanceoutcomes");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error creating performance outcome: {ex.Message}");
+            if (effectiveDateValue.HasValue)
+            {
+                createRequest.EffectiveDate = DateOnly.FromDateTime(effectiveDateValue.Value);
+            }
+
+            try
+            {
+                await PerformanceOutcomeService.CreatePerformanceOutcomeAsync(createRequest);
+                Snackbar.Add("Performance outcome created successfully.", Severity.Success);
+                NavigationManager.NavigateTo("/performanceoutcomes");
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error creating performance outcome: {ex.Message}", Severity.Error);
+            }
         }
     }
+
+    private void Cancel() => NavigationManager.NavigateTo("/performanceoutcomes");
 }

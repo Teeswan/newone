@@ -57,5 +57,43 @@ namespace EPMS.Blazor.Services
             var response = await _httpClient.DeleteAsync($"api/employees/{id}");
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<bool> IsEmployeeCodeUniqueAsync(string code)
+        {
+            var response = await _httpClient.GetAsync($"api/employees/code/{code}");
+            return response.StatusCode == System.Net.HttpStatusCode.NotFound;
+        }
+
+        public async Task<byte[]> ExportToExcelAsync()
+        {
+            var response = await _httpClient.GetAsync("api/employees/export/excel");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+
+        public async Task<byte[]> ExportToPdfAsync()
+        {
+            var response = await _httpClient.GetAsync("api/employees/export/pdf");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+
+        public async Task<int> ImportFromExcelAsync(Stream fileStream, string fileName)
+        {
+            using var content = new MultipartFormDataContent();
+            using var streamContent = new StreamContent(fileStream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            content.Add(streamContent, "file", fileName);
+
+            var response = await _httpClient.PostAsync("api/employees/import/excel", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+
+            var resultStr = await response.Content.ReadAsStringAsync();
+            return int.Parse(resultStr);
+        }
     }
 }

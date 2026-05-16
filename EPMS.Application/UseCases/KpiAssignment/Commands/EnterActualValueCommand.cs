@@ -8,7 +8,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.KpiAssignment.Commands;
 
-public record EnterActualValueCommand(int AssignmentId, decimal ActualValue, int? UserId) : IRequest<Result<KpiScoreSummaryDto>>;
+public record EnterActualValueCommand(int AssignmentId, decimal ActualValue, int? EmployeeId) : IRequest<Result<KpiScoreSummaryDto>>;
 
 public class EnterActualValueCommandHandler : IRequestHandler<EnterActualValueCommand, Result<KpiScoreSummaryDto>>
 {

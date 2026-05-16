@@ -9,7 +9,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.KpiAssignment.Commands;
 
-public record ActivateCycleKpiSnapshotCommand(int CycleId, int? UserId) : IRequest<Result>;
+public record ActivateCycleKpiSnapshotCommand(int CycleId, int? EmployeeId) : IRequest<Result>;
 
 public class ActivateCycleKpiSnapshotCommandHandler : IRequestHandler<ActivateCycleKpiSnapshotCommand, Result>
 {
@@ -48,7 +48,7 @@ public class ActivateCycleKpiSnapshotCommandHandler : IRequestHandler<ActivateCy
             await _assignmentRepository.AddRangeAsync(assignments);
         }
 
-        await _auditLogService.LogAsync("EmployeeKpiAssignment", "SnapshotCreated", null, $"Created snapshots for cycle {request.CycleId}", request.UserId);
+        await _auditLogService.LogAsync("EmployeeKpiAssignment", "SnapshotCreated", null, $"Created snapshots for cycle {request.CycleId}", request.EmployeeId);
 
         return Result.Success();
     }

@@ -17,7 +17,7 @@ public partial class AuditLog
 
     public string? NewData { get; set; }
 
-    public int? ChangedByUserId { get; set; }
+    public int? ChangedByEmployeeId { get; set; }
 
     public DateTimeOffset? ChangedAt { get; set; }
 }

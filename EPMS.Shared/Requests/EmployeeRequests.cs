@@ -15,11 +15,11 @@ public class CreateEmployeeRequest
     public DateTime? DateOfBirth { get; set; }
     public string? EmploymentStatus { get; set; }
     public string? NrcNumber { get; set; }
+    public bool? IsActive { get; set; } = true;
 }
 
 public class UpdateEmployeeRequest : CreateEmployeeRequest
 {
-    public bool? IsActive { get; set; }
     public string? Gender { get; set; }
     public string? EmergencyContact { get; set; }
     public string? EmergencyPhone { get; set; }

@@ -1,127 +1,138 @@
 @page "/performanceoutcomes/edit/{Id:int}"
 @using EPMS.Shared.Requests
-@inject EPMS.Blazor.Services.IPerformanceOutcomeBlazorService PerformanceOutcomeService
+@using EPMS.Blazor.Services
+@inject IPerformanceOutcomeBlazorService PerformanceOutcomeService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<h3>Edit Performance Outcome</h3>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">Edit Performance Outcome</MudText>
+        <MudDivider Class="mb-6" />
 
-<hr />
-@if (updateRequest == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-6">
-            <EditForm Model="@updateRequest" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+        @if (updateRequest == null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudForm Model="@updateRequest" @ref="@form" ValidationDelay="0">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField Label="Employee ID" @bind-Value="updateRequest.EmployeeId" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField Label="Cycle ID" @bind-Value="updateRequest.CycleId" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField Label="Evaluation ID" @bind-Value="updateRequest.EvalId" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Recommendation Type" @bind-Value="updateRequest.RecommendationType" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField Label="Old Position ID" @bind-Value="updateRequest.OldPositionId" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField Label="New Position ID" @bind-Value="updateRequest.NewPositionId" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Old Level ID" @bind-Value="updateRequest.OldLevelId" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="New Level ID" @bind-Value="updateRequest.NewLevelId" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="string" Label="Approval Status" @bind-Value="updateRequest.ApprovalStatus" Variant="Variant.Outlined">
+                            <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                            <MudSelectItem Value="@("Approved")">Approved</MudSelectItem>
+                            <MudSelectItem Value="@("Rejected")">Rejected</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker Label="Effective Date" @bind-Date="effectiveDateValue" Variant="Variant.Outlined" />
+                    </MudItem>
 
-                <div class="form-group mb-3">
-                    <label for="employeeId" class="form-label">Employee ID</label>
-                    <InputNumber id="employeeId" class="form-control" @bind-Value="updateRequest.EmployeeId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="cycleId" class="form-label">Cycle ID</label>
-                    <InputNumber id="cycleId" class="form-control" @bind-Value="updateRequest.CycleId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="recommendationType" class="form-label">Recommendation Type</label>
-                    <InputText id="recommendationType" class="form-control" @bind-Value="updateRequest.RecommendationType" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="oldPositionId" class="form-label">Old Position ID</label>
-                    <InputNumber id="oldPositionId" class="form-control" @bind-Value="updateRequest.OldPositionId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="newPositionId" class="form-label">New Position ID</label>
-                    <InputNumber id="newPositionId" class="form-control" @bind-Value="updateRequest.NewPositionId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="oldLevelId" class="form-label">Old Level ID</label>
-                    <InputText id="oldLevelId" class="form-control" @bind-Value="updateRequest.OldLevelId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="newLevelId" class="form-label">New Level ID</label>
-                    <InputText id="newLevelId" class="form-control" @bind-Value="updateRequest.NewLevelId" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="approvalStatus" class="form-label">Approval Status</label>
-                    <InputText id="approvalStatus" class="form-control" @bind-Value="updateRequest.ApprovalStatus" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="effectiveDate" class="form-label">Effective Date</label>
-                    <InputDate id="effectiveDate" class="form-control" @bind-Value="effectiveDateValue" />
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/performanceoutcomes" class="btn btn-secondary">Cancel</a>
-            </EditForm>
-        </div>
-    </div>
-}
+                    <MudItem xs="12" Class="d-flex justify-end mt-4">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Save Changes</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter]
     public int Id { get; set; }
 
+    private MudForm? form;
     private UpdatePerformanceOutcomeRequest? updateRequest;
     private DateTime? effectiveDateValue { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var outcome = await PerformanceOutcomeService.GetPerformanceOutcomeByIdAsync(Id);
-        if (outcome != null)
+        try
         {
-            updateRequest = new UpdatePerformanceOutcomeRequest
+            var outcome = await PerformanceOutcomeService.GetPerformanceOutcomeByIdAsync(Id);
+            if (outcome != null)
             {
-                EmployeeId = outcome.EmployeeId,
-                CycleId = outcome.CycleId,
-                RecommendationType = outcome.RecommendationType,
-                OldPositionId = outcome.OldPositionId,
-                NewPositionId = outcome.NewPositionId,
-                OldLevelId = outcome.OldLevelId,
-                NewLevelId = outcome.NewLevelId,
-                ApprovalStatus = outcome.ApprovalStatus,
-                EffectiveDate = outcome.EffectiveDate
-            };
-            if (outcome.EffectiveDate.HasValue)
+                updateRequest = new UpdatePerformanceOutcomeRequest
+                {
+                    EmployeeId = outcome.EmployeeId,
+                    CycleId = outcome.CycleId,
+                    EvalId = outcome.EvalId,
+                    RecommendationType = outcome.RecommendationType,
+                    OldPositionId = outcome.OldPositionId,
+                    NewPositionId = outcome.NewPositionId,
+                    OldLevelId = outcome.OldLevelId,
+                    NewLevelId = outcome.NewLevelId,
+                    ApprovalStatus = outcome.ApprovalStatus,
+                    EffectiveDate = outcome.EffectiveDate
+                };
+                if (outcome.EffectiveDate.HasValue)
+                {
+                    effectiveDateValue = outcome.EffectiveDate.Value.ToDateTime(TimeOnly.MinValue);
+                }
+            }
+            else
             {
-                effectiveDateValue = outcome.EffectiveDate.Value.ToDateTime(TimeOnly.MinValue);
+                Snackbar.Add("Performance outcome not found.", Severity.Error);
+                NavigationManager.NavigateTo("/performanceoutcomes");
             }
         }
-        else
+        catch (Exception ex)
         {
+            Snackbar.Add($"Error loading performance outcome: {ex.Message}", Severity.Error);
             NavigationManager.NavigateTo("/performanceoutcomes");
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        if (updateRequest != null)
+        if (updateRequest != null && form != null)
         {
-            if (effectiveDateValue.HasValue)
+            await form.Validate();
+            if (form.IsValid)
             {
-                updateRequest.EffectiveDate = DateOnly.FromDateTime(effectiveDateValue.Value);
-            }
-            try
-            {
-                await PerformanceOutcomeService.UpdatePerformanceOutcomeAsync(Id, updateRequest);
-                NavigationManager.NavigateTo("/performanceoutcomes");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating performance outcome: {ex.Message}");
+                if (effectiveDateValue.HasValue)
+                {
+                    updateRequest.EffectiveDate = DateOnly.FromDateTime(effectiveDateValue.Value);
+                }
+                try
+                {
+                    await PerformanceOutcomeService.UpdatePerformanceOutcomeAsync(Id, updateRequest);
+                    Snackbar.Add("Performance outcome updated successfully.", Severity.Success);
+                    NavigationManager.NavigateTo("/performanceoutcomes");
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Error updating performance outcome: {ex.Message}", Severity.Error);
+                }
             }
         }
     }
+
+    private void Cancel() => NavigationManager.NavigateTo("/performanceoutcomes");
 }

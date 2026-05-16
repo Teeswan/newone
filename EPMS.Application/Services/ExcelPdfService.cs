@@ -22,6 +22,7 @@ public class ExcelPdfService : IExcelPdfService
     private readonly IPerformanceOutcomeService _outcomeService;
     private readonly IDepartmentService _departmentService;
     private readonly ITeamService _teamService;
+    private readonly IEmployeeService _employeeService;
 
     public ExcelPdfService(
         IAppraisalCycleService cycleService,
@@ -32,7 +33,8 @@ public class ExcelPdfService : IExcelPdfService
         IPerformanceEvaluationService evaluationService,
         IPerformanceOutcomeService outcomeService,
         IDepartmentService departmentService,
-        ITeamService teamService)
+        ITeamService teamService,
+        IEmployeeService employeeService)
     {
         _cycleService = cycleService;
         _questionService = questionService;
@@ -43,6 +45,7 @@ public class ExcelPdfService : IExcelPdfService
         _outcomeService = outcomeService;
         _departmentService = departmentService;
         _teamService = teamService;
+        _employeeService = employeeService;
     }
 
     // ===================== EXCEL EXPORT =====================
@@ -306,6 +309,44 @@ public class ExcelPdfService : IExcelPdfService
             ws.Cell(row, 2).Value = item.TeamName;
             ws.Cell(row, 3).Value = item.ManagerId ?? 0;
             ws.Cell(row, 4).Value = item.DepartmentId ?? 0;
+            row++;
+        }
+
+        ws.Columns().AdjustToContents();
+        return WorkbookToBytes(workbook);
+    }
+
+    public async Task<byte[]> ExportEmployeesToExcelAsync()
+    {
+        var data = await _employeeService.GetAllAsync();
+        using var workbook = new XLWorkbook();
+        var ws = workbook.Worksheets.Add("Employees");
+
+        ws.Cell(1, 1).Value = "EmployeeCode";
+        ws.Cell(1, 2).Value = "FullName";
+        ws.Cell(1, 3).Value = "Email";
+        ws.Cell(1, 4).Value = "Phone";
+        ws.Cell(1, 5).Value = "DepartmentId";
+        ws.Cell(1, 6).Value = "PositionId";
+        ws.Cell(1, 7).Value = "ReportsTo";
+        ws.Cell(1, 8).Value = "JoinDate";
+        ws.Cell(1, 9).Value = "EmploymentStatus";
+        ws.Cell(1, 10).Value = "IsActive";
+        StyleHeaderRow(ws, 10);
+
+        int row = 2;
+        foreach (var item in data)
+        {
+            ws.Cell(row, 1).Value = item.EmployeeCode;
+            ws.Cell(row, 2).Value = item.FullName;
+            ws.Cell(row, 3).Value = item.Email ?? "";
+            ws.Cell(row, 4).Value = item.Phone ?? "";
+            ws.Cell(row, 5).Value = item.DepartmentId ?? 0;
+            ws.Cell(row, 6).Value = item.PositionId ?? 0;
+            ws.Cell(row, 7).Value = item.ReportsTo ?? 0;
+            ws.Cell(row, 8).Value = item.JoinDate?.ToString("yyyy-MM-dd") ?? "";
+            ws.Cell(row, 9).Value = item.EmploymentStatus ?? "";
+            ws.Cell(row, 10).Value = (item.IsActive ?? true) ? "Yes" : "No";
             row++;
         }
 
@@ -603,6 +644,70 @@ public class ExcelPdfService : IExcelPdfService
         return count;
     }
 
+    public async Task<int> ImportEmployeesFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false)
+    {
+        using var workbook = new XLWorkbook(fileStream);
+        IXLWorksheet ws;
+
+        if (string.IsNullOrWhiteSpace(sheetName))
+        {
+            ws = workbook.Worksheets.First();
+        }
+        else
+        {
+            if (!workbook.Worksheets.TryGetWorksheet(sheetName, out var foundWs))
+            {
+                throw new ArgumentException($"Worksheet '{sheetName}' does not exist in this Excel file!");
+            }
+            ws = foundWs;
+        }
+
+        // Validate required columns
+        var expectedColumns = new[] { "EmployeeCode", "FullName", "Email", "Phone", "DepartmentId", "PositionId", "ReportsTo", "JoinDate", "EmploymentStatus", "IsActive" };
+        var headerRow = ws.Row(1);
+        for (int i = 0; i < expectedColumns.Length; i++)
+        {
+            var cellValue = headerRow.Cell(i + 1).GetString();
+            if (string.IsNullOrWhiteSpace(cellValue) || !cellValue.Equals(expectedColumns[i], StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException($"Invalid Excel file! Expected column {i + 1} to be '{expectedColumns[i]}', but found '{cellValue}'!");
+            }
+        }
+
+        int count = 0;
+        int rowsToSkip = skipFirstRow ? 1 : 0;
+        var existingEmployees = skipExisting ? (await _employeeService.GetAllAsync()).ToList() : new List<EmployeeDto>();
+
+        foreach (var row in ws.RowsUsed().Skip(rowsToSkip))
+        {
+            var code = row.Cell(1).GetString();
+            if (string.IsNullOrWhiteSpace(code)) continue;
+
+            if (skipExisting && existingEmployees.Any(e => e.EmployeeCode.Equals(code, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            var request = new CreateEmployeeRequest
+            {
+                EmployeeCode = code,
+                FullName = row.Cell(2).GetString(),
+                Email = row.Cell(3).GetString(),
+                Phone = row.Cell(4).GetString(),
+                DepartmentId = ParseNullableInt(row.Cell(5).GetString()),
+                PositionId = ParseNullableInt(row.Cell(6).GetString()),
+                ReportsTo = ParseNullableInt(row.Cell(7).GetString()),
+                JoinDate = ParseNullableDateTime(row.Cell(8).GetString()),
+                EmploymentStatus = row.Cell(9).GetString(),
+                IsActive = row.Cell(10).GetString().Equals("Yes", StringComparison.OrdinalIgnoreCase) || row.Cell(10).GetString().Equals("True", StringComparison.OrdinalIgnoreCase)
+            };
+            await _employeeService.CreateAsync(request);
+            count++;
+        }
+
+        return count;
+    }
+
     public async Task<IEnumerable<KpiImportDto>> ImportKpiMasterFromExcelAsync(Stream fileStream)
     {
         using var workbook = new XLWorkbook(fileStream);
@@ -782,6 +887,23 @@ public class ExcelPdfService : IExcelPdfService
         var data = (await _teamService.GetAllAsync()).ToList();
         return GeneratePdf("Teams Report", new[] { "TeamId", "TeamName", "ManagerId", "DepartmentId" },
             data.Select(i => new[] { i.TeamId.ToString(), i.TeamName, (i.ManagerId ?? 0).ToString(), (i.DepartmentId ?? 0).ToString() }).ToList());
+    }
+
+    public async Task<byte[]> ExportEmployeesToPdfAsync()
+    {
+        var data = (await _employeeService.GetAllAsync()).ToList();
+        return GeneratePdf("Employees Report", 
+            new[] { "Code", "Full Name", "Email", "Phone", "Dept", "Pos", "Join Date", "Status" },
+            data.Select(i => new[] { 
+                i.EmployeeCode, 
+                i.FullName, 
+                i.Email ?? "", 
+                i.Phone ?? "", 
+                i.DepartmentName ?? "", 
+                i.PositionTitle ?? "", 
+                i.JoinDate?.ToString("yyyy-MM-dd") ?? "", 
+                (i.IsActive ?? true) ? "Active" : "Inactive" 
+            }).ToList());
     }
 
     // ===================== HELPERS =====================

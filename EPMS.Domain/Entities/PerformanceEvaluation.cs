@@ -1,3 +1,5 @@
+using EPMS.Domain.Enums;
+
 namespace EPMS.Domain.Entities;
 
 public partial class PerformanceEvaluation
@@ -6,6 +8,7 @@ public partial class PerformanceEvaluation
     public int? EmployeeId { get; set; }
     public int? CycleId { get; set; }
     public int FormId { get; set; }
+    public PerformanceEvaluationStatus Status { get; set; } = PerformanceEvaluationStatus.Draft;
 
     public int? SelfRating { get; set; }
     public int? ManagerRating { get; set; }

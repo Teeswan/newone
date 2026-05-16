@@ -1,6 +1,7 @@
 @page "/teams/create"
 @inject EPMS.Blazor.Services.ITeamBlazorService TeamService
 @inject EPMS.Blazor.Services.IDepartmentBlazorService DepartmentService
+@inject EPMS.Blazor.Services.IEmployeeBlazorService EmployeeService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
@@ -22,13 +23,22 @@
                         Style="width: 100%" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudNumericField 
+                    <MudSelect 
                         @bind-Value="team.ManagerId" 
-                        Label="Manager ID" 
-                        Required="true"
+                        Label="Manager"
+                        Required="false"
                         Variant="Variant.Outlined"
                         Style="width: 100%"
-                        T="int?" />
+                        T="int?"
+                        Clearable="true">
+                        @if (employees != null)
+                        {
+                            @foreach (var emp in employees)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)emp.EmployeeId)">@emp.FullName</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                 </MudItem>
                 <MudItem xs="12">
                     <MudSelect 
@@ -65,10 +75,12 @@
 @code {
     private CreateTeamRequest team = new();
     private IEnumerable<DepartmentDto>? departments;
+    private IEnumerable<EmployeeDto>? employees;
 
     protected override async Task OnInitializedAsync()
     {
         departments = await DepartmentService.GetAllDepartmentsAsync();
+        employees = await EmployeeService.GetEmployeesAsync();
     }
 
     private async Task HandleValidSubmit()

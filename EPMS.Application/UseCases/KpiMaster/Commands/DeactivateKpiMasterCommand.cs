@@ -7,7 +7,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.KpiMaster.Commands;
 
-public record DeactivateKpiMasterCommand(int KpiId, int? UserId) : IRequest<Result>;
+public record DeactivateKpiMasterCommand(int KpiId, int? EmployeeId) : IRequest<Result>;
 
 public class DeactivateKpiMasterCommandHandler : IRequestHandler<DeactivateKpiMasterCommand, Result>
 {
@@ -40,7 +40,7 @@ public class DeactivateKpiMasterCommandHandler : IRequestHandler<DeactivateKpiMa
 
         await _cacheService.RemoveAsync($"kpimaster:id:{kpi.KpiId}");
         await _cacheService.RemoveByPatternAsync("kpimaster:list:*");
-        await _auditLogService.LogAsync("KpiMaster", "SoftDelete", kpi.KpiId, $"Deactivated KPI: {kpi.KpiName}", request.UserId);
+        await _auditLogService.LogAsync("KpiMaster", "SoftDelete", kpi.KpiId, $"Deactivated KPI: {kpi.KpiName}", request.EmployeeId);
 
         return Result.Success();
     }

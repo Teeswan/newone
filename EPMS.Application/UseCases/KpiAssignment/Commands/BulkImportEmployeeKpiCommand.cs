@@ -12,7 +12,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.KpiAssignment.Commands;
 
-public record BulkImportEmployeeKpiCommand(List<EmployeeKpiImportDto> Kpis, int? UserId) : IRequest<Result<BulkImportResultDto>>;
+public record BulkImportEmployeeKpiCommand(List<EmployeeKpiImportDto> Kpis, int? EmployeeId) : IRequest<Result<BulkImportResultDto>>;
 
 public record EmployeeKpiImportDto(
     int EmployeeId,
@@ -55,7 +55,7 @@ public class BulkImportEmployeeKpiCommandHandler : IRequestHandler<BulkImportEmp
 
                 await _repository.AddAsync(adHocKpi);
                 result.Imported++;
-                await _auditLogService.LogAsync("EmployeeKpiAssignment", "Import", adHocKpi.AssignmentId, $"Imported Ad-hoc KPI for Employee {importDto.EmployeeId}: {importDto.KpiName}", request.UserId);
+                await _auditLogService.LogAsync("EmployeeKpiAssignment", "Import", adHocKpi.AssignmentId, $"Imported Ad-hoc KPI for Employee {importDto.EmployeeId}: {importDto.KpiName}", request.EmployeeId);
             }
             catch (System.Exception ex)
             {

@@ -53,7 +53,29 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        _context.Entry(entity).State = EntityState.Modified;
+        var primaryKey = _dbSet.EntityType.FindPrimaryKey();
+        if (primaryKey != null)
+        {
+            var keyValues = primaryKey.Properties.Select(p => 
+                entity.GetType().GetProperty(p.Name)?.GetValue(entity)).ToArray();
+            
+            var trackedEntry = _context.ChangeTracker.Entries<T>()
+                .FirstOrDefault(e => 
+                {
+                    var entryKey = e.Metadata.FindPrimaryKey();
+                    if (entryKey == null) return false;
+                    var entryKeyValues = entryKey.Properties.Select(p => 
+                        e.Entity.GetType().GetProperty(p.Name)?.GetValue(e.Entity)).ToArray();
+                    return keyValues.SequenceEqual(entryKeyValues);
+                });
+
+            if (trackedEntry != null && trackedEntry.Entity != entity)
+            {
+                _context.Entry(trackedEntry.Entity).State = EntityState.Detached;
+            }
+        }
+
+        _dbSet.Update(entity);
         await _context.SaveChangesAsync();
         return entity;
     }
