@@ -132,6 +132,19 @@ public class PositionRepository : BaseRepository<Position, int>, IPositionReposi
         _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
     }
 
+    public override async Task<IEnumerable<Position>> GetAllAsync()
+    {
+        return await _dbSet.Include(p => p.Level)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public override async Task<Position?> GetByIdAsync(int id)
+    {
+        return await _dbSet.Include(p => p.Level)
+            .FirstOrDefaultAsync(p => p.PositionId == id);
+    }
+
     public async Task<IEnumerable<Position>> GetPositionsByLevelAsync(string levelId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);
