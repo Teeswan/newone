@@ -3,6 +3,7 @@ using EPMS.Infrastructure.Authorization;
 using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EPMS.Api.Controllers;
@@ -21,7 +22,8 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet]
-    [HasPermission(Permissions.Teams.View)]
+    [AllowAnonymous]
+    // [HasPermission(Permissions.Teams.View)]
     public async Task<ActionResult<IEnumerable<TeamDto>>> GetAll()
     {
         var result = await _service.GetAllAsync();
@@ -29,7 +31,8 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [HasPermission(Permissions.Teams.View)]
+    [AllowAnonymous]
+    // [HasPermission(Permissions.Teams.View)]
     public async Task<ActionResult<TeamDto>> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);

@@ -66,6 +66,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<EmployeeDetailDto>> GetById(int id)
     {
@@ -75,6 +76,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("code/{code}")]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<EmployeeDto>> GetByCode(string code)
     {
@@ -84,6 +86,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("department/{departmentId}")]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetByDepartment(int departmentId)
     {
@@ -92,6 +95,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("reports/{managerId}")]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetDirectReports(int managerId)
     {
@@ -100,6 +104,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeRequest request)
     {
@@ -115,6 +120,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<EmployeeDto>> Update(int id, UpdateEmployeeRequest request)
     {
@@ -124,6 +130,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [AllowAnonymous]
     // [HasPermission(Permissions.Employees.Manage)]
     public async Task<IActionResult> Delete(int id)
     {

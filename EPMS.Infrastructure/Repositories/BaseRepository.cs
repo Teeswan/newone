@@ -53,7 +53,40 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        _context.Entry(entity).State = EntityState.Modified;
+        // Get the primary key property name
+        var keyProperty = _context.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.FirstOrDefault();
+        if (keyProperty != null)
+        {
+            var keyValue = keyProperty.PropertyInfo?.GetValue(entity);
+            if (keyValue != null)
+            {
+                // Check if an entity with the same ID is already being tracked
+                var trackedEntity = _dbSet.Local.FirstOrDefault(e => 
+                    Equals(keyProperty.PropertyInfo?.GetValue(e), keyValue));
+
+                if (trackedEntity != null)
+                {
+                    // If the tracked entity is a DIFFERENT instance than the one we're updating
+                    if (!ReferenceEquals(trackedEntity, entity))
+                    {
+                        // Detach the existing tracked entity so we can track the new one
+                        _context.Entry(trackedEntity).State = EntityState.Detached;
+                    }
+                }
+            }
+        }
+
+        var entry = _context.Entry(entity);
+        if (entry.State == EntityState.Detached)
+        {
+            _dbSet.Attach(entity);
+            entry.State = EntityState.Modified;
+        }
+        else
+        {
+            entry.State = EntityState.Modified;
+        }
+        
         await _context.SaveChangesAsync();
         return entity;
     }
@@ -71,7 +104,15 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
             return false;
         }
 
-        _dbSet.Remove(entity);
+        if (entity is ISoftDelete softDeleteEntity)
+        {
+            softDeleteEntity.IsDeleted = true;
+            _context.Entry(entity).State = EntityState.Modified;
+        }
+        else
+        {
+            _dbSet.Remove(entity);
+        }
 
         try
         {

@@ -14,7 +14,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7202/") // Match your API's URL from Swagger!
+    BaseAddress = new Uri("http://127.0.0.1:5111/") // Use IPv4 address to avoid localhost resolution issues
 });
 
 builder.Services.AddBlazoredLocalStorage();
@@ -48,7 +48,6 @@ builder.Services.AddScoped<IPositionBlazorService, PositionBlazorService>();
 builder.Services.AddScoped<IPermissionBlazorService, PermissionBlazorService>();
 builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
 builder.Services.AddScoped<IEmployeeBlazorService, EmployeeBlazorService>();
-builder.Services.AddScoped<IUserBlazorService, UserBlazorService>();
 builder.Services.AddScoped<IKpiMasterBlazorService, KpiMasterBlazorService>();
 builder.Services.AddScoped<IEmployeeKpiBlazorService, EmployeeKpiBlazorService>();
 builder.Services.AddScoped<IMeetingBlazorService, MeetingBlazorService>();

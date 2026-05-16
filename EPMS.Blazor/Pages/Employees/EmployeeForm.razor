@@ -5,6 +5,7 @@
 @inject IDepartmentBlazorService DeptService
 @inject IPositionBlazorService PosService
 @inject IEmployeeBlazorService EmployeeService
+@inject ITeamBlazorService TeamService
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -15,8 +16,17 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudGrid Spacing="2">
+        @if (isLoading)
+        {
+            <div class="d-flex justify-center align-center my-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudText Class="ml-3">Loading details...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudForm @ref="form">
+                <MudGrid Spacing="2">
                 @* --- Basic Section --- *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="Model.EmployeeCode" Label="Employee Code" Variant="Variant.Outlined" Margin="Margin.Dense" 
@@ -30,7 +40,7 @@
                 @* --- Identification & Contact --- *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="Model.NrcNumber" Label="NRC Number" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="12/YAKANA(N)123456" 
-                                  Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{1,2}/[A-Z]+\([A-Z]\)\d{6}$") ? null : "Invalid NRC format (e.g. 12/ABCDEF(N)123456)"))" />
+                                  Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{1,2}/[A-Za-z]+\([A-Za-z]+\)\d{6}$") ? null : "Invalid NRC format (e.g. 12/ABCDEF(N)123456)"))" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="Model.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="InputType.Email" 
@@ -55,7 +65,7 @@
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
                         @foreach (var dept in departments)
                         {
-                            <MudSelectItem T="int?" Value="@dept.DepartmentId">@dept.DepartmentName</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -64,7 +74,7 @@
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Position</MudSelectItem>
                         @foreach (var pos in positions)
                         {
-                            <MudSelectItem T="int?" Value="@pos.PositionId">@pos.PositionTitle</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)pos.PositionId)">@pos.PositionTitle</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -82,12 +92,20 @@
                 </MudItem>
 
                 @* --- Hierarchy & Address --- *@
-                <MudItem xs="12">
+                <MudItem xs="12" sm="6">
                     <MudSelect T="int?" Label="Reports To (Manager)" @bind-Value="Model.ReportsTo" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">None (Top Level)</MudSelectItem>
                         @foreach (var emp in allEmployees.Where(x => x.EmployeeId != EmployeeId))
                         {
-                            <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName (@emp.PositionTitle)</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)emp.EmployeeId)">@emp.FullName (@emp.PositionTitle)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Teams" MultiSelection="true" @bind-SelectedValues="selectedTeamIds" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var team in allTeams)
+                        {
+                            <MudSelectItem T="int" Value="@team.TeamId">@team.TeamName</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -103,6 +121,7 @@
                 </MudItem>
             </MudGrid>
         </MudForm>
+        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -111,11 +130,12 @@
 </MudDialog>
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
-    [Parameter] public CreateEmployeeRequest Model { get; set; } = new();
     [Parameter] public bool IsEdit { get; set; }
     [Parameter] public int EmployeeId { get; set; }
 
+    private CreateEmployeeRequest Model { get; set; } = new();
     private bool IsActive { get; set; } = true;
+    private bool isLoading = true;
     private MudForm form = null!;
     private string? originalEmployeeCode;
     private System.ComponentModel.DataAnnotations.EmailAddressAttribute EmailAddressAttribute = new();
@@ -124,48 +144,69 @@
     private IEnumerable<DepartmentDto> departments = new List<DepartmentDto>();
     private IEnumerable<PositionDto> positions = new List<PositionDto>();
     private List<EmployeeDto> allEmployees = new List<EmployeeDto>();
+    private IEnumerable<TeamDto> allTeams = new List<TeamDto>();
+    private IEnumerable<int> selectedTeamIds { get; set; } = new List<int>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            isLoading = true;
+            
+            // Load dropdown data first
+            var deptData = await DeptService.GetAllDepartmentsAsync();
+            var posData = await PosService.GetAllPositionsAsync();
+            var empData = await EmployeeService.GetEmployeesAsync();
+            var teamData = await TeamService.GetAllTeamsAsync();
+
+            departments = deptData ?? new List<DepartmentDto>();
+            positions = posData ?? new List<PositionDto>();
+            allEmployees = empData ?? new List<EmployeeDto>();
+            allTeams = teamData ?? new List<TeamDto>();
+
             if (IsEdit && EmployeeId > 0)
             {
                 var employee = await EmployeeService.GetEmployeeDetailsAsync(EmployeeId);
                 if (employee != null)
                 {
                     originalEmployeeCode = employee.EmployeeCode;
-                    Model = new CreateEmployeeRequest
-                    {
-                        EmployeeCode = employee.EmployeeCode,
-                        FullName = employee.FullName,
-                        Email = employee.Email,
-                        DepartmentId = employee.DepartmentId,
-                        PositionId = employee.PositionId,
-                        ReportsTo = employee.ReportsTo,
-                        JoinDate = employee.JoinDate,
-                        CurrentSalary = employee.CurrentSalary,
-                        Phone = employee.Phone,
-                        Address = employee.Address,
-                        DateOfBirth = employee.DateOfBirth,
-                        EmploymentStatus = employee.EmploymentStatus,
-                        NrcNumber = employee.NrcNumber
-                    };
+                    
+                    // Populate the Model with values from the fetched employee
+                    Model.EmployeeCode = employee.EmployeeCode;
+                    Model.FullName = employee.FullName;
+                    Model.Email = employee.Email;
+                    Model.DepartmentId = employee.DepartmentId;
+                    Model.PositionId = employee.PositionId;
+                    Model.ReportsTo = employee.ReportsTo;
+                    Model.JoinDate = employee.JoinDate;
+                    Model.CurrentSalary = employee.CurrentSalary;
+                    Model.Phone = employee.Phone;
+                    Model.Address = employee.Address;
+                    Model.DateOfBirth = employee.DateOfBirth;
+                    Model.EmploymentStatus = employee.EmploymentStatus;
+                    Model.NrcNumber = employee.NrcNumber;
+                    
+                    selectedTeamIds = employee.TeamIds ?? new List<int>();
                     IsActive = employee.IsActive ?? false;
+                    
+                    // Force a UI refresh to ensure dropdowns pick up the newly set IDs
+                    StateHasChanged();
+                }
+                else
+                {
+                    Snackbar.Add("Could not load employee details.", Severity.Error);
+                    MudDialog.Cancel();
                 }
             }
-
-            var deptData = await DeptService.GetAllDepartmentsAsync();
-            var posData = await PosService.GetAllPositionsAsync();
-            var empData = await EmployeeService.GetEmployeesAsync();
-
-            departments = deptData ?? new List<DepartmentDto>();
-            positions = posData ?? new List<PositionDto>();
-            allEmployees = empData ?? new List<EmployeeDto>();
         }
         catch (Exception ex)
         {
             Snackbar.Add("Error loading data: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -194,34 +235,46 @@
 
     private async Task Submit()
     {
+        if (form == null) return;
+
         await form.Validate();
         if (form.IsValid)
         {
-            if (IsEdit)
+            try 
             {
-                var updateRequest = new UpdateEmployeeRequest
+                if (IsEdit)
                 {
-                    EmployeeCode = Model.EmployeeCode,
-                    FullName = Model.FullName,
-                    Email = Model.Email,
-                    DepartmentId = Model.DepartmentId,
-                    PositionId = Model.PositionId,
-                    ReportsTo = Model.ReportsTo,
-                    JoinDate = Model.JoinDate,
-                    CurrentSalary = Model.CurrentSalary,
-                    Phone = Model.Phone,
-                    Address = Model.Address,
-                    DateOfBirth = Model.DateOfBirth,
-                    EmploymentStatus = Model.EmploymentStatus,
-                    NrcNumber = Model.NrcNumber,
-                    IsActive = IsActive
-                };
-                MudDialog.Close(DialogResult.Ok(updateRequest));
+                    // Create a clean request object from the current Model state
+                    var updateRequest = new UpdateEmployeeRequest
+                    {
+                        EmployeeCode = Model.EmployeeCode,
+                        FullName = Model.FullName,
+                        Email = Model.Email,
+                        DepartmentId = Model.DepartmentId,
+                        PositionId = Model.PositionId,
+                        ReportsTo = Model.ReportsTo,
+                        JoinDate = Model.JoinDate,
+                        CurrentSalary = Model.CurrentSalary,
+                        Phone = Model.Phone,
+                        Address = Model.Address,
+                        DateOfBirth = Model.DateOfBirth,
+                        EmploymentStatus = Model.EmploymentStatus,
+                        NrcNumber = Model.NrcNumber,
+                        IsActive = IsActive,
+                        TeamIds = selectedTeamIds?.ToList() ?? new List<int>()
+                    };
+                    MudDialog.Close(DialogResult.Ok(updateRequest));
+                }
+                else
+                {
+                    Model.IsActive = IsActive;
+                    Model.TeamIds = selectedTeamIds?.ToList() ?? new List<int>();
+                    MudDialog.Close(DialogResult.Ok(Model));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Model.IsActive = IsActive;
-                MudDialog.Close(DialogResult.Ok(Model));
+                Snackbar.Add("Submission error: " + ex.Message, Severity.Error);
             }
         }
     }

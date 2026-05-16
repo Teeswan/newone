@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EPMS.Domain.Entities;
+using EPMS.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace EPMS.Infrastructure.Contexts;
@@ -202,6 +203,8 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.ReportsToNavigation).WithMany(p => p.InverseReportsToNavigation)
                 .HasForeignKey(d => d.ReportsTo)
                 .HasConstraintName("FK__Employees__Repor__4222D4EF");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<EmployeeInfo>(entity =>

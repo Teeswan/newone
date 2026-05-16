@@ -49,7 +49,12 @@ namespace EPMS.Blazor.Services
         public async Task<bool> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/employees/{id}", request);
-            return response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return true;
         }
 
         public async Task<bool> DeleteEmployeeAsync(int id)

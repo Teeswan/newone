@@ -54,12 +54,17 @@ public class MappingProfile : Profile
 
         // Employee & Personnel Mappings
         CreateMap<Employee, EmployeeDto>()
+            .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
+            .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.PositionId))
+            .ForMember(dest => dest.ReportsTo, opt => opt.MapFrom(src => src.ReportsTo))
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.PositionTitle, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : null))
-            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null));
+            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null))
+            .ForMember(dest => dest.TeamNames, opt => opt.MapFrom(src => src.TeamNames));
         
         CreateMap<Employee, EmployeeDetailDto>()
-            .IncludeBase<Employee, EmployeeDto>();
+            .IncludeBase<Employee, EmployeeDto>()
+            .ForMember(dest => dest.TeamIds, opt => opt.MapFrom(src => src.TeamsNavigation.Select(t => t.TeamId).ToList()));
         
         CreateMap<CreateEmployeeRequest, Employee>();
         CreateMap<UpdateEmployeeRequest, Employee>();
