@@ -68,7 +68,6 @@ CREATE OR ALTER PROCEDURE sp_AppraisalCycles_Delete
     @CycleID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM AppraisalCycles WHERE CycleID = @CycleID;
 END
 GO

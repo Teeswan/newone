@@ -73,7 +73,6 @@ CREATE OR ALTER PROCEDURE sp_FormQuestions_Delete
     @QuestionID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM FormQuestions WHERE FormID = @FormID AND QuestionID = @QuestionID;
 END
 GO

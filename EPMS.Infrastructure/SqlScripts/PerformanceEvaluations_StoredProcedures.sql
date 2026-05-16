@@ -116,7 +116,6 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_Delete
     @EvalID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM PerformanceEvaluations WHERE EvalID = @EvalID;
 END
 GO

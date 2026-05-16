@@ -62,7 +62,6 @@ CREATE OR ALTER PROCEDURE sp_AppraisalQuestions_Delete
     @QuestionID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM AppraisalQuestions WHERE QuestionID = @QuestionID;
 END
 GO

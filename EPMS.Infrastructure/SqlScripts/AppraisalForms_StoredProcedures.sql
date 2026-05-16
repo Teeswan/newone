@@ -59,7 +59,6 @@ CREATE OR ALTER PROCEDURE sp_ApplicationForms_Delete
     @FormID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM ApplicationForms WHERE FormID = @FormID;
 END
 GO

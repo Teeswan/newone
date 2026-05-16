@@ -88,7 +88,6 @@ CREATE OR ALTER PROCEDURE sp_AppraisalResponses_Delete
     @ResponseID BIGINT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM AppraisalResponses WHERE ResponseID = @ResponseID;
 END
 GO
