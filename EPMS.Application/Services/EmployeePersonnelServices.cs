@@ -57,22 +57,27 @@ public class EmployeeService : IEmployeeService
 
     public async Task<EmployeeDto?> UpdateAsync(int id, UpdateEmployeeRequest request)
     {
-        var entity = await _repository.GetByIdAsync(id);
+        var entity = await _repository.GetByIdFromDbAsync(id);
         if (entity == null) return null;
+
+        // Check if the new EmployeeCode already exists for another employee
+        if (!string.Equals(entity.EmployeeCode, request.EmployeeCode, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingCode = await _repository.GetByCodeAsync(request.EmployeeCode);
+            if (existingCode != null)
+            {
+                throw new InvalidOperationException($"Employee Code '{request.EmployeeCode}' already exists. Please use a unique code.");
+            }
+        }
 
         _mapper.Map(request, entity);
         entity.EmployeeId = id;
 
-        // Clear navigation properties to prevent EF Core from trying to update related entities
-        entity.Department = null;
-        entity.Position = null;
-        entity.ReportsToNavigation = null;
-        
         // Handle Team update
         entity.TeamsNavigation.Clear();
         if (request.TeamId.HasValue)
         {
-            var team = await _teamRepository.GetByIdAsync(request.TeamId.Value);
+            var team = await _teamRepository.GetByIdFromDbAsync(request.TeamId.Value);
             if (team != null)
             {
                 entity.TeamsNavigation.Add(team);

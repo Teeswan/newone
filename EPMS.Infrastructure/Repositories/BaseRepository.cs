@@ -40,6 +40,16 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
         return await _dbSet.FindAsync(id);
     }
 
+    public virtual async Task<T?> GetByIdFromDbAsync(TKey id)
+    {
+        if (id == null)
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        return await _dbSet.FindAsync(id);
+    }
+
     public virtual async Task<T> CreateAsync(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
@@ -65,7 +75,7 @@ public class BaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : class
                     var entryKey = e.Metadata.FindPrimaryKey();
                     if (entryKey == null) return false;
                     var entryKeyValues = entryKey.Properties.Select(p => 
-                        e.Entity.GetType().GetProperty(p.Name)?.GetValue(e.Entity)).ToArray();
+                        e.Property(p.Name).CurrentValue).ToArray();
                     return keyValues.SequenceEqual(entryKeyValues);
                 });
 

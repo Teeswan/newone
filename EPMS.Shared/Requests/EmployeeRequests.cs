@@ -17,15 +17,15 @@ public class CreateEmployeeRequest
     public string? EmploymentStatus { get; set; }
     public string? NrcNumber { get; set; }
     public bool? IsActive { get; set; } = true;
-}
-
-public class UpdateEmployeeRequest : CreateEmployeeRequest
-{
     public string? Gender { get; set; }
     public string? EmergencyContact { get; set; }
     public string? EmergencyPhone { get; set; }
     public string? BankName { get; set; }
     public string? BankAccountNumber { get; set; }
+}
+
+public class UpdateEmployeeRequest : CreateEmployeeRequest
+{
 }
 
 public class CreateLevelRequest

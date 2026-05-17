@@ -63,6 +63,12 @@ public class CachedBaseRepository<T, TKey> : IBaseRepository<T, TKey> where T : 
         return entity;
     }
 
+    public virtual async Task<T?> GetByIdFromDbAsync(TKey id)
+    {
+        // For cached repository, "FromDb" means bypassing the cache and going to the inner repository
+        return await _innerRepository.GetByIdFromDbAsync(id);
+    }
+
     public virtual async Task<T> CreateAsync(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);

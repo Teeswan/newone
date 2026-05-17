@@ -29,7 +29,7 @@ public class CachedTeamRepository : CachedBaseRepository<Team, int>, ITeamReposi
     public override async Task<Team?> UpdateAsync(Team entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        var existing = await _innerRepository.GetByIdAsync(entity.TeamId);
+        var existing = await _innerRepository.GetByIdNoTrackingAsync(entity.TeamId);
         var result = await base.UpdateAsync(entity);
         if (result != null)
         {
@@ -48,7 +48,7 @@ public class CachedTeamRepository : CachedBaseRepository<Team, int>, ITeamReposi
 
     public override async Task<bool> DeleteAsync(int id)
     {
-        var existing = await _innerRepository.GetByIdAsync(id);
+        var existing = await _innerRepository.GetByIdNoTrackingAsync(id);
         var success = await base.DeleteAsync(id);
         if (success && existing?.DepartmentId.HasValue == true)
         {
@@ -66,6 +66,11 @@ public class CachedTeamRepository : CachedBaseRepository<Team, int>, ITeamReposi
             _cache.Set(key, entities, new MemoryCacheEntryOptions().SetAbsoluteExpiration(_cacheDuration));
         }
         return entities ?? new List<dynamic>();
+    }
+
+    public async Task<Team?> GetByIdNoTrackingAsync(int id)
+    {
+        return await _innerRepository.GetByIdNoTrackingAsync(id);
     }
 
     private static string GetDepartmentCacheKey(int departmentId) => $"Team_GetByDepartment_{departmentId}";

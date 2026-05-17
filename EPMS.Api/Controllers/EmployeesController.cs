@@ -118,9 +118,16 @@ public class EmployeesController : ControllerBase
     [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<EmployeeDto>> Update(int id, UpdateEmployeeRequest request)
     {
-        var result = await _service.UpdateAsync(id, request);
-        if (result == null) return NotFound();
-        return Ok(result);
+        try
+        {
+            var result = await _service.UpdateAsync(id, request);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]

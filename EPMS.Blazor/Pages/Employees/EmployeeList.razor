@@ -225,8 +225,20 @@
 
     private async Task LoadEmployees()
     {
-        Employees = await EmployeeService.GetEmployeesAsync();
-        StateHasChanged();
+        try
+        {
+            Employees = await EmployeeService.GetEmployeesAsync();
+            StateHasChanged();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            Snackbar.Add("Your session has expired. Please log in again.", Severity.Error);
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading employees: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task RefreshEmployees()
@@ -271,11 +283,18 @@
 
         if (!result.Canceled && result.Data is UpdateEmployeeRequest request)
         {
-            var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
-            if (success)
+            try
             {
-                Snackbar.Add("Employee updated successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
-                await LoadEmployees();
+                var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
+                if (success)
+                {
+                    Snackbar.Add("Employee updated successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                    await LoadEmployees();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             }
         }
     }

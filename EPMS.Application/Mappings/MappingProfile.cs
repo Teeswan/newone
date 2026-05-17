@@ -69,9 +69,13 @@ public class MappingProfile : Profile
 
         // Employee & Personnel Mappings
         CreateMap<Employee, EmployeeDto>()
+            .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
+            .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.PositionId))
+            .ForMember(dest => dest.ReportsTo, opt => opt.MapFrom(src => src.ReportsTo))
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.PositionTitle, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : null))
             .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null))
+            .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamsNavigation != null && src.TeamsNavigation.Any() ? (int?)src.TeamsNavigation.First().TeamId : null))
             .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.TeamsNavigation != null && src.TeamsNavigation.Any() ? src.TeamsNavigation.First().TeamName : null));
         
         CreateMap<Employee, EmployeeDetailDto>()

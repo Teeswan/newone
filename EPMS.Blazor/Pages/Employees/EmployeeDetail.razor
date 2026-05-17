@@ -4,6 +4,7 @@
 @inject IEmployeeBlazorService EmployeeService
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     @* Header with Back Button and Actions *@
@@ -172,9 +173,25 @@
                                     </MudItem>
                                     <MudItem xs="12" sm="6">
                                         <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Gender</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.Gender ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
                                             <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Phone Number</MudText>
                                             <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
                                                 @(detail.Phone ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Date of Birth</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.DateOfBirth?.ToString("dd MMMM yyyy") ?? "Not provided")
                                             </MudText>
                                         </MudPaper>
                                     </MudItem>
@@ -183,6 +200,48 @@
                                             <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Home Address</MudText>
                                             <MudText Typo="Typo.body1" Style="font-weight: 500; color: #374151;">
                                                 @(detail.Address ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudTabPanel>
+
+                            @* Tab 3: Emergency & Bank *@
+                            <MudTabPanel Text="Emergency & Bank" Icon="@Icons.Material.Filled.LocalHospital">
+                                <MudText Typo="Typo.h6" Class="mb-6 mt-2" Style="font-weight: 600; color: #111827;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Emergency" Class="mr-2" Color="Color.Error" />
+                                    Emergency & Bank Details
+                                </MudText>
+                                <MudGrid Spacing="4">
+                                    <MudItem xs="12" sm="6">
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Emergency Contact</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.EmergencyContact ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Emergency Phone</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.EmergencyPhone ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Bank Name</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.BankName ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Bank Account Number</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.BankAccountNumber ?? "Not provided")
                                             </MudText>
                                         </MudPaper>
                                     </MudItem>
@@ -206,9 +265,15 @@
         {
             detail = await EmployeeService.GetEmployeeDetailsAsync(Id);
         }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            Snackbar.Add("Your session has expired. Please log in again.", Severity.Error);
+            Navigation.NavigateTo("/login");
+        }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            Snackbar.Add($"Error loading profile: {ex.Message}", Severity.Error);
         }
     }
 

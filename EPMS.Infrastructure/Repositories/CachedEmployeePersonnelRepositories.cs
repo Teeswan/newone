@@ -24,7 +24,7 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
     public override async Task<Employee?> UpdateAsync(Employee entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        var existing = await _innerRepository.GetByIdAsync(entity.EmployeeId);
+        var existing = await _innerRepository.GetByIdNoTrackingAsync(entity.EmployeeId);
         var result = await base.UpdateAsync(entity);
         if (result != null)
         {
@@ -105,6 +105,11 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
         return entity;
     }
 
+    public async Task<Employee?> GetByIdNoTrackingAsync(int id)
+    {
+        return await _innerRepository.GetByIdNoTrackingAsync(id);
+    }
+
     private void InvalidateEmployeeCustomCache(Employee employee)
     {
         if (employee.DepartmentId.HasValue)
@@ -136,8 +141,17 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
 
 public class CachedLevelRepository : CachedBaseRepository<Level, string>, ILevelRepository
 {
+    private readonly ILevelRepository _innerRepository;
     public CachedLevelRepository(ILevelRepository innerRepository, IMemoryCache cache, TimeSpan cacheDuration)
-        : base(innerRepository, cache, cacheDuration) { }
+        : base(innerRepository, cache, cacheDuration) 
+    {
+        _innerRepository = innerRepository;
+    }
+
+    public async Task<Level?> GetByIdNoTrackingAsync(string id)
+    {
+        return await _innerRepository.GetByIdNoTrackingAsync(id);
+    }
 }
 
 public class CachedPositionRepository : CachedBaseRepository<Position, int>, IPositionRepository
@@ -160,7 +174,7 @@ public class CachedPositionRepository : CachedBaseRepository<Position, int>, IPo
     public override async Task<Position?> UpdateAsync(Position entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        var existing = await _innerRepository.GetByIdAsync(entity.PositionId);
+        var existing = await _innerRepository.GetByIdNoTrackingAsync(entity.PositionId);
         var result = await base.UpdateAsync(entity);
         if (result != null)
         {
@@ -193,6 +207,11 @@ public class CachedPositionRepository : CachedBaseRepository<Position, int>, IPo
             _cache.Set(key, entities, _cacheDuration);
         }
         return entities ?? new List<Position>();
+    }
+
+    public async Task<Position?> GetByIdNoTrackingAsync(int id)
+    {
+        return await _innerRepository.GetByIdNoTrackingAsync(id);
     }
 
     private void InvalidatePositionLevelCache(Position position)

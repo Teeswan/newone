@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EPMS.Domain.Entities;
+using Dapper;
 using EPMS.Domain.Interfaces;
 using EPMS.Infrastructure.Contexts;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System.Data;
 using static EPMS.Infrastructure.StoredProcedures;
 
 namespace EPMS.Infrastructure.Repositories;
@@ -12,10 +15,12 @@ namespace EPMS.Infrastructure.Repositories;
 public class TeamRepository : BaseRepository<Team, int>, ITeamRepository
 {
     private readonly ISqlRepository<Team, int> _sqlRepository;
+    private readonly string _connectionString;
 
-    public TeamRepository(AppDbContext context, ISqlRepository<Team, int> sqlRepository) : base(context)
+    public TeamRepository(AppDbContext context, ISqlRepository<Team, int> sqlRepository, IConfiguration configuration) : base(context)
     {
         _sqlRepository = sqlRepository;
+        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
     }
 
     public override async Task<IEnumerable<Team>> GetAllAsync()
@@ -32,5 +37,12 @@ public class TeamRepository : BaseRepository<Team, int>, ITeamRepository
         // that doesn't map directly to the Team entity.
         var parameters = new[] { new SqlParameter("@DepartmentId", departmentId) };
         return await _sqlRepository.FromSqlAsync(Teams_GetByDepartment, parameters);
+    }
+
+    public async Task<Team?> GetByIdNoTrackingAsync(int id)
+    {
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = "SELECT * FROM Teams WHERE TeamId = @Id AND IsDeleted = 0";
+        return await db.QueryFirstOrDefaultAsync<Team>(sql, new { Id = id });
     }
 }

@@ -97,7 +97,8 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
     {
         ArgumentNullException.ThrowIfNull(employeeCode);
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT TOP 1 * FROM Employees WHERE EmployeeCode = @EmployeeCode AND IsDeleted = 0";
+        // We check against ALL employees (including deleted ones) to prevent UNIQUE constraint violations
+        string sql = "SELECT TOP 1 * FROM Employees WHERE EmployeeCode = @EmployeeCode";
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { EmployeeCode = employeeCode });
     }
 
@@ -109,8 +110,25 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { Username = username });
     }
 
+    public async Task<Employee?> GetByIdNoTrackingAsync(int id)
+    {
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = "SELECT * FROM Employees WHERE EmployeeId = @Id AND IsDeleted = 0";
+        return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { Id = id });
+    }
+
 
     public override async Task<Employee?> GetByIdAsync(int id)
+    {
+        return await _dbSet
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .Include(e => e.ReportsToNavigation)
+            .Include(e => e.TeamsNavigation)
+            .FirstOrDefaultAsync(e => e.EmployeeId == id && !e.IsDeleted);
+    }
+
+    public override async Task<Employee?> GetByIdFromDbAsync(int id)
     {
         return await _dbSet
             .Include(e => e.Department)
@@ -149,7 +167,18 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
 public class LevelRepository : BaseRepository<Level, string>, ILevelRepository
 {
-    public LevelRepository(AppDbContext context) : base(context) { }
+    private readonly string _connectionString;
+    public LevelRepository(AppDbContext context, IConfiguration configuration) : base(context) 
+    {
+        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
+    }
+
+    public async Task<Level?> GetByIdNoTrackingAsync(string id)
+    {
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = "SELECT * FROM Levels WHERE LevelId = @Id";
+        return await db.QueryFirstOrDefaultAsync<Level>(sql, new { Id = id });
+    }
 }
 
 public class PositionRepository : BaseRepository<Position, int>, IPositionRepository
@@ -175,10 +204,23 @@ public class PositionRepository : BaseRepository<Position, int>, IPositionReposi
             .FirstOrDefaultAsync(p => p.PositionId == id);
     }
 
+    public override async Task<Position?> GetByIdFromDbAsync(int id)
+    {
+        return await _dbSet.Include(p => p.Level)
+            .FirstOrDefaultAsync(p => p.PositionId == id);
+    }
+
     public async Task<IEnumerable<Position>> GetPositionsByLevelAsync(string levelId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);
         string sql = "SELECT * FROM Positions WHERE LevelId = @LevelId";
         return await db.QueryAsync<Position>(sql, new { LevelId = levelId });
+    }
+
+    public async Task<Position?> GetByIdNoTrackingAsync(int id)
+    {
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = "SELECT * FROM Positions WHERE PositionId = @Id AND IsDeleted = 0";
+        return await db.QueryFirstOrDefaultAsync<Position>(sql, new { Id = id });
     }
 }

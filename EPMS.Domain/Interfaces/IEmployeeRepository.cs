@@ -8,4 +8,5 @@ public interface IEmployeeRepository : IBaseRepository<Employee, int>
     Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId);
     Task<Employee?> GetByCodeAsync(string employeeCode);
     Task<Employee?> GetByUsernameAsync(string username);
+    Task<Employee?> GetByIdNoTrackingAsync(int id);
 }

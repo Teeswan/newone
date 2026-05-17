@@ -1,4 +1,4 @@
-﻿﻿using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Net.Http.Headers;
@@ -21,12 +21,28 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
     {
         var token = await _localStorage.GetItemAsync<string>("authToken");
 
-        if (string.IsNullOrWhiteSpace(token))
+        if (string.IsNullOrWhiteSpace(token) || IsTokenExpired(token))
+        {
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                await _localStorage.RemoveItemAsync("authToken");
+            }
             return _anonymous;
+        }
 
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt", "name", "role");
         return new AuthenticationState(new ClaimsPrincipal(identity));
+    }
+
+    private bool IsTokenExpired(string token)
+    {
+        var claims = ParseClaimsFromJwt(token);
+        var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+        if (expClaim == null) return true;
+
+        var expTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim.Value));
+        return expTime <= DateTimeOffset.UtcNow;
     }
 
     public void NotifyUserAuthentication(string token)
