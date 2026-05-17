@@ -16,7 +16,6 @@ public class CreateEmployeeRequest
     public string? EmploymentStatus { get; set; }
     public string? NrcNumber { get; set; }
     public bool? IsActive { get; set; } = true;
-    public List<int> TeamIds { get; set; } = new();
 }
 
 public class UpdateEmployeeRequest : CreateEmployeeRequest

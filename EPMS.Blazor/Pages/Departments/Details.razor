@@ -5,47 +5,71 @@
 <PageTitle>Department Details</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Elevation="2" Class="pa-6">
-        <MudText Typo="Typo.h4" GutterBottom="true">Department Details</MudText>
-        <MudDivider Class="mb-6" />
+    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.Domain" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Department Details</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">View complete department information</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-8" />
 
         @if (department == null)
         {
-            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <div class="text-center py-10">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            </div>
         }
         else
         {
             <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle1" Class="text-grey">Department ID</MudText>
-                    <MudText Typo="Typo.body1">@department.DepartmentId</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle1" Class="text-grey">Name</MudText>
-                    <MudText Typo="Typo.body1">@department.DepartmentName</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle1" Class="text-grey">Parent Department</MudText>
-                    <MudText Typo="Typo.body1">@department.ParentDepartmentName</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle1" Class="text-grey">Active</MudText>
-                    <MudChip Color="@(department.IsActive ? Color.Success : Color.Error)" Size="Size.Small" T="bool">
-                        @(department.IsActive ? "Yes" : "No")
-                    </MudChip>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
+                        <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-primary">
+                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                            Basic Information
+                        </MudText>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Department ID</MudText>
+                                <MudChip Color="Color.Primary" Size="Size.Medium" T="int">@department.DepartmentId</MudChip>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Name</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-bold">@department.DepartmentName</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Parent Department</MudText>
+                                <MudText Typo="Typo.body1">@department.ParentDepartmentName</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Status</MudText>
+                                <MudChip Color="@(department.IsActive ? Color.Success : Color.Error)" Size="Size.Medium" T="bool" Icon="@(department.IsActive ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)">
+                                    @(department.IsActive ? "Active" : "Inactive")
+                                </MudChip>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
                 </MudItem>
             </MudGrid>
         }
 
-        <MudDivider Class="my-6" />
+        <MudDivider Class="my-8" />
 
         <MudButtonGroup>
-            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
-                Edit
-            </MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
-                Back to List
-            </MudButton>
+            <MudTooltip Text="Edit this department" Arrow="true">
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
+                    Edit Department
+                </MudButton>
+            </MudTooltip>
+            <MudTooltip Text="Go back to departments list" Arrow="true">
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to List
+                </MudButton>
+            </MudTooltip>
         </MudButtonGroup>
     </MudPaper>
 </MudContainer>

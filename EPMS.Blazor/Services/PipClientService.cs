@@ -1,4 +1,4 @@
-using EPMS.Domain.SpResults;
+﻿using EPMS.Domain.SpResults;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 using EPMS.Shared.Responses;
@@ -25,99 +25,54 @@ namespace EPMS.Blazor.Services
         public async Task<ApiResponse<PipPlanDto>?> CreatePipAsync(CreatePipPlanRequest request)
         {
             var response = await _http.PostAsJsonAsync(Base, request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<PipPlanDto>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<PipPlanDto>>();
         }
 
         public async Task<ApiResponse<PipPlanDto>?> UpdatePipAsync(UpdatePipPlanRequest request)
         {
             var response = await _http.PutAsJsonAsync(Base, request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<PipPlanDto>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<PipPlanDto>>();
         }
 
         public async Task<ApiResponse<bool>?> DeletePipAsync(int pipId)
         {
             var response = await _http.DeleteAsync($"{Base}/{pipId}");
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<bool>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         }
 
         public async Task<ApiResponse<PipObjectiveDto>?> AddObjectiveAsync(CreatePipObjectiveRequest request)
         {
             var response = await _http.PostAsJsonAsync($"{Base}/objectives", request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<PipObjectiveDto>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<PipObjectiveDto>>();
         }
 
         public async Task<ApiResponse<PipObjectiveDto>?> UpdateObjectiveAsync(UpdatePipObjectiveRequest request)
         {
             var response = await _http.PutAsJsonAsync($"{Base}/objectives", request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<PipObjectiveDto>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<PipObjectiveDto>>();
         }
 
         public async Task<ApiResponse<bool>?> DeleteObjectiveAsync(int objectiveId)
         {
             var response = await _http.DeleteAsync($"{Base}/objectives/{objectiveId}");
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<bool>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         }
 
         public async Task<ApiResponse<PipMeetingDto>?> AddMeetingAsync(CreatePipMeetingRequest request)
         {
             var response = await _http.PostAsJsonAsync($"{Base}/meetings", request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<PipMeetingDto>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<PipMeetingDto>>();
         }
 
         public async Task<ApiResponse<PipMeetingDto>?> UpdateMeetingAsync(UpdatePipMeetingRequest request)
         {
             var response = await _http.PutAsJsonAsync($"{Base}/meetings", request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<PipMeetingDto>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<PipMeetingDto>>();
         }
 
         public async Task<ApiResponse<bool>?> DeleteMeetingAsync(int meetingId)
         {
             var response = await _http.DeleteAsync($"{Base}/meetings/{meetingId}");
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return ApiResponse<bool>.Fail($"HTTP Error: {response.StatusCode} - {errorContent}", new List<string> { errorContent });
-            }
             return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         }
 

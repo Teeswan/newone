@@ -326,14 +326,13 @@ public class ExcelPdfService : IExcelPdfService
         ws.Cell(1, 2).Value = "FullName";
         ws.Cell(1, 3).Value = "Email";
         ws.Cell(1, 4).Value = "Phone";
-        ws.Cell(1, 5).Value = "Department";
-        ws.Cell(1, 6).Value = "Team";
-        ws.Cell(1, 7).Value = "Position";
-        ws.Cell(1, 8).Value = "ReportsTo";
-        ws.Cell(1, 9).Value = "JoinDate";
-        ws.Cell(1, 10).Value = "EmploymentStatus";
-        ws.Cell(1, 11).Value = "IsActive";
-        StyleHeaderRow(ws, 11);
+        ws.Cell(1, 5).Value = "DepartmentId";
+        ws.Cell(1, 6).Value = "PositionId";
+        ws.Cell(1, 7).Value = "ReportsTo";
+        ws.Cell(1, 8).Value = "JoinDate";
+        ws.Cell(1, 9).Value = "EmploymentStatus";
+        ws.Cell(1, 10).Value = "IsActive";
+        StyleHeaderRow(ws, 10);
 
         int row = 2;
         foreach (var item in data)
@@ -342,13 +341,12 @@ public class ExcelPdfService : IExcelPdfService
             ws.Cell(row, 2).Value = item.FullName;
             ws.Cell(row, 3).Value = item.Email ?? "";
             ws.Cell(row, 4).Value = item.Phone ?? "";
-            ws.Cell(row, 5).Value = item.DepartmentName ?? "";
-            ws.Cell(row, 6).Value = item.TeamNames ?? "";
-            ws.Cell(row, 7).Value = item.PositionTitle ?? "";
-            ws.Cell(row, 8).Value = item.ManagerName ?? "No Manager";
-            ws.Cell(row, 9).Value = item.JoinDate?.ToString("yyyy-MM-dd") ?? "";
-            ws.Cell(row, 10).Value = item.EmploymentStatus ?? "";
-            ws.Cell(row, 11).Value = (item.IsActive ?? true) ? "Yes" : "No";
+            ws.Cell(row, 5).Value = item.DepartmentId ?? 0;
+            ws.Cell(row, 6).Value = item.PositionId ?? 0;
+            ws.Cell(row, 7).Value = item.ReportsTo ?? 0;
+            ws.Cell(row, 8).Value = item.JoinDate?.ToString("yyyy-MM-dd") ?? "";
+            ws.Cell(row, 9).Value = item.EmploymentStatus ?? "";
+            ws.Cell(row, 10).Value = (item.IsActive ?? true) ? "Yes" : "No";
             row++;
         }
 
@@ -895,12 +893,13 @@ public class ExcelPdfService : IExcelPdfService
     {
         var data = (await _employeeService.GetAllAsync()).ToList();
         return GeneratePdf("Employees Report", 
-            new[] { "Code", "Full Name", "Dept", "Team", "Position", "Join Date", "Status" },
+            new[] { "Code", "Full Name", "Email", "Phone", "Dept", "Pos", "Join Date", "Status" },
             data.Select(i => new[] { 
                 i.EmployeeCode, 
                 i.FullName, 
+                i.Email ?? "", 
+                i.Phone ?? "", 
                 i.DepartmentName ?? "", 
-                i.TeamNames ?? "",
                 i.PositionTitle ?? "", 
                 i.JoinDate?.ToString("yyyy-MM-dd") ?? "", 
                 (i.IsActive ?? true) ? "Active" : "Inactive" 

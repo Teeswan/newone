@@ -12,7 +12,6 @@ public class EmployeeDto
     public string? PositionTitle { get; set; }
     public int? ReportsTo { get; set; }
     public string? ManagerName { get; set; }
-    public string? TeamNames { get; set; }
     public bool? IsActive { get; set; }
     public string? Phone { get; set; }
     public DateTime? JoinDate { get; set; }
@@ -23,7 +22,6 @@ public class EmployeeDetailDto : EmployeeDto
 {
     public decimal? CurrentSalary { get; set; }
     public string? NrcNumber { get; set; }
-    public List<int> TeamIds { get; set; } = new();
     public bool? PromotionEligibility { get; set; }
     public DateTime? LastPromotionDate { get; set; }
     public string? Gender { get; set; }

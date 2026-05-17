@@ -119,7 +119,6 @@ CREATE OR ALTER PROCEDURE sp_PerformanceOutcomes_Delete
     @OutcomeID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM PerformanceOutcomes WHERE OutcomeID = @OutcomeID;
 END
 GO

@@ -81,7 +81,7 @@
     {
         selectedFile = e.File;
         errorMessage = string.Empty;
-        Snackbar.Add($"File selected: {selectedFile.Name}", Severity.Info);
+        Snackbar.Add($"File selected: {selectedFile.Name}", Severity.Info, config => { config.Icon = Icons.Material.Filled.Description; });
     }
 
     private async Task Import()
@@ -96,15 +96,16 @@
         errorMessage = string.Empty;
         try
         {
-            Snackbar.Add("Starting import...", Severity.Info);
+            Snackbar.Add("Starting import...", Severity.Info, config => { config.Icon = Icons.Material.Filled.UploadFile; });
             using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
             var count = await TeamService.ImportFromExcelAsync(stream, skipFirstRow, string.Empty, skipExisting);
-            Snackbar.Add($"Successfully imported {count} teams!", Severity.Success);
+            Snackbar.Add($"Successfully imported {count} teams!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
         finally
         {

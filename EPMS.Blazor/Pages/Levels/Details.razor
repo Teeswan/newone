@@ -5,59 +5,84 @@
 
 <PageTitle>Level Details</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Elevation="3" Class="pa-6">
-        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
-            <MudItem>
-                <MudText Typo="Typo.h4">Level Details</MudText>
-            </MudItem>
-            <MudItem>
-                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">
-                    Back to List
-                </MudButton>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <div class="d-flex align-center mb-4">
+        <MudTooltip Text="Go back to levels list" Arrow="true">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="NavigateBack" Class="mr-2" />
+        </MudTooltip>
+        <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1A56DB;">Level Details</MudText>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex flex-column justify-center my-10 align-center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading level details...</MudText>
+        </div>
+    }
+    else if (level == null)
+    {
+        <MudAlert Severity="Severity.Error" Class="ma-4" Icon="@Icons.Material.Filled.ErrorOutline">
+            Level not found.
+        </MudAlert>
+    }
+    else
+    {
+        <MudGrid Spacing="4">
+            <MudItem xs="12" md="12">
+                <MudPaper Elevation="4" Class="pa-6" Rounded="true">
+                    <div class="d-flex align-center mb-6">
+                        <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" />
+                        </MudAvatar>
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold mb-0">Level Info</MudText>
+                        </div>
+                    </div>
+                    
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Class="pa-3 mb-3" Elevation="0" Rounded="true">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Level ID</MudText>
+                                <MudChip T="string" Size="Size.Medium" Color="Color.Primary">@level.LevelId</MudChip>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Class="pa-3 mb-3" Elevation="0" Rounded="true">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Level Name</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-bold">@level.LevelName</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudPaper Class="pa-3" Elevation="0" Rounded="true">
+                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Description</MudText>
+                                @if (!string.IsNullOrEmpty(level.LevelDescription))
+                                {
+                                    <MudText Typo="Typo.body1">@level.LevelDescription</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.body1" Class="text-grey">No description</MudText>
+                                }
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-6" />
+
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudTooltip Text="Edit this level" Arrow="true">
+                                <MudButton Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit" Style="width: 100%;">
+                                    Edit Level
+                                </MudButton>
+                            </MudTooltip>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
             </MudItem>
         </MudGrid>
-
-        @if (isLoading)
-        {
-            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center" />
-        }
-        else if (level == null)
-        {
-            <MudAlert Severity="Severity.Error">Level not found.</MudAlert>
-        }
-        else
-        {
-            <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudPaper Class="pa-4" Elevation="0" Style="background-color: var(--mud-palette-surface);">
-                        <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Level ID</MudText>
-                        <MudText Typo="Typo.body1">@level.LevelId</MudText>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudPaper Class="pa-4" Elevation="0" Style="background-color: var(--mud-palette-surface);">
-                        <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Level Name</MudText>
-                        <MudText Typo="Typo.body1">@level.LevelName</MudText>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Class="pa-4" Elevation="0" Style="background-color: var(--mud-palette-surface);">
-                        <MudText Typo="Typo.subtitle2" Class="text-grey-darken-1 mb-1">Description</MudText>
-                        <MudText Typo="Typo.body1">@level.LevelDescription</MudText>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
-
-            <MudDivider Class="my-6" />
-
-            <MudButtonGroup>
-                <MudButton Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
-                    Edit Level
-                </MudButton>
-            </MudButtonGroup>
-        }
-    </MudPaper>
+    }
 </MudContainer>
 
 @code {
@@ -81,7 +106,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading level: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error loading level: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
         finally
         {

@@ -46,7 +46,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     INSERT INTO AppraisalResponses (EvalID, QuestionID, RespondentID, RespondentEmployeeID, RespondentRole, AnswerText, RatingValue, IsAnonymous)
-    VALUES (@EvalID, @QuestionID, @RespondentID, @RespondentEmployeeID, @RespondentRole, @AnswerText, @RatingValue, @IsAnonymous);
+    VALUES (@EvalID, @QuestionID, @RespondentID, @RespondentEmployeeID, @RespondentRole, @AnswerText, @RatingValue, ISNULL(@IsAnonymous, 0));
 
     SELECT ResponseID, EvalID, QuestionID, RespondentID, RespondentEmployeeID, RespondentRole, AnswerText, RatingValue, IsAnonymous
     FROM AppraisalResponses
@@ -75,7 +75,7 @@ BEGIN
         RespondentRole = @RespondentRole,
         AnswerText = @AnswerText,
         RatingValue = @RatingValue,
-        IsAnonymous = @IsAnonymous
+        IsAnonymous = ISNULL(@IsAnonymous, IsAnonymous)
     WHERE ResponseID = @ResponseID;
 
     SELECT ResponseID, EvalID, QuestionID, RespondentID, RespondentEmployeeID, RespondentRole, AnswerText, RatingValue, IsAnonymous
@@ -88,7 +88,6 @@ CREATE OR ALTER PROCEDURE sp_AppraisalResponses_Delete
     @ResponseID BIGINT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM AppraisalResponses WHERE ResponseID = @ResponseID;
 END
 GO

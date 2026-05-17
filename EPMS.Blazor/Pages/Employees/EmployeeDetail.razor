@@ -7,7 +7,9 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     @* Header with Back Button *@
     <div class="d-flex align-center mb-4">
-        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="mr-2" />
+        <MudTooltip Text="Go back to employees list" Arrow="true">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="mr-2" />
+        </MudTooltip>
         <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1A56DB;">Employee Profile</MudText>
     </div>
 

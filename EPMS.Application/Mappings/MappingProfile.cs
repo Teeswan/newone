@@ -69,17 +69,12 @@ public class MappingProfile : Profile
 
         // Employee & Personnel Mappings
         CreateMap<Employee, EmployeeDto>()
-            .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
-            .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.PositionId))
-            .ForMember(dest => dest.ReportsTo, opt => opt.MapFrom(src => src.ReportsTo))
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.PositionTitle, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : null))
-            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null))
-            .ForMember(dest => dest.TeamNames, opt => opt.MapFrom(src => src.TeamNames));
+            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null));
         
         CreateMap<Employee, EmployeeDetailDto>()
-            .IncludeBase<Employee, EmployeeDto>()
-            .ForMember(dest => dest.TeamIds, opt => opt.MapFrom(src => src.TeamsNavigation.Select(t => t.TeamId).ToList()));
+            .IncludeBase<Employee, EmployeeDto>();
         
         CreateMap<CreateEmployeeRequest, Employee>();
         CreateMap<UpdateEmployeeRequest, Employee>();
@@ -147,9 +142,7 @@ public class MappingProfile : Profile
                 o => o.MapFrom(s => s.Manager != null
                     ? s.Manager.FullName : string.Empty))
             .ForMember(d => d.CreatedAt,
-                o => o.MapFrom(s => s.CreatedAt ?? DateTime.MinValue))
-            .ForMember(d => d.Objectives, o => o.MapFrom(s => s.PipObjectives))
-            .ForMember(d => d.Meetings, o => o.MapFrom(s => s.PipMeetings));
+                o => o.MapFrom(s => s.CreatedAt ?? DateTime.MinValue));
 
         CreateMap<PipObjective, PipObjectiveDto>()
             .ForMember(d => d.PipId, o => o.MapFrom(s => s.Pipid ?? 0))

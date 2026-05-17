@@ -1,7 +1,6 @@
 using EPMS.Application.DependencyInjection;
 using EPMS.Infrastructure;
 using EPMS.Infrastructure.DependencyInjection;
-using EPMS.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -15,10 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
-        policy.SetIsOriginAllowed(origin => true) // Allow any origin for local dev
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials());
+              .AllowAnyHeader());
 });
 
 
@@ -93,16 +91,14 @@ builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
-// Enable CORS early in the pipeline
-app.UseCors("AllowBlazor");
-
-app.UseMiddleware<GlobalExceptionMiddleware>();
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// 2. Enable the Policy (Order matters: Place before MapControllers)
+app.UseCors("AllowBlazor");
 
 // app.UseHttpsRedirection();
 app.UseAuthentication();

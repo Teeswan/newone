@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Enums;
-using EPMS.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace EPMS.Infrastructure.Contexts;
@@ -205,8 +204,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.ReportsToNavigation).WithMany(p => p.InverseReportsToNavigation)
                 .HasForeignKey(d => d.ReportsTo)
                 .HasConstraintName("FK__Employees__Repor__4222D4EF");
-
-            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<EmployeeInfo>(entity =>
@@ -265,7 +262,6 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("LevelID");
             entity.Property(e => e.LevelName).HasMaxLength(100);
-            entity.Property(e => e.LevelDescription).HasMaxLength(500);
         });
 
         modelBuilder.Entity<MeetingNote>(entity =>

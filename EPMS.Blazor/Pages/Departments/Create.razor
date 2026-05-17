@@ -6,47 +6,74 @@
 <PageTitle>Create Department</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Elevation="2" Class="pa-6">
-        <MudText Typo="Typo.h4" GutterBottom="true">Create Department</MudText>
-        <MudDivider Class="mb-6" />
+    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.AddBusiness" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Create Department</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">Add a new department to your organization</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-8" />
 
         <EditForm Model="department" OnValidSubmit="HandleValidSubmit">
-            <MudGrid>
-                <MudItem xs="12" md="6">
-                    <MudTextField 
-                        @bind-Value="department.DepartmentName" 
-                        Label="Department Name" 
-                        Required="true"
-                        Variant="Variant.Outlined"
-                        Style="width: 100%" />
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudSelect 
-                        @bind-Value="department.ParentDepartmentId" 
-                        Label="Parent Department"
-                        Variant="Variant.Outlined"
-                        Style="width: 100%"
-                        T="int?">
-                        @if (allDepartments != null)
-                        {
-                            @foreach (var dept in allDepartments)
+            <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
+                <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-primary">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                    Department Information
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField 
+                            @bind-Value="department.DepartmentName" 
+                            Label="Department Name" 
+                            Required="true"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Business" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudSelect 
+                            @bind-Value="department.ParentDepartmentId" 
+                            Label="Parent Department"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            T="int?"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.AccountTree">
+                            @if (allDepartments != null)
                             {
-                                <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                @foreach (var dept in allDepartments)
+                                {
+                                    <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                                }
                             }
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudCheckBox @bind-Value="department.IsActive" Label="Is Active" Color="Color.Primary" />
-                </MudItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudCheckBox @bind-Value="department.IsActive" Label="Is Active" Color="Color.Primary" Size="Size.Medium" Icon="@Icons.Material.Filled.CheckCircle" UncheckedIcon="@Icons.Material.Filled.Cancel" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudGrid>
                 <MudItem xs="12" Class="pt-4">
                     <MudButtonGroup>
-                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
-                            Create
-                        </MudButton>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
-                            Cancel
-                        </MudButton>
+                        <MudTooltip Text="Save and create this department" Arrow="true">
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save">
+                                Create Department
+                            </MudButton>
+                        </MudTooltip>
+                        <MudTooltip Text="Cancel and go back to list" Arrow="true">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel" StartIcon="@Icons.Material.Filled.ArrowBack">
+                                Cancel
+                            </MudButton>
+                        </MudTooltip>
                     </MudButtonGroup>
                 </MudItem>
             </MudGrid>
@@ -68,12 +95,12 @@
         try
         {
             await DepartmentService.CreateDepartmentAsync(department);
-            Snackbar.Add("Department created successfully!", Severity.Success);
+            Snackbar.Add("Department created successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
             NavigationManager.NavigateTo("/departments");
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error creating department: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error creating department: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 

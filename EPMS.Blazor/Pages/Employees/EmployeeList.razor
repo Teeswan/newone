@@ -1,4 +1,4 @@
-@page "/employees"
+﻿@page "/employees"
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 @using EPMS.Blazor.Services
@@ -12,40 +12,107 @@
 
 <MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
     <MudCardContent>
+
+        @* Statistics Cards *@
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Primary" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">Total Employees</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count(e => e.IsActive ?? false) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">Active Employees</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Large" Color="Color.Error" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count(e => !(e.IsActive ?? false)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">Inactive Employees</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.SupervisorAccount" Size="Size.Large" Color="Color.Warning" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count(e => !string.IsNullOrEmpty(e.ManagerName)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">With Manager</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
         @* Toolbar: Search and Actions *@
         <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
             <MudTextField @bind-Value="searchString" Placeholder="Search employees..."
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;" />
+                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;"
+                          Clearable="true" />
 
             <div class="d-flex gap-2">
                 <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
                     <ActivatorContent>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                                   StartIcon="@Icons.Material.Filled.FileUpload">
-                            Import Excel
-                        </MudButton>
+                        <MudTooltip Text="Import employees from Excel" Arrow="true">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                       StartIcon="@Icons.Material.Filled.FileUpload">
+                                Import Excel
+                            </MudButton>
+                        </MudTooltip>
                     </ActivatorContent>
                 </MudFileUpload>
 
                 <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
-                    <MudMenuItem OnClick="ExportExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
-                    <MudMenuItem OnClick="ExportPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
+                    <MudTooltip Text="Export employees to Excel" Arrow="true">
+                        <MudMenuItem OnClick="ExportExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
+                    </MudTooltip>
+                    <MudTooltip Text="Export employees to PDF" Arrow="true">
+                        <MudMenuItem OnClick="ExportPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
+                    </MudTooltip>
                 </MudMenu>
 
-                <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Add"
-                           OnClick="OpenAddDialog"
-                           Style="background-color: #1A56DB; font-weight: 600;">
-                    Add Employee
-                </MudButton>
+                <MudTooltip Text="Refresh employee list" Arrow="true">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="RefreshEmployees">
+                        Refresh
+                    </MudButton>
+                </MudTooltip>
+
+                <MudTooltip Text="Add a new employee" Arrow="true">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="OpenAddDialog"
+                               Style="background-color: #1A56DB; font-weight: 600;">
+                        Add Employee
+                    </MudButton>
+                </MudTooltip>
             </div>
         </div>
 
         @if (Employees == null)
         {
-            <div class="d-flex justify-center my-4">
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <div class="d-flex flex-column justify-center my-10 align-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading employees...</MudText>
             </div>
         }
         else
@@ -55,8 +122,6 @@
                 <HeaderContent>
                     <MudTh Style="font-weight: 600;">Code</MudTh>
                     <MudTh Style="font-weight: 600;">Full Name</MudTh>
-                    <MudTh Style="font-weight: 600;">Department</MudTh>
-                    <MudTh Style="font-weight: 600;">Team</MudTh>
                     <MudTh Style="font-weight: 600;">Position</MudTh>
                     <MudTh Style="font-weight: 600; text-align: center;">Reports To</MudTh>
                     <MudTh Style="font-weight: 600; text-align: center;">Status</MudTh>
@@ -65,20 +130,6 @@
                 <RowTemplate>
                     <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
                     <MudTd DataLabel="Full Name">@context.FullName</MudTd>
-                    <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
-                    <MudTd DataLabel="Team">
-                        @if (!string.IsNullOrEmpty(context.TeamNames))
-                        {
-                            @foreach (var team in context.TeamNames.Split(", "))
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Class="mr-1">@team</MudChip>
-                            }
-                        }
-                        else
-                        {
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">No Team</MudText>
-                        }
-                    </MudTd>
                     <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
                     <MudTd DataLabel="Reports To" Style="text-align: center;">
                         <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
@@ -96,12 +147,23 @@
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            <MudMenuItem Icon="@Icons.Material.Filled.Visibility" IconColor="Color.Info" OnClick="@(() => ViewDetails(context.EmployeeId))">View Details</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Filled.Edit" IconColor="Color.Warning" OnClick="@(() => OpenEditDialog(context))">Edit Employee</MudMenuItem>
-                            <MudDivider DividerType="DividerType.FullWidth" Class="my-1" />
-                            <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(() => DeleteEmployee(context))">Delete Employee</MudMenuItem>
-                        </MudMenu>
+                        @* View Details *@
+                        <MudTooltip Text="View employee details" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info"
+                                           Size="Size.Small" OnClick="@(() => ViewDetails(context.EmployeeId))" />
+                        </MudTooltip>
+
+                        @* Edit *@
+                        <MudTooltip Text="Edit employee" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
+                                           Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                        </MudTooltip>
+
+                        @* Delete *@
+                        <MudTooltip Text="Delete employee" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                           Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                        </MudTooltip>
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -127,6 +189,12 @@
         StateHasChanged();
     }
 
+    private async Task RefreshEmployees()
+    {
+        await LoadEmployees();
+        Snackbar.Add("Employee list refreshed!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+    }
+
     // 1. Create Logic (Open Dialog)
     private async Task OpenAddDialog()
     {
@@ -141,13 +209,13 @@
                 var success = await EmployeeService.CreateEmployeeAsync(request);
                 if (success)
                 {
-                    Snackbar.Add("Employee created successfully!", Severity.Success);
+                    Snackbar.Add("Employee created successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
                     await LoadEmployees();
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add(ex.Message, Severity.Error);
+                Snackbar.Add(ex.Message, Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             }
         }
     }
@@ -163,43 +231,29 @@
 
         if (!result.Canceled && result.Data is UpdateEmployeeRequest request)
         {
-            try
+            var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
+            if (success)
             {
-                var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
-                if (success)
-                {
-                    Snackbar.Add("Employee updated successfully!", Severity.Success);
-                    await LoadEmployees();
-                }
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Update failed: {ex.Message}", Severity.Error);
+                Snackbar.Add("Employee updated successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                await LoadEmployees();
             }
         }
     }
 
     // 3. Delete Logic (Confirmation)
-    private async Task DeleteEmployee(EmployeeDto employee)
+    private async Task DeleteEmployee(int id)
     {
         bool? confirm = await DialogService.ShowMessageBox("Warning",
-            $"Are you sure you want to delete {employee.FullName}? This will hide the employee from all active lists.",
+            "Are you sure you want to delete this employee? This action cannot be undone.",
             yesText: "Delete", cancelText: "Cancel");
 
         if (confirm == true)
         {
-            try
+            var success = await EmployeeService.DeleteEmployeeAsync(id);
+            if (success)
             {
-                var success = await EmployeeService.DeleteEmployeeAsync(employee.EmployeeId);
-                if (success)
-                {
-                    Snackbar.Add("Employee deleted successfully!", Severity.Info);
-                    await LoadEmployees();
-                }
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error);
+                Snackbar.Add("Employee deleted!", Severity.Info, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                await LoadEmployees();
             }
         }
     }
@@ -212,11 +266,11 @@
         {
             var bytes = await EmployeeService.ExportToExcelAsync();
             await JSRuntime.InvokeVoidAsync("saveAsFile", "Employees.xlsx", Convert.ToBase64String(bytes));
-            Snackbar.Add("Excel exported successfully!", Severity.Success);
+            Snackbar.Add("Excel exported successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 
@@ -226,11 +280,11 @@
         {
             var bytes = await EmployeeService.ExportToPdfAsync();
             await JSRuntime.InvokeVoidAsync("saveAsFile", "Employees.pdf", Convert.ToBase64String(bytes));
-            Snackbar.Add("PDF exported successfully!", Severity.Success);
+            Snackbar.Add("PDF exported successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 
@@ -240,18 +294,19 @@
 
         try
         {
+            Snackbar.Add("Starting import...", Severity.Info, config => { config.Icon = Icons.Material.Filled.UploadFile; });
             using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
             ms.Position = 0;
 
             var count = await EmployeeService.ImportFromExcelAsync(ms, file.Name);
-            Snackbar.Add($"Successfully imported {count} employees!", Severity.Success);
+            Snackbar.Add($"Successfully imported {count} employees!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
             await LoadEmployees();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 
@@ -266,8 +321,6 @@
         
         if (!string.IsNullOrEmpty(element.ManagerName) && element.ManagerName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         if (!string.IsNullOrEmpty(element.PositionTitle) && element.PositionTitle.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
-        if (!string.IsNullOrEmpty(element.DepartmentName) && element.DepartmentName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
-        if (!string.IsNullOrEmpty(element.TeamNames) && element.TeamNames.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         
         return false;
     }

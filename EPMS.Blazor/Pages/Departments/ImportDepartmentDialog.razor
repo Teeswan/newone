@@ -4,43 +4,46 @@
 
 <MudDialog>
     <DialogContent>
-        <div class="d-flex flex-column align-center mb-4">
-            <MudIcon Icon="@Icons.Material.Filled.UploadFile" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
-            <MudText Typo="Typo.h5">Import Departments from Excel</MudText>
+        <div class="d-flex flex-column align-center mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.UploadFile" Size="Size.Large" Color="Color.Primary" Class="mb-3" />
+            <MudText Typo="Typo.h5" Class="fw-bold">Import Departments from Excel</MudText>
+            <MudText Typo="Typo.body2" Class="text-grey">Select an Excel file to import departments</MudText>
         </div>
         
         @if (!string.IsNullOrWhiteSpace(errorMessage))
         {
-            <MudAlert Severity="Severity.Error" Class="mb-4" Variant="Variant.Filled" Dense="true">@errorMessage</MudAlert>
+            <MudAlert Severity="Severity.Error" Class="mb-6" Variant="Variant.Filled" Dense="true" Icon="@Icons.Material.Filled.ErrorOutline" Closable="true">
+                @errorMessage
+            </MudAlert>
         }
         
-        <div class="mb-4">
+        <div class="mb-6">
             <InputFile OnChange="HandleFileSelected" Accept=".xlsx,.xls" class="w-100" />
         </div>
         
         @if (selectedFile != null)
         {
-            <MudPaper Class="mb-4 p-3" Elevation="2">
+            <MudPaper Class="mb-6 p-4" Elevation="2" Rounded="true">
                 <div class="d-flex align-center gap-3">
-                    <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Medium" Color="Color.Primary" />
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Large" Color="Color.Primary" />
                     <div class="flex-grow-1">
-                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@selectedFile.Name</MudText>
-                        <MudText Typo="Typo.caption" Class="text-secondary">@FormatFileSize(selectedFile.Size)</MudText>
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">@selectedFile.Name</MudText>
+                        <MudText Typo="Typo.body2" Class="text-grey">@FormatFileSize(selectedFile.Size)</MudText>
                     </div>
                 </div>
             </MudPaper>
             
-            <div class="mb-2">
-                <MudCheckBox @bind-Value="skipFirstRow" Label="Skip first row (header)" Color="Color.Primary" />
+            <div class="mb-3">
+                <MudCheckBox @bind-Value="skipFirstRow" Label="Skip first row (header)" Color="Color.Primary" Size="Size.Medium" />
             </div>
-            <div class="mb-2">
-                <MudCheckBox @bind-Value="skipExisting" Label="Skip existing items (avoid duplicates)" Color="Color.Primary" />
+            <div class="mb-3">
+                <MudCheckBox @bind-Value="skipExisting" Label="Skip existing items (avoid duplicates)" Color="Color.Primary" Size="Size.Medium" />
             </div>
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="importing" Variant="Variant.Text">Cancel</MudButton>
-        <MudButton OnClick="Import" Color="Color.Primary" Disabled="selectedFile == null || importing" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Upload">
+        <MudButton OnClick="Cancel" Disabled="importing" Variant="Variant.Text" Size="Size.Large">Cancel</MudButton>
+        <MudButton OnClick="Import" Color="Color.Primary" Disabled="selectedFile == null || importing" Variant="Variant.Filled" Size="Size.Large" StartIcon="@Icons.Material.Filled.Upload">
             @if (importing)
             {
                 <MudProgressCircular Size="Size.Small" Color="Color.Inherit" />
@@ -81,7 +84,7 @@
     {
         selectedFile = e.File;
         errorMessage = string.Empty;
-        Snackbar.Add($"File selected: {selectedFile.Name}", Severity.Info);
+        Snackbar.Add($"File selected: {selectedFile.Name}", Severity.Info, config => { config.Icon = Icons.Material.Filled.Info; });
     }
 
     private async Task Import()
@@ -96,10 +99,10 @@
         errorMessage = string.Empty;
         try
         {
-            Snackbar.Add("Starting import...", Severity.Info);
-            using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            Snackbar.Add("Starting import...", Severity.Info, config => { config.Icon = Icons.Material.Filled.Info; });
+            using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
             var count = await DepartmentService.ImportFromExcelAsync(stream, skipFirstRow, string.Empty, skipExisting);
-            Snackbar.Add($"Successfully imported {count} departments!", Severity.Success);
+            Snackbar.Add($"Successfully imported {count} departments!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)

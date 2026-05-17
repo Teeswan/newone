@@ -36,21 +36,18 @@ public class MeetingService : IMeetingService
         {
             var calculatedEndTime = currentStartTime.AddMinutes(request.DurationMinutes);
 
-            if (!request.IsAdHoc)
-            {
-                var conflicts = existingMeetings.Where(m =>
-                    m.ScheduledDateTime.HasValue &&
-                    currentStartTime < m.ScheduledDateTime.Value.AddMinutes(_settings.StandardMeetingDurationMinutes) &&
-                    calculatedEndTime > m.ScheduledDateTime.Value).ToList();
+            var conflicts = existingMeetings.Where(m =>
+                m.ScheduledDateTime.HasValue &&
+                currentStartTime < m.ScheduledDateTime.Value.AddMinutes(_settings.StandardMeetingDurationMinutes) &&
+                calculatedEndTime > m.ScheduledDateTime.Value).ToList();
 
-                if (conflicts.Any())
-                {
-                    var conflictDtos = _mapper.Map<IEnumerable<MeetingDto>>(conflicts, opt => {
-                        opt.Items["StandardDuration"] = _settings.StandardMeetingDurationMinutes;
-                        opt.Items["JoinBufferMinutes"] = _settings.JoinBufferMinutes;
-                    });
-                    throw new MeetingConflictException($"Conflict detected for Employee {employeeId} at {currentStartTime}.", conflictDtos);
-                }
+            if (conflicts.Any())
+            {
+                var conflictDtos = _mapper.Map<IEnumerable<MeetingDto>>(conflicts, opt => {
+                    opt.Items["StandardDuration"] = _settings.StandardMeetingDurationMinutes;
+                    opt.Items["JoinBufferMinutes"] = _settings.JoinBufferMinutes;
+                });
+                throw new MeetingConflictException($"Conflict detected for Employee {employeeId} at {currentStartTime}.", conflictDtos);
             }
 
             var meeting = new OneOnOneMeeting

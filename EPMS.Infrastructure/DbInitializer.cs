@@ -20,34 +20,29 @@ public static class DbInitializer
             return;
         }
 
-        var sqlScriptsPath = string.Empty;
-        var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+        var sqlScriptsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "EPMS.Infrastructure", "SqlScripts");
         
-        // Search for EPMS.Infrastructure/SqlScripts in parent directories
-        var dir = new DirectoryInfo(currentDir);
-        while (dir != null)
+        if (!Directory.Exists(sqlScriptsPath))
         {
-            var potentialPath = Path.Combine(dir.FullName, "EPMS.Infrastructure", "SqlScripts");
-            if (Directory.Exists(potentialPath))
-            {
-                sqlScriptsPath = potentialPath;
-                break;
-            }
-            
-            // Also check for a sibling directory if we're in a project folder
-            potentialPath = Path.Combine(dir.FullName, "..", "EPMS.Infrastructure", "SqlScripts");
-            if (Directory.Exists(potentialPath))
-            {
-                sqlScriptsPath = Path.GetFullPath(potentialPath);
-                break;
-            }
-            
-            dir = dir.Parent;
+            sqlScriptsPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "EPMS.Infrastructure", "SqlScripts");
         }
 
-        if (string.IsNullOrEmpty(sqlScriptsPath) || !Directory.Exists(sqlScriptsPath))
+        if (!Directory.Exists(sqlScriptsPath))
         {
-            Console.WriteLine("SQL Scripts directory not found!");
+             var current = Directory.GetCurrentDirectory();
+             while (current != null && !Directory.Exists(Path.Combine(current, "EPMS.Infrastructure", "SqlScripts")))
+             {
+                 current = Directory.GetParent(current)?.FullName;
+             }
+             if (current != null)
+             {
+                 sqlScriptsPath = Path.Combine(current, "EPMS.Infrastructure", "SqlScripts");
+             }
+        }
+
+        if (!Directory.Exists(sqlScriptsPath))
+        {
+            Console.WriteLine($"SQL Scripts directory not found at {sqlScriptsPath}");
             return;
         }
         else
@@ -173,15 +168,15 @@ public static class DbInitializer
         ";
         using (var cmd = new SqlCommand(seedPosPermissions, connection)) cmd.ExecuteNonQuery();
 
-        // 4. Seed Employee with login credentials
-        string seedUser = @"
-             DECLARE @AdminPosId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
-             IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001')
-             BEGIN
-                 INSERT INTO Employees (EmployeeCode, FullName, PositionId, Username, PasswordHash) 
-                 VALUES ('EMP001', 'System Admin', @AdminPosId, 'admin', 'admin123');
-             END
-         ";
-        using (var cmd = new SqlCommand(seedUser, connection)) cmd.ExecuteNonQuery();
+        // // 4. Seed Employee with login credentials
+        // string seedUser = @"
+        //     DECLARE @AdminPosId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
+        //     IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001')
+        //     BEGIN
+        //         INSERT INTO Employees (EmployeeCode, FullName, PositionId, Username, PasswordHash) 
+        //         VALUES ('EMP001', 'System Admin', @AdminPosId, 'admin', 'admin123');
+        //     END
+        // ";
+        // using (var cmd = new SqlCommand(seedUser, connection)) cmd.ExecuteNonQuery();
     }
 }

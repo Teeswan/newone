@@ -7,57 +7,151 @@
 
 <PageTitle>Positions</PageTitle>
 
-<MudContainer>
-    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-        <MudItem>
-            <MudText Typo="Typo.h4" Class="mb-0">Positions</MudText>
-        </MudItem>
-        <MudItem>
-            <MudButton Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
-                Create New
-            </MudButton>
-        </MudItem>
-    </MudGrid>
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Position Management</MudText>
 
-    <MudPaper Elevation="2" Class="pa-4">
+<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
+    <MudCardContent>
+
+        @* Statistics Cards *@
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" Color="Color.Primary" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(positions?.Count() ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">Total Positions</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" Color="Color.Success" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(positions?.Count(p => !string.IsNullOrEmpty(p.LevelName)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">With Level</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Size="Size.Large" Color="Color.Warning" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(positions?.Count(p => string.IsNullOrEmpty(p.LevelName)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">Without Level</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        @* Toolbar: Search and Actions *@
+        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
+            <MudTextField @bind-Value="searchString" Placeholder="Search positions..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;"
+                          Clearable="true" />
+
+            <div class="d-flex gap-2">
+                <MudTooltip Text="Refresh position list" Arrow="true">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="RefreshPositions">
+                        Refresh
+                    </MudButton>
+                </MudTooltip>
+
+                <MudTooltip Text="Add a new position" Arrow="true">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="NavigateToCreate"
+                               Style="background-color: #1A56DB; font-weight: 600;">
+                        Create New
+                    </MudButton>
+                </MudTooltip>
+            </div>
+        </div>
+
         @if (positions == null)
         {
-            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-        }
-        else if (!positions.Any())
-        {
-            <MudAlert Severity="Severity.Info" Class="ma-4">
-                No positions found. Create your first position!
-            </MudAlert>
+            <div class="d-flex flex-column justify-center my-10 align-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading positions...</MudText>
+            </div>
         }
         else
         {
-            <MudTable Items="@positions" Hover="true" Breakpoint="Breakpoint.Sm">
+            <MudTable Items="@FilteredPositions" T="PositionDto" Hover="true" Breakpoint="Breakpoint.Sm"
+                      Elevation="0">
                 <HeaderContent>
-                    <MudTh>Position ID</MudTh>
-                    <MudTh>Title</MudTh>
-                    <MudTh>Level</MudTh>
-                    <MudTh>Actions</MudTh>
+                    <MudTh Style="font-weight: 600;">Position ID</MudTh>
+                    <MudTh Style="font-weight: 600;">Title</MudTh>
+                    <MudTh Style="font-weight: 600;">Level</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Position ID">@context.PositionId</MudTd>
-                    <MudTd DataLabel="Title">@context.PositionTitle</MudTd>
-                    <MudTd DataLabel="Level">@context.LevelName ?? "None"</MudTd>
-                    <MudTd DataLabel="Actions">
-                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
-                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.PositionId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
-                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.PositionId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
-                            <MudButton Color="Color.Error" OnClick="() => DeletePosition(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
-                        </MudButtonGroup>
+                    <MudTd DataLabel="Position ID">
+                        <MudChip T="int" Size="Size.Medium" Color="Color.Primary">@context.PositionId</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Title">
+                        <MudText Typo="Typo.body1" Class="fw-bold">@context.PositionTitle</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Level">
+                        @if (!string.IsNullOrEmpty(context.LevelName))
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@context.LevelName</MudChip>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Class="text-grey">None</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudTooltip Text="View position details" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info"
+                                           Size="Size.Small" OnClick="@(() => NavigateToDetails(context.PositionId))" />
+                        </MudTooltip>
+
+                        <MudTooltip Text="Edit position" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
+                                           Size="Size.Small" OnClick="@(() => NavigateToEdit(context.PositionId))" />
+                        </MudTooltip>
+
+                        <MudTooltip Text="Delete position" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                           Size="Size.Small" OnClick="@(() => DeletePosition(context))" />
+                        </MudTooltip>
                     </MudTd>
                 </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
             </MudTable>
         }
-    </MudPaper>
-</MudContainer>
+    </MudCardContent>
+</MudCard>
 
 @code {
     private IEnumerable<PositionDto>? positions;
+    private string searchString = "";
+
+    private IEnumerable<PositionDto>? FilteredPositions
+    {
+        get
+        {
+            if (positions == null) return null;
+            if (string.IsNullOrWhiteSpace(searchString)) return positions;
+
+            return positions.Where(p =>
+                p.PositionTitle.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(p.LevelName) && p.LevelName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,9 +166,15 @@
         }
         catch (HttpRequestException ex)
         {
-            Snackbar.Add($"Error loading positions: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error loading positions: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             positions = new List<PositionDto>();
         }
+    }
+
+    private async Task RefreshPositions()
+    {
+        await LoadPositions();
+        Snackbar.Add("Position list refreshed!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
     }
 
     private void NavigateToCreate()
@@ -111,17 +211,17 @@
                 var success = await PositionService.DeletePositionAsync(position.PositionId);
                 if (success)
                 {
-                    Snackbar.Add("Position deleted successfully!", Severity.Success);
+                    Snackbar.Add("Position deleted successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
                     await LoadPositions();
                 }
                 else
                 {
-                    Snackbar.Add("Error deleting position.", Severity.Error);
+                    Snackbar.Add("Error deleting position.", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error deleting position: {ex.Message}", Severity.Error);
+                Snackbar.Add($"Error deleting position: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             }
         }
     }

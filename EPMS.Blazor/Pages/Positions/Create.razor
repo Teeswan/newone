@@ -6,49 +6,79 @@
 
 <PageTitle>Create Position</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Small">
-    <MudPaper Elevation="3" Class="pa-6">
-        <MudText Typo="Typo.h4" Class="mb-6">Create New Position</MudText>
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.AddBusiness" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Create Position</MudText>
+                <MudText Typo="Typo.body2" Class="text-grey">Add a new position to your organization</MudText>
+            </div>
+        </div>
+        <MudDivider Class="mb-8" />
 
         <EditForm Model="positionModel" OnValidSubmit="HandleCreate">
-            <MudTextField 
-                T="string"
-                Label="Position Title" 
-                @bind-Value="positionModel.PositionTitle"
-                Placeholder="Enter position title"
-                Variant="Variant.Outlined"
-                Style="width: 100%"
-                Class="mb-4"
-                Required="true" />
-
-            <MudSelect 
-                T="string"
-                Label="Level" 
-                @bind-Value="positionModel.LevelId"
-                Placeholder="Select level (optional)"
-                Variant="Variant.Outlined"
-                Style="width: 100%"
-                Class="mb-6"
-                Clearable="true">
-                @if (levels != null)
-                {
-                    @foreach (var level in levels)
-                    {
-                        <MudSelectItem T="string" Value="@level.LevelId">@level.LevelName</MudSelectItem>
-                    }
-                }
-            </MudSelect>
+            <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
+                <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-primary">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                    Position Information
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField 
+                            T="string"
+                            Label="Position Title" 
+                            @bind-Value="positionModel.PositionTitle"
+                            Placeholder="Enter position title"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Class="mb-4"
+                            Required="true"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Work" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSelect 
+                            T="string"
+                            Label="Level" 
+                            @bind-Value="positionModel.LevelId"
+                            Placeholder="Select level (optional)"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Class="mb-4"
+                            Clearable="true"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Grade">
+                            @if (levels != null)
+                            {
+                                @foreach (var level in levels)
+                                {
+                                    <MudSelectItem T="string" Value="@level.LevelId">@level.LevelName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
 
             <MudGrid>
-                <MudItem xs="6">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Style="width: 100%" OnClick="NavigateBack">
-                        Cancel
-                    </MudButton>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Style="width: 100%">
-                        Create
-                    </MudButton>
+                <MudItem xs="12" Class="pt-4">
+                    <MudButtonGroup>
+                        <MudTooltip Text="Cancel and go back to list" Arrow="true">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.Close">
+                                Cancel
+                            </MudButton>
+                        </MudTooltip>
+                        <MudTooltip Text="Save and create this position" Arrow="true">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save">
+                                Create Position
+                            </MudButton>
+                        </MudTooltip>
+                    </MudButtonGroup>
                 </MudItem>
             </MudGrid>
         </EditForm>
@@ -72,7 +102,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading levels: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error loading levels: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 
@@ -81,12 +111,12 @@
         try
         {
             await PositionService.CreatePositionAsync(positionModel);
-            Snackbar.Add("Position created successfully!", Severity.Success);
+            Snackbar.Add("Position created successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
             NavigateBack();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error creating position: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error creating position: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 

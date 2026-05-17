@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using EPMS.Domain.Interfaces;
 
 namespace EPMS.Domain.Entities;
 
-public partial class Employee : ISoftDelete
+public partial class Employee
 {
     public int EmployeeId { get; set; }
 
@@ -28,11 +26,6 @@ public partial class Employee : ISoftDelete
     public DateTime? JoinDate { get; set; }
 
     public bool? IsActive { get; set; }
-
-    public bool IsDeleted { get; set; }
-
-    [NotMapped]
-    public string? TeamNames { get; set; }
 
     public decimal? CurrentSalary { get; set; }
 

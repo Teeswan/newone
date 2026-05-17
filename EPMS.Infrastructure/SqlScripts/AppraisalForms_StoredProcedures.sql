@@ -29,7 +29,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     INSERT INTO ApplicationForms (FormName, IsActive)
-    VALUES (@FormName, @IsActive);
+    VALUES (@FormName, ISNULL(@IsActive, 1));
 
     SELECT FormID, FormName, IsActive
     FROM ApplicationForms
@@ -45,8 +45,8 @@ AS
 BEGIN
     SET NOCOUNT ON;
     UPDATE ApplicationForms
-    SET FormName = @FormName,
-        IsActive = @IsActive
+    SET FormName = ISNULL(@FormName, FormName),
+        IsActive = ISNULL(@IsActive, 1)
     WHERE FormID = @FormID;
 
     SELECT FormID, FormName, IsActive
@@ -59,7 +59,6 @@ CREATE OR ALTER PROCEDURE sp_ApplicationForms_Delete
     @FormID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
     DELETE FROM ApplicationForms WHERE FormID = @FormID;
 END
 GO

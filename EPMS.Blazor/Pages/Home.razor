@@ -1,7 +1,77 @@
 @page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>EPMS - Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="3" Class="pa-8 mb-6" Rounded="true">
+            <div class="d-flex align-center">
+                <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                    <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" />
+                </MudAvatar>
+                <div>
+                    <MudText Typo="Typo.h3" Class="fw-bold text-primary">Welcome to EPMS</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="text-grey">Employee Performance Management System Dashboard</MudText>
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
 
-Welcome to your new app.
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="3" Class="pa-6" Rounded="true">
+            <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+            <MudText Typo="Typo.h4" Class="fw-bold">Employees</MudText>
+            <MudText Typo="Typo.body1" Class="text-grey">Manage your workforce</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="3" Class="pa-6" Rounded="true">
+            <MudIcon Icon="@Icons.Material.Filled.BarChart" Color="Color.Secondary" Size="Size.Large" Class="mb-2" />
+            <MudText Typo="Typo.h4" Class="fw-bold">KPIs</MudText>
+            <MudText Typo="Typo.body1" Class="text-grey">Track performance metrics</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="3" Class="pa-6" Rounded="true">
+            <MudIcon Icon="@Icons.Material.Filled.Assessment" Color="Color.Tertiary" Size="Size.Large" Class="mb-2" />
+            <MudText Typo="Typo.h4" Class="fw-bold">Evaluations</MudText>
+            <MudText Typo="Typo.body1" Class="text-grey">Conduct performance reviews</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="3" Class="pa-6" Rounded="true">
+            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Info" Size="Size.Large" Class="mb-2" />
+            <MudText Typo="Typo.h4" Class="fw-bold">PIP Plans</MudText>
+            <MudText Typo="Typo.body1" Class="text-grey">Performance improvement</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Elevation="3" Class="pa-6 mt-6" Rounded="true">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-4">Quick Actions</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Href="/employees">
+                        <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.PersonAdd" />
+                        View Employees
+                    </MudButton>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" Size="Size.Large" Href="/appraisalcycles">
+                        <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Event" />
+                        Appraisal Cycles
+                    </MudButton>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large" Href="/employee-kpi">
+                        <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ShowChart" />
+                        Employee KPIs
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>

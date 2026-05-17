@@ -8,81 +8,194 @@
 
 <PageTitle>Teams</PageTitle>
 
-<MudContainer>
-    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-        <MudItem>
-            <MudText Typo="Typo.h4" Class="mb-0">Teams</MudText>
-        </MudItem>
-        <MudItem>
-            <MudButtonGroup Variant="Variant.Filled">
-                <MudButton Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Team Management</MudText>
+
+<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
+    <MudCardContent>
+        @* Toolbar: Search and Actions *@
+        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
+            <MudTextField @bind-Value="searchString" Placeholder="Search teams..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;" />
+
+            <div class="d-flex gap-2">
+                <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.FileUpload">
+                            Import Excel
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
+                    <MudMenuItem OnClick="ExportToExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
+                    <MudMenuItem OnClick="ExportToPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
+                </MudMenu>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="NavigateToCreate"
+                           Style="background-color: #1A56DB; font-weight: 600;">
                     Create New
                 </MudButton>
+
                 @if (selectedTeams.Any())
                 {
-                    <MudButton Color="Color.Error" OnClick="DeleteSelected" StartIcon="@Icons.Material.Filled.Delete">
+                    <MudButton Variant="Variant.Filled" Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               OnClick="DeleteSelected">
                         Delete Selected (@selectedTeams.Count)
                     </MudButton>
                 }
-                <MudButton Color="Color.Success" OnClick="ExportToExcel" StartIcon="@Icons.Material.Filled.Download">
-                    Export Excel
-                </MudButton>
-                <MudButton Color="Color.Secondary" OnClick="ExportToPdf" StartIcon="@Icons.Material.Filled.PictureAsPdf">
-                    Export PDF
-                </MudButton>
-                <MudButton Color="Color.Info" OnClick="ShowImportDialog" StartIcon="@Icons.Material.Filled.Upload">
-                    Import Excel
-                </MudButton>
-            </MudButtonGroup>
-        </MudItem>
-    </MudGrid>
 
-    <MudPaper Elevation="2" Class="pa-4">
+                <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.Refresh"
+                           OnClick="LoadTeams">
+                    Refresh
+                </MudButton>
+            </div>
+        </div>
+
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="p-4" Style="border-radius: 6px;">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Groups" Color="Color.Primary" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredTeams.Count()</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">Total Teams</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="p-4" Style="border-radius: 6px;">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Success" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredTeams.Count(t => t.ManagerId.HasValue)</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">With Manager</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="p-4" Style="border-radius: 6px;">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.PersonOff" Color="Color.Error" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredTeams.Count(t => !t.ManagerId.HasValue)</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">Without Manager</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="1" Class="p-4" Style="border-radius: 6px;">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Domain" Color="Color.Warning" Size="Size.Large" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredTeams.Select(t => t.DepartmentId).Distinct().Count()</MudText>
+                            <MudText Typo="Typo.body2" Class="text-grey">Departments</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
         @if (teams == null)
         {
-            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <div class="d-flex justify-center my-4">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
         }
-        else if (!teams.Any())
+        else if (!FilteredTeams.Any())
         {
-            <MudAlert Severity="Severity.Info" Class="ma-4">
-                No teams found. Create your first team!
-            </MudAlert>
+            <div class="text-center py-12">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Info" Class="mb-4" />
+                <MudText Typo="Typo.h5" Class="fw-bold mb-2 text-grey">
+                    @(string.IsNullOrWhiteSpace(searchString) ? "No teams found" : "No teams match your search")
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-6 text-grey">
+                    @(string.IsNullOrWhiteSpace(searchString) ? "Get started by creating your first team!" : "Try adjusting your search criteria.")
+                </MudText>
+                @if (string.IsNullOrWhiteSpace(searchString))
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large">
+                        Create First Team
+                    </MudButton>
+                }
+            </div>
         }
         else
         {
-            <MudTable Items="@teams" Hover="true" Breakpoint="Breakpoint.Sm" MultiSelection="true" @bind-SelectedItems="selectedTeams" SelectOnRowClick="false">
+            <MudTable Items="@FilteredTeams" T="TeamDto" Hover="true" Breakpoint="Breakpoint.Sm"
+                      MultiSelection="true" @bind-SelectedItems="selectedTeams" SelectOnRowClick="false"
+                      Elevation="0" Filter="new Func<TeamDto,bool>(d => true)">
                 <HeaderContent>
-                    <MudTh>
-                        <MudCheckBox T="bool" Checked="@AreAllTeamsSelected" CheckedChanged="@((bool value) => ToggleAllTeams(value))" Size="Size.Small" />
-                    </MudTh>
-                    <MudTh>Team ID</MudTh>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Manager</MudTh>
-                    <MudTh>Department</MudTh>
-                    <MudTh>Actions</MudTh>
+                    <MudTh Style="font-weight: 600;"></MudTh>
+                    <MudTh Style="font-weight: 600;">Team ID</MudTh>
+                    <MudTh Style="font-weight: 600;">Name</MudTh>
+                    <MudTh Style="font-weight: 600;">Manager</MudTh>
+                    <MudTh Style="font-weight: 600;">Department</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd></MudTd>
                     <MudTd DataLabel="Team ID">@context.TeamId</MudTd>
                     <MudTd DataLabel="Name">@context.TeamName</MudTd>
-                    <MudTd DataLabel="Manager">@context.ManagerName ?? "None"</MudTd>
-                    <MudTd DataLabel="Department">@context.DepartmentName ?? "None"</MudTd>
-                    <MudTd DataLabel="Actions">
-                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
-                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.TeamId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
-                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.TeamId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
-                            <MudButton Color="Color.Error" OnClick="() => DeleteTeam(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
-                        </MudButtonGroup>
+                    <MudTd DataLabel="Manager">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                            @(context.ManagerName ?? "None")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Department">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Text">
+                            @(context.DepartmentName ?? "None")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudTooltip Text="View details" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => NavigateToDetails(context.TeamId))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Edit team" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => NavigateToEdit(context.TeamId))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Delete team" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteTeam(context))" />
+                        </MudTooltip>
                     </MudTd>
                 </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
             </MudTable>
         }
-    </MudPaper>
-</MudContainer>
+    </MudCardContent>
+</MudCard>
 
 @code {
     private IEnumerable<TeamDto>? teams;
     private HashSet<TeamDto> selectedTeams = new();
+    private string searchString = "";
+
+    private IEnumerable<TeamDto> FilteredTeams
+    {
+        get
+        {
+            if (teams == null)
+                return Enumerable.Empty<TeamDto>();
+
+            if (string.IsNullOrWhiteSpace(searchString))
+                return teams;
+
+            return teams.Where(t =>
+                t.TeamName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                (t.ManagerName != null && t.ManagerName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
+                (t.DepartmentName != null && t.DepartmentName.Contains(searchString, StringComparison.OrdinalIgnoreCase)));
+        }
+    }
 
     private bool AreAllTeamsSelected => teams != null && selectedTeams.Count == teams.Count();
 
@@ -110,10 +223,11 @@
         try
         {
             teams = await TeamService.GetAllTeamsAsync();
+            Snackbar.Add("Teams refreshed successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; config.VisibleStateDuration = 2000; });
         }
         catch (HttpRequestException ex)
         {
-            Snackbar.Add($"Error loading teams: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error loading teams: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             teams = new List<TeamDto>();
         }
     }
@@ -152,17 +266,17 @@
                 var success = await TeamService.DeleteTeamAsync(team.TeamId);
                 if (success)
                 {
-                    Snackbar.Add("Team deleted successfully!", Severity.Success);
+                    Snackbar.Add("Team deleted successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
                     await LoadTeams();
                 }
                 else
                 {
-                    Snackbar.Add("Error deleting team.", Severity.Error);
+                    Snackbar.Add("Error deleting team.", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error deleting team: {ex.Message}", Severity.Error);
+                Snackbar.Add($"Error deleting team: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             }
         }
     }
@@ -200,19 +314,40 @@
 
                 if (deletedCount > 0)
                 {
-                    Snackbar.Add($"Successfully deleted {deletedCount} teams!", Severity.Success);
+                    Snackbar.Add($"Successfully deleted {deletedCount} teams!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
                     selectedTeams.Clear();
                     await LoadTeams();
                 }
                 else
                 {
-                    Snackbar.Add("Error deleting teams.", Severity.Error);
+                    Snackbar.Add("Error deleting teams.", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error deleting teams: {ex.Message}", Severity.Error);
+                Snackbar.Add($"Error deleting teams: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             }
+        }
+    }
+
+    private async Task ImportExcel(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+
+            var count = await TeamService.ImportFromExcelAsync(ms, true, "", false);
+            Snackbar.Add($"Successfully imported {count} teams!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+            await LoadTeams();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 
@@ -222,11 +357,11 @@
         {
             var fileBytes = await TeamService.ExportToExcelAsync();
             await JSRuntime.InvokeVoidAsync("saveAsFile", "Teams.xlsx", Convert.ToBase64String(fileBytes));
-            Snackbar.Add("Excel file downloaded successfully!", Severity.Success);
+            Snackbar.Add("Excel file downloaded successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting to Excel: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error exporting to Excel: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 
@@ -236,23 +371,11 @@
         {
             var fileBytes = await TeamService.ExportToPdfAsync();
             await JSRuntime.InvokeVoidAsync("saveAsFile", "Teams.pdf", Convert.ToBase64String(fileBytes));
-            Snackbar.Add("PDF file downloaded successfully!", Severity.Success);
+            Snackbar.Add("PDF file downloaded successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting to PDF: {ex.Message}", Severity.Error);
-        }
-    }
-
-    private async Task ShowImportDialog()
-    {
-        Snackbar.Add("Opening import dialog...", Severity.Info);
-        var dialog = DialogService.Show<ImportTeamDialog>("Import Teams");
-        var result = await dialog.Result;
-        
-        if (!result.Canceled)
-        {
-            await LoadTeams();
+            Snackbar.Add($"Error exporting to PDF: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
     }
 }

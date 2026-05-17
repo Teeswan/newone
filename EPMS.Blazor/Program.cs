@@ -14,7 +14,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://127.0.0.1:5111/") // Use IPv4 address to avoid localhost resolution issues
+    BaseAddress = new Uri("https://localhost:7202/") // Match your API's URL from Swagger!
 });
 
 builder.Services.AddBlazoredLocalStorage();

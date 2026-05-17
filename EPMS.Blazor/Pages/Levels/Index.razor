@@ -6,57 +6,160 @@
 
 <PageTitle>Levels</PageTitle>
 
-<MudContainer>
-    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-        <MudItem>
-            <MudText Typo="Typo.h4" Class="mb-0">Levels</MudText>
-        </MudItem>
-        <MudItem>
-            <MudButton Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
-                Create New
-            </MudButton>
-        </MudItem>
-    </MudGrid>
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Level Management</MudText>
 
-    <MudPaper Elevation="2" Class="pa-4">
+<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
+    <MudCardContent>
+
+        @* Statistics Cards *@
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="6">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" Color="Color.Primary" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(levels?.Count() ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">Total Levels</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="6">
+                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Large" Color="Color.Success" Class="mr-3" />
+                        <div>
+                            <MudText Typo="Typo.h4" Class="fw-bold">@(levels?.Count(l => !string.IsNullOrEmpty(l.LevelDescription)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Class="text-grey">With Description</MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        @* Toolbar: Search and Actions *@
+        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
+            <MudTextField @bind-Value="searchString" Placeholder="Search levels..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;"
+                          Clearable="true" />
+
+            <div class="d-flex gap-2">
+                <MudTooltip Text="Refresh level list" Arrow="true">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="RefreshLevels">
+                        Refresh
+                    </MudButton>
+                </MudTooltip>
+
+                <MudTooltip Text="Add a new level" Arrow="true">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="NavigateToCreate"
+                               Style="background-color: #1A56DB; font-weight: 600;">
+                        Create New
+                    </MudButton>
+                </MudTooltip>
+            </div>
+        </div>
+
         @if (levels == null)
         {
-            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <div class="d-flex flex-column justify-center my-10 align-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading levels...</MudText>
+            </div>
         }
-        else if (!levels.Any())
+        else if (!FilteredLevels.Any())
         {
-            <MudAlert Severity="Severity.Info" Class="ma-4">
-                No levels found. Create your first level!
-            </MudAlert>
+            <div class="d-flex flex-column align-center my-10">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Info" Class="mb-4" />
+                @if (string.IsNullOrWhiteSpace(searchString))
+                {
+                    <MudText Typo="Typo.h6" Class="text-grey-darken-1 mb-2">No levels found</MudText>
+                    <MudText Typo="Typo.body2" Class="text-grey mb-4">Get started by creating your first level</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add">
+                        Create First Level
+                    </MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6" Class="text-grey-darken-1 mb-2">No matching levels</MudText>
+                    <MudText Typo="Typo.body2" Class="text-grey">Try adjusting your search</MudText>
+                }
+            </div>
         }
         else
         {
-            <MudTable Items="@levels" Hover="true" Breakpoint="Breakpoint.Sm">
+            <MudTable Items="@FilteredLevels" T="LevelDto" Hover="true" Breakpoint="Breakpoint.Sm"
+                      Elevation="0">
                 <HeaderContent>
-                    <MudTh>Level ID</MudTh>
-                    <MudTh>Level Name</MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh>Actions</MudTh>
+                    <MudTh Style="font-weight: 600;">Level ID</MudTh>
+                    <MudTh Style="font-weight: 600;">Level Name</MudTh>
+                    <MudTh Style="font-weight: 600;">Description</MudTh>
+                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Level ID">@context.LevelId</MudTd>
-                    <MudTd DataLabel="Level Name">@context.LevelName</MudTd>
-                    <MudTd DataLabel="Description">@context.LevelDescription</MudTd>
-                    <MudTd DataLabel="Actions">
-                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
-                            <MudButton Color="Color.Info" OnClick="() => NavigateToDetails(context.LevelId)" StartIcon="@Icons.Material.Filled.Visibility">View</MudButton>
-                            <MudButton Color="Color.Warning" OnClick="() => NavigateToEdit(context.LevelId)" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
-                            <MudButton Color="Color.Error" OnClick="() => DeleteLevel(context)" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
-                        </MudButtonGroup>
+                    <MudTd DataLabel="Level ID">
+                        <MudChip T="string" Size="Size.Medium" Color="Color.Primary">@context.LevelId</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Level Name">
+                        <MudText Typo="Typo.body1" Class="fw-bold">@context.LevelName</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Description">
+                        @if (!string.IsNullOrEmpty(context.LevelDescription))
+                        {
+                            <MudText Typo="Typo.body2" Class="text-grey">@context.LevelDescription</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Class="text-grey">None</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudTooltip Text="View level details" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info"
+                                           Size="Size.Small" OnClick="@(() => NavigateToDetails(context.LevelId))" />
+                        </MudTooltip>
+
+                        <MudTooltip Text="Edit level" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
+                                           Size="Size.Small" OnClick="@(() => NavigateToEdit(context.LevelId))" />
+                        </MudTooltip>
+
+                        <MudTooltip Text="Delete level" Arrow="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                           Size="Size.Small" OnClick="@(() => DeleteLevel(context))" />
+                        </MudTooltip>
                     </MudTd>
                 </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
             </MudTable>
         }
-    </MudPaper>
-</MudContainer>
+    </MudCardContent>
+</MudCard>
 
 @code {
     private IEnumerable<LevelDto>? levels;
+    private string searchString = "";
+
+    private IEnumerable<LevelDto>? FilteredLevels
+    {
+        get
+        {
+            if (levels == null) return null;
+            if (string.IsNullOrWhiteSpace(searchString)) return levels;
+
+            return levels.Where(l =>
+                l.LevelId.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                l.LevelName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(l.LevelDescription) && l.LevelDescription.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,9 +174,15 @@
         }
         catch (HttpRequestException ex)
         {
-            Snackbar.Add($"Error loading levels: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error loading levels: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             levels = new List<LevelDto>();
         }
+    }
+
+    private async Task RefreshLevels()
+    {
+        await LoadLevels();
+        Snackbar.Add("Level list refreshed!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
     }
 
     private void NavigateToCreate()
@@ -95,7 +204,7 @@
     {
         var parameters = new DialogParameters
         {
-            { "ContentText", "Are you sure you want to delete this level?" },
+            { "ContentText", $"Are you sure you want to delete level '{level.LevelName}'?" },
             { "ButtonText", "Delete" },
             { "Color", Color.Error }
         };
@@ -110,17 +219,17 @@
                 var success = await LevelService.DeleteLevelAsync(level.LevelId);
                 if (success)
                 {
-                    Snackbar.Add("Level deleted successfully!", Severity.Success);
+                    Snackbar.Add("Level deleted successfully!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
                     await LoadLevels();
                 }
                 else
                 {
-                    Snackbar.Add("Error deleting level.", Severity.Error);
+                    Snackbar.Add("Error deleting level.", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error deleting level: {ex.Message}", Severity.Error);
+                Snackbar.Add($"Error deleting level: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
             }
         }
     }

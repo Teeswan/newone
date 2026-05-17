@@ -30,54 +30,56 @@
         }
         else
         {
-            <MudCard Class="mb-6">
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Plan Details</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudGrid>
-                        <MudItem xs="12" sm="6">
-                            <MudDatePicker Label="End Date" @bind-Date="_endDate" Variant="Variant.Outlined" Required="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudSelect T="string" Label="Status" @bind-Value="_request.Status" Variant="Variant.Outlined" Required="true">
-                                <MudSelectItem T="string" Value="@("Active")">Active</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("Terminated")">Terminated</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("Extended")">Extended</MudSelectItem>
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12">
-                            <MudTextField Label="Overall Goal" @bind-Value="_request.OverallGoal" Variant="Variant.Outlined" Lines="4" />
-                        </MudItem>
-                    </MudGrid>
-                </MudCardContent>
-            </MudCard>
+            <EditForm Model="_request" OnValidSubmit="HandleSubmit">
+                <MudCard Class="mb-6">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Plan Details</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker Label="End Date" @bind-Date="_endDate" Variant="Variant.Outlined" Required="true" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudSelect T="string" Label="Status" @bind-Value="_request.Status" Variant="Variant.Outlined" Required="true">
+                                    <MudSelectItem T="string" Value="@("Active")">Active</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Completed")">Completed</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Terminated")">Terminated</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Extended")">Extended</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField Label="Overall Goal" @bind-Value="_request.OverallGoal" Variant="Variant.Outlined" Lines="4" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
 
-            @if (_errors.Any())
-            {
-                <MudAlert Severity="Severity.Error" Class="mb-4">
-                    <MudList T="string" Dense="true">
-                        @foreach (var error in _errors)
-                        {
-                            <MudListItem T="string">@error</MudListItem>
-                        }
-                    </MudList>
-                </MudAlert>
-            }
+                @if (_errors.Any())
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">
+                        <MudList T="string" Dense="true">
+                            @foreach (var error in _errors)
+                            {
+                                <MudListItem T="string">@error</MudListItem>
+                            }
+                        </MudList>
+                    </MudAlert>
+                }
 
-            <MudGrid Justify="Justify.FlexEnd">
-                <MudItem>
-                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip/" + PipId))" Class="mr-3">
-                        Cancel
-                    </MudButton>
-                    <MudButton OnClick="HandleSubmit" Color="Color.Primary" Variant="Variant.Filled" Disabled="_submitting" StartIcon="@(_submitting ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.Check)">
-                        @(_submitting ? "Saving..." : "Save Changes")
-                    </MudButton>
-                </MudItem>
-            </MudGrid>
+                <MudGrid Justify="Justify.FlexEnd">
+                    <MudItem>
+                        <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip/" + PipId))" Class="mr-3">
+                            Cancel
+                        </MudButton>
+                        <MudButton Type="submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="_submitting" StartIcon="@(_submitting ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.Check)">
+                            @(_submitting ? "Saving..." : "Save Changes")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
         }
     </MudPaper>
 </MudContainer>
@@ -128,47 +130,26 @@
 
     private async Task HandleSubmit()
     {
-        Console.WriteLine("=== PipEdit.razor HandleSubmit START ===");
-        
         _submitting = true;
         _errors.Clear();
 
-        try
+        if (_endDate.HasValue)
         {
-            if (_endDate.HasValue)
-            {
-                _request.EndDate = DateOnly.FromDateTime(_endDate.Value);
-                Console.WriteLine($"EndDate set to: {_request.EndDate}");
-            }
+            _request.EndDate = DateOnly.FromDateTime(_endDate.Value);
+        }
 
-            Console.WriteLine($"Request: PipId={_request.PipId}, Status={_request.Status}");
-            
-            var response = await PipService.UpdatePipAsync(_request);
-            Console.WriteLine($"UpdatePipAsync response: Success={response?.Success}");
-            
-            if (response?.Success == true)
-            {
-                Console.WriteLine("SUCCESS! Navigating to details...");
-                Snackbar.Add("PIP updated successfully!", Severity.Success);
-                NavigationManager.NavigateTo("/pip/" + PipId);
-            }
-            else
-            {
-                Console.WriteLine("FAILED!");
-                _errors = response?.Errors ?? new List<string> { "Failed to update PIP." };
-                Snackbar.Add(_errors.FirstOrDefault() ?? "Failed to update PIP.", Severity.Error);
-            }
-        }
-        catch (Exception ex)
+        var response = await PipService.UpdatePipAsync(_request);
+        if (response?.Success == true)
         {
-            Console.WriteLine($"EXCEPTION: {ex}");
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-            _errors.Add(ex.Message);
+            Snackbar.Add("PIP updated successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/pip/" + PipId);
         }
-        finally
+        else
         {
-            _submitting = false;
-            Console.WriteLine("=== PipEdit.razor HandleSubmit END ===");
+            _errors = response?.Errors ?? new List<string> { "Failed to update PIP." };
+            Snackbar.Add(_errors.FirstOrDefault() ?? "Failed to update PIP.", Severity.Error);
         }
+
+        _submitting = false;
     }
 }

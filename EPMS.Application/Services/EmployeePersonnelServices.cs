@@ -10,13 +10,11 @@ namespace EPMS.Application.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _repository;
-    private readonly ITeamRepository _teamRepository;
     private readonly IMapper _mapper;
 
-    public EmployeeService(IEmployeeRepository repository, ITeamRepository teamRepository, IMapper mapper)
+    public EmployeeService(IEmployeeRepository repository, IMapper mapper)
     {
         _repository = repository;
-        _teamRepository = teamRepository;
         _mapper = mapper;
     }
 
@@ -29,16 +27,7 @@ public class EmployeeService : IEmployeeService
     public async Task<EmployeeDetailDto?> GetByIdAsync(int id)
     {
         var entity = await _repository.GetByIdAsync(id);
-        if (entity == null) return null;
-
-        var dto = _mapper.Map<EmployeeDetailDto>(entity);
-        
-        // Ensure IDs are explicitly set from the entity to avoid mapping issues
-        dto.DepartmentId = entity.DepartmentId;
-        dto.PositionId = entity.PositionId;
-        dto.ReportsTo = entity.ReportsTo;
-        
-        return dto;
+        return _mapper.Map<EmployeeDetailDto?>(entity);
     }
 
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeRequest request)
@@ -50,13 +39,6 @@ public class EmployeeService : IEmployeeService
         }
 
         var entity = _mapper.Map<Employee>(request);
-        
-        if (request.TeamIds != null && request.TeamIds.Any())
-        {
-            // Just provide the IDs, the repository will handle the actual attachment
-            entity.TeamsNavigation = request.TeamIds.Select(id => new Team { TeamId = id }).ToList();
-        }
-
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<EmployeeDto>(created);
     }
@@ -68,17 +50,6 @@ public class EmployeeService : IEmployeeService
 
         _mapper.Map(request, entity);
         entity.EmployeeId = id;
-
-        // Ensure IDs are explicitly set from the request to avoid mapping issues
-        entity.DepartmentId = request.DepartmentId;
-        entity.PositionId = request.PositionId;
-        entity.ReportsTo = request.ReportsTo;
-
-        if (request.TeamIds != null)
-        {
-            // Just provide the IDs, the repository will handle the actual attachment
-            entity.TeamsNavigation = request.TeamIds.Select(id => new Team { TeamId = id }).ToList();
-        }
         
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<EmployeeDto?>(updated);
