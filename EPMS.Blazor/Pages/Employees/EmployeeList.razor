@@ -124,6 +124,7 @@
                     <MudTh Style="font-weight: 600;">Code</MudTh>
                     <MudTh Style="font-weight: 600;">Full Name</MudTh>
                     <MudTh Style="font-weight: 600;">Department</MudTh>
+                    <MudTh Style="font-weight: 600;">Team</MudTh>
                     <MudTh Style="font-weight: 600;">Position</MudTh>
                     <MudTh Style="font-weight: 600; text-align: center;">Reports To</MudTh>
                     <MudTh Style="font-weight: 600; text-align: center;">Status</MudTh>
@@ -133,6 +134,7 @@
                     <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
                     <MudTd DataLabel="Full Name">@context.FullName</MudTd>
                     <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Team">@context.TeamName</MudTd>
                     <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
                     <MudTd DataLabel="Reports To" Style="text-align: center;">
                         <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
@@ -325,6 +327,7 @@
         if (!string.IsNullOrEmpty(element.ManagerName) && element.ManagerName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         if (!string.IsNullOrEmpty(element.PositionTitle) && element.PositionTitle.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         if (!string.IsNullOrEmpty(element.DepartmentName) && element.DepartmentName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (!string.IsNullOrEmpty(element.TeamName) && element.TeamName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
         
         return false;
     }

@@ -10,11 +10,13 @@ namespace EPMS.Application.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _repository;
+    private readonly ITeamRepository _teamRepository;
     private readonly IMapper _mapper;
 
-    public EmployeeService(IEmployeeRepository repository, IMapper mapper)
+    public EmployeeService(IEmployeeRepository repository, ITeamRepository teamRepository, IMapper mapper)
     {
         _repository = repository;
+        _teamRepository = teamRepository;
         _mapper = mapper;
     }
 
@@ -39,6 +41,16 @@ public class EmployeeService : IEmployeeService
         }
 
         var entity = _mapper.Map<Employee>(request);
+        
+        if (request.TeamId.HasValue)
+        {
+            var team = await _teamRepository.GetByIdAsync(request.TeamId.Value);
+            if (team != null)
+            {
+                entity.TeamsNavigation.Add(team);
+            }
+        }
+
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<EmployeeDto>(created);
     }
@@ -52,11 +64,21 @@ public class EmployeeService : IEmployeeService
         entity.EmployeeId = id;
 
         // Clear navigation properties to prevent EF Core from trying to update related entities
-        // when we only intend to update the foreign key IDs.
         entity.Department = null;
         entity.Position = null;
         entity.ReportsToNavigation = null;
         
+        // Handle Team update
+        entity.TeamsNavigation.Clear();
+        if (request.TeamId.HasValue)
+        {
+            var team = await _teamRepository.GetByIdAsync(request.TeamId.Value);
+            if (team != null)
+            {
+                entity.TeamsNavigation.Add(team);
+            }
+        }
+
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<EmployeeDto?>(updated);
     }

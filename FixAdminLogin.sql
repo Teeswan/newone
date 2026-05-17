@@ -19,11 +19,13 @@ GO
 
 -- 2. Reset Admin credentials and ensure not deleted
 PRINT 'Resetting Admin credentials...';
-DECLARE @AdminPosId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
+-- Find Admin position ID (case insensitive search)
+DECLARE @AdminPosId INT = (SELECT TOP 1 PositionId FROM Positions WHERE PositionTitle LIKE '%Admin%');
 
 IF @AdminPosId IS NOT NULL
 BEGIN
-    IF EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001')
+    -- Update existing admin by code OR username
+    IF EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001' OR Username = 'admin')
     BEGIN
         UPDATE Employees 
         SET Username = 'admin', 
@@ -31,19 +33,25 @@ BEGIN
             PositionId = @AdminPosId,
             IsDeleted = 0,
             IsActive = 1
-        WHERE EmployeeCode = 'EMP001';
-        PRINT '✅ Admin employee EMP001 updated.';
+        WHERE EmployeeCode = 'EMP001' OR Username = 'admin';
+        PRINT '✅ Admin employee updated.';
     END
     ELSE
     BEGIN
         INSERT INTO Employees (EmployeeCode, FullName, PositionId, IsActive, Username, PasswordHash, IsDeleted) 
         VALUES ('EMP001', 'System Admin', @AdminPosId, 1, 'admin', 'admin123', 0);
-        PRINT '✅ Admin employee EMP001 created.';
+        PRINT '✅ Admin employee created.';
     END
 END
 ELSE
 BEGIN
-    PRINT '❌ Admin position not found. Please run CompleteSetup.sql first.';
+    PRINT '❌ Admin position not found. Creating it...';
+    INSERT INTO Positions (PositionTitle, IsActive, IsDeleted) VALUES ('Admin', 1, 0);
+    SET @AdminPosId = SCOPE_IDENTITY();
+    
+    INSERT INTO Employees (EmployeeCode, FullName, PositionId, IsActive, Username, PasswordHash, IsDeleted) 
+    VALUES ('EMP001', 'System Admin', @AdminPosId, 1, 'admin', 'admin123', 0);
+    PRINT '✅ Admin position and employee created.';
 END
 GO
 

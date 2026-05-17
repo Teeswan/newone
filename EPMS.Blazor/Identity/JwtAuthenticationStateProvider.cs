@@ -1,4 +1,4 @@
-﻿using Blazored.LocalStorage;
+﻿﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Net.Http.Headers;
@@ -9,13 +9,11 @@ namespace EPMS.Client.Identity;
 public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 {
     private readonly ILocalStorageService _localStorage;
-    private readonly HttpClient _http;
     private readonly AuthenticationState _anonymous;
 
-    public JwtAuthenticationStateProvider(ILocalStorageService localStorage, HttpClient http)
+    public JwtAuthenticationStateProvider(ILocalStorageService localStorage)
     {
         _localStorage = localStorage;
-        _http = http;
         _anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
     }
 
@@ -26,9 +24,6 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         if (string.IsNullOrWhiteSpace(token))
             return _anonymous;
 
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-      
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt", "name", "role");
         return new AuthenticationState(new ClaimsPrincipal(identity));
@@ -36,7 +31,6 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 
     public void NotifyUserAuthentication(string token)
     {
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt", "name", "role");
 
@@ -47,7 +41,6 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 
     public void NotifyUserLogout()
     {
-        _http.DefaultRequestHeaders.Authorization = null;
         var authState = Task.FromResult(_anonymous);
         NotifyAuthenticationStateChanged(authState);
     }

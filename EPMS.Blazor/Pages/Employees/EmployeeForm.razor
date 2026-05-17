@@ -3,6 +3,7 @@
 @using EPMS.Blazor.Services
 @using System.ComponentModel.DataAnnotations
 @inject IDepartmentBlazorService DeptService
+@inject ITeamBlazorService TeamService
 @inject IPositionBlazorService PosService
 @inject IEmployeeBlazorService EmployeeService
 @inject ISnackbar Snackbar
@@ -56,6 +57,15 @@
                         @foreach (var dept in departments)
                         {
                             <MudSelectItem T="int?" Value="@dept.DepartmentId">@dept.DepartmentName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int?" Label="Team" @bind-Value="Model.TeamId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="int?" Value="@((int?)null)">Select Team (Optional)</MudSelectItem>
+                        @foreach (var team in teams)
+                        {
+                            <MudSelectItem T="int?" Value="@team.TeamId">@team.TeamName</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -126,6 +136,7 @@
 
 
     private IEnumerable<DepartmentDto> departments = new List<DepartmentDto>();
+    private IEnumerable<TeamDto> teams = new List<TeamDto>();
     private IEnumerable<PositionDto> positions = new List<PositionDto>();
     private List<EmployeeDto> allEmployees = new List<EmployeeDto>();
 
@@ -145,6 +156,7 @@
                         FullName = employee.FullName,
                         Email = employee.Email,
                         DepartmentId = employee.DepartmentId,
+                        TeamId = employee.TeamId,
                         PositionId = employee.PositionId,
                         ReportsTo = employee.ReportsTo,
                         JoinDate = employee.JoinDate,
@@ -160,10 +172,12 @@
             }
 
             var deptData = await DeptService.GetAllDepartmentsAsync();
+            var teamData = await TeamService.GetAllTeamsAsync();
             var posData = await PosService.GetAllPositionsAsync();
             var empData = await EmployeeService.GetEmployeesAsync();
 
             departments = deptData ?? new List<DepartmentDto>();
+            teams = teamData ?? new List<TeamDto>();
             positions = posData ?? new List<PositionDto>();
             allEmployees = empData ?? new List<EmployeeDto>();
         }
@@ -209,6 +223,7 @@
                     FullName = Model.FullName,
                     Email = Model.Email,
                     DepartmentId = Model.DepartmentId,
+                    TeamId = Model.TeamId,
                     PositionId = Model.PositionId,
                     ReportsTo = Model.ReportsTo,
                     JoinDate = Model.JoinDate,

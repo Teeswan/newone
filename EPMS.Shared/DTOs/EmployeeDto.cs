@@ -12,6 +12,8 @@ public class EmployeeDto
     public string? PositionTitle { get; set; }
     public int? ReportsTo { get; set; }
     public string? ManagerName { get; set; }
+    public int? TeamId { get; set; }
+    public string? TeamName { get; set; }
     public bool? IsActive { get; set; }
     public string? Phone { get; set; }
     public DateTime? JoinDate { get; set; }

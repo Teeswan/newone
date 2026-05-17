@@ -6,6 +6,7 @@ public class CreateEmployeeRequest
     public string FullName { get; set; } = null!;
     public string? Email { get; set; }
     public int? DepartmentId { get; set; }
+    public int? TeamId { get; set; }
     public int? PositionId { get; set; }
     public int? ReportsTo { get; set; }
     public DateTime? JoinDate { get; set; }

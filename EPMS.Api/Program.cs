@@ -14,9 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
-        policy.AllowAnyOrigin()
+    {
+        policy.WithOrigins("https://localhost:7096", "http://localhost:5052")
               .AllowAnyMethod()
-              .AllowAnyHeader());
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
 });
 
 

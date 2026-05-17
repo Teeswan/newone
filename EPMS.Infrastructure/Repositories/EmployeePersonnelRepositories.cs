@@ -35,23 +35,42 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
             using IDbConnection db = new SqlConnection(_connectionString);
             string sql = @"
-                SELECT e.*, e.NRC_Number as NrcNumber, d.DepartmentName, p.PositionTitle, m.EmployeeId as ManagerId, m.FullName
+                SELECT e.*, e.NRC_Number as NrcNumber, d.DepartmentName, p.PositionTitle, m.EmployeeId as ManagerId, m.FullName,
+                       t.TeamID as TeamId, t.TeamName
                 FROM Employees e
                 LEFT JOIN Departments d ON e.DepartmentId = d.DepartmentId
                 LEFT JOIN Positions p ON e.PositionId = p.PositionId
                 LEFT JOIN Employees m ON e.ReportsTo = m.EmployeeId
+                LEFT JOIN TeamMembers tm ON e.EmployeeId = tm.EmployeeID
+                LEFT JOIN Teams t ON tm.TeamID = t.TeamID
                 WHERE e.IsDeleted = 0";
 
-            employees = await db.QueryAsync<Employee, Department, Position, Employee, Employee>(
+            var employeeDictionary = new Dictionary<int, Employee>();
+
+            var result = await db.QueryAsync<Employee, Department, Position, Employee, Team, Employee>(
                 sql,
-                (employee, dept, pos, manager) =>
+                (employee, dept, pos, manager, team) =>
                 {
-                    employee.Department = dept;
-                    employee.Position = pos;
-                    employee.ReportsToNavigation = manager;
-                    return employee;
+                    if (!employeeDictionary.TryGetValue(employee.EmployeeId, out var employeeEntry))
+                    {
+                        employeeEntry = employee;
+                        employeeEntry.Department = dept;
+                        employeeEntry.Position = pos;
+                        employeeEntry.ReportsToNavigation = manager;
+                        employeeEntry.TeamsNavigation = new List<Team>();
+                        employeeDictionary.Add(employeeEntry.EmployeeId, employeeEntry);
+                    }
+
+                    if (team != null)
+                    {
+                        employeeEntry.TeamsNavigation.Add(team);
+                    }
+                    
+                    return employeeEntry;
                 },
-                splitOn: "DepartmentName,PositionTitle,ManagerId");
+                splitOn: "DepartmentName,PositionTitle,ManagerId,TeamId");
+
+            employees = employeeDictionary.Values;
 
 
             _cache.Set(_cacheKey, employees, TimeSpan.FromMinutes(30));
@@ -97,6 +116,7 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
             .Include(e => e.Department)
             .Include(e => e.Position)
             .Include(e => e.ReportsToNavigation)
+            .Include(e => e.TeamsNavigation)
             .FirstOrDefaultAsync(e => e.EmployeeId == id && !e.IsDeleted);
     }
 

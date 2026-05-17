@@ -71,7 +71,8 @@ public class MappingProfile : Profile
         CreateMap<Employee, EmployeeDto>()
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.PositionTitle, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : null))
-            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null));
+            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null))
+            .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.TeamsNavigation != null && src.TeamsNavigation.Any() ? src.TeamsNavigation.First().TeamName : null));
         
         CreateMap<Employee, EmployeeDetailDto>()
             .IncludeBase<Employee, EmployeeDto>();
