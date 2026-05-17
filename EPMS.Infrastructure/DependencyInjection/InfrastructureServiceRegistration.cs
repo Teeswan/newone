@@ -84,7 +84,14 @@ public static class InfrastructureServiceRegistration
 
         // ?? Meeting Repositories ??????????????????????????????????????????????
         services.AddScoped<IMeetingRepository, MeetingRepository>();
+        services.Decorate<IMeetingRepository>((inner, provider) =>
+            new CachedMeetingRepository(
+                inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
+
         services.AddScoped<IMeetingNoteRepository, MeetingNoteRepository>();
+        services.Decorate<IMeetingNoteRepository>((inner, provider) =>
+            new CachedMeetingNoteRepository(
+                inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
 
         // ?? User & Role Repositories ??????????????????????????????????????????
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
@@ -125,6 +132,22 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPositionRepository, PositionRepository>();
         services.Decorate<IPositionRepository>((inner, provider) =>
             new CachedPositionRepository(
+                inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
+
+        // ?? PIP Repositories (EF Core CRUD + Dapper Reports) ????????????????????????
+        services.AddScoped<IPipPlanRepository, PipPlanRepository>();
+        services.Decorate<IPipPlanRepository>((inner, provider) =>
+            new CachedPipPlanRepository(
+                inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
+
+        services.AddScoped<IPipObjectiveRepository, PipObjectiveRepository>();
+        services.Decorate<IPipObjectiveRepository>((inner, provider) =>
+            new CachedPipObjectiveRepository(
+                inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
+
+        services.AddScoped<IPipMeetingRepository, PipMeetingRepository>();
+        services.Decorate<IPipMeetingRepository>((inner, provider) =>
+            new CachedPipMeetingRepository(
                 inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
 
         // ?? Authorization ?????????????????????????????????????????????????????
