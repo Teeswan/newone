@@ -1,13 +1,19 @@
 using System;
 using System.Collections.Generic;
 
+using EPMS.Domain.Interfaces;
+
 namespace EPMS.Domain.Entities;
 
-public partial class Team
+public partial class Team : ISoftDelete
 {
     public int TeamId { get; set; }
 
     public string TeamName { get; set; } = null!;
+
+    public bool? IsActive { get; set; }
+
+    public bool IsDeleted { get; set; }
 
     public int? ManagerId { get; set; }
 

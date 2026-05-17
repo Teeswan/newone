@@ -147,7 +147,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Department>(entity =>
         {
-            entity.HasKey(e => e.DepartmentId).HasName("PK__Departme__B2079BCD9154BE07");
+            entity.HasKey(e => e.DepartmentId).HasName("PK__Departme__B2079BCD16819445");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
             entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
             entity.Property(e => e.DepartmentName).HasMaxLength(100);
@@ -163,6 +165,8 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Employee>(entity =>
         {
             entity.HasKey(e => e.EmployeeId).HasName("PK__Employee__7AD04FF19EDAB7BE");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
             entity.HasIndex(e => e.EmployeeCode, "UQ_EmployeeCode").IsUnique();
 
@@ -479,7 +483,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Position>(entity =>
         {
-            entity.HasKey(e => e.PositionId).HasName("PK__Position__60BB9A59FFE76A35");
+            entity.HasKey(e => e.PositionId).HasName("PK__Position__60BB9A595C170E70");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
             entity.Property(e => e.PositionId).HasColumnName("PositionID");
             entity.Property(e => e.LevelId)
@@ -529,7 +535,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Team>(entity =>
         {
-            entity.HasKey(e => e.TeamId).HasName("PK__Teams__123AE7B937DFFAFA");
+            entity.HasKey(e => e.TeamId).HasName("PK__Teams__123AE6B909B66367");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");

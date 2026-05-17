@@ -26,7 +26,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         if (string.IsNullOrWhiteSpace(token))
             return _anonymous;
 
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
       
         var claims = ParseClaimsFromJwt(token);
@@ -36,6 +36,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 
     public void NotifyUserAuthentication(string token)
     {
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt", "name", "role");
 
@@ -46,6 +47,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 
     public void NotifyUserLogout()
     {
+        _http.DefaultRequestHeaders.Authorization = null;
         var authState = Task.FromResult(_anonymous);
         NotifyAuthenticationStateChanged(authState);
     }

@@ -50,6 +50,12 @@ public class EmployeeService : IEmployeeService
 
         _mapper.Map(request, entity);
         entity.EmployeeId = id;
+
+        // Clear navigation properties to prevent EF Core from trying to update related entities
+        // when we only intend to update the foreign key IDs.
+        entity.Department = null;
+        entity.Position = null;
+        entity.ReportsToNavigation = null;
         
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<EmployeeDto?>(updated);

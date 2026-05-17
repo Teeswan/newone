@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using EPMS.Domain.Interfaces;
 
 namespace EPMS.Domain.Entities;
 
-public partial class Employee
+public partial class Employee : ISoftDelete
 {
     public int EmployeeId { get; set; }
 
@@ -27,8 +29,11 @@ public partial class Employee
 
     public bool? IsActive { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public decimal? CurrentSalary { get; set; }
 
+    [Column("NRC_Number")]
     public string? NrcNumber { get; set; }
 
     public bool? PromotionEligibility { get; set; }

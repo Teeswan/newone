@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
 
+using EPMS.Domain.Interfaces;
+
 namespace EPMS.Domain.Entities;
 
-public partial class Department
+public partial class Department : ISoftDelete
 {
     public int DepartmentId { get; set; }
 
     public string DepartmentName { get; set; } = null!;
 
     public bool? IsActive { get; set; }
+
+    public bool IsDeleted { get; set; }
 
     public int? ParentDepartmentId { get; set; }
 

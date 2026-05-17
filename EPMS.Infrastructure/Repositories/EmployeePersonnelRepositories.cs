@@ -35,11 +35,12 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
 
             using IDbConnection db = new SqlConnection(_connectionString);
             string sql = @"
-                SELECT e.*, d.DepartmentName, p.PositionTitle, m.EmployeeId as ManagerId, m.FullName
+                SELECT e.*, e.NRC_Number as NrcNumber, d.DepartmentName, p.PositionTitle, m.EmployeeId as ManagerId, m.FullName
                 FROM Employees e
                 LEFT JOIN Departments d ON e.DepartmentId = d.DepartmentId
                 LEFT JOIN Positions p ON e.PositionId = p.PositionId
-                LEFT JOIN Employees m ON e.ReportsTo = m.EmployeeId";
+                LEFT JOIN Employees m ON e.ReportsTo = m.EmployeeId
+                WHERE e.IsDeleted = 0";
 
             employees = await db.QueryAsync<Employee, Department, Position, Employee, Employee>(
                 sql,
@@ -62,14 +63,14 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
     public async Task<IEnumerable<Employee>> GetEmployeesByDepartmentAsync(int departmentId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT * FROM Employees WHERE DepartmentId = @DepartmentId";
+        string sql = "SELECT * FROM Employees WHERE DepartmentId = @DepartmentId AND IsDeleted = 0";
         return await db.QueryAsync<Employee>(sql, new { DepartmentId = departmentId });
     }
 
     public async Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT * FROM Employees WHERE ReportsTo = @ManagerId";
+        string sql = "SELECT * FROM Employees WHERE ReportsTo = @ManagerId AND IsDeleted = 0";
         return await db.QueryAsync<Employee>(sql, new { ManagerId = managerId });
     }
 
@@ -77,7 +78,7 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
     {
         ArgumentNullException.ThrowIfNull(employeeCode);
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT TOP 1 * FROM Employees WHERE EmployeeCode = @EmployeeCode";
+        string sql = "SELECT TOP 1 * FROM Employees WHERE EmployeeCode = @EmployeeCode AND IsDeleted = 0";
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { EmployeeCode = employeeCode });
     }
 
@@ -85,10 +86,19 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
     {
         ArgumentNullException.ThrowIfNull(username);
         using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT TOP 1 * FROM Employees WHERE Username = @Username";
+        string sql = "SELECT TOP 1 * FROM Employees WHERE Username = @Username AND IsDeleted = 0";
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { Username = username });
     }
 
+
+    public override async Task<Employee?> GetByIdAsync(int id)
+    {
+        return await _dbSet
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .Include(e => e.ReportsToNavigation)
+            .FirstOrDefaultAsync(e => e.EmployeeId == id && !e.IsDeleted);
+    }
 
     public override async Task<Employee> CreateAsync(Employee entity)
     {

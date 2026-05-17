@@ -1,13 +1,18 @@
 using System;
 using System.Collections.Generic;
+using EPMS.Domain.Interfaces;
 
 namespace EPMS.Domain.Entities;
 
-public partial class Position
+public partial class Position : ISoftDelete
 {
     public int PositionId { get; set; }
 
     public string PositionTitle { get; set; } = null!;
+
+    public bool? IsActive { get; set; }
+
+    public bool IsDeleted { get; set; }
 
     public string? LevelId { get; set; }
 
