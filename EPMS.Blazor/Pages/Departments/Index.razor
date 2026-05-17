@@ -7,136 +7,176 @@
 
 <PageTitle>Departments</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Department Management</MudText>
+<MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700; color: #111827;">
+    <MudIcon Icon="@Icons.Material.Filled.Domain" Class="mr-2 mb-n1" Color="Color.Primary" />
+    Department Management
+</MudText>
 
-<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
-    <MudCardContent>
-        @* Toolbar: Search and Actions *@
-        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
-            <div class="d-flex gap-2">
-                <MudTextField @bind-Value="searchQuery" Placeholder="Search departments..."
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;" />
-
-                <MudSelect T="string" @bind-Value="activeFilter" Label="Filter by Status" Variant="Variant.Outlined" Class="mt-0" Style="min-width: 150px;">
-                    <MudSelectItem Value="@("all")">All Departments</MudSelectItem>
-                    <MudSelectItem Value="@("active")">Active Only</MudSelectItem>
-                    <MudSelectItem Value="@("inactive")">Inactive Only</MudSelectItem>
-                </MudSelect>
-
-                <MudSelect T="string" @bind-Value="sortBy" Label="Sort by" Variant="Variant.Outlined" Class="mt-0" Style="min-width: 150px;">
-                    <MudSelectItem Value="@("name-asc")">Name (A-Z)</MudSelectItem>
-                    <MudSelectItem Value="@("name-desc")">Name (Z-A)</MudSelectItem>
-                    <MudSelectItem Value="@("id-asc")">ID (Low → High)</MudSelectItem>
-                    <MudSelectItem Value="@("id-desc")">ID (High → Low)</MudSelectItem>
-                </MudSelect>
-            </div>
-
-            <div class="d-flex gap-2">
-                <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
-                    <ActivatorContent>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                                   StartIcon="@Icons.Material.Filled.FileUpload">
-                            Import Excel
-                        </MudButton>
-                    </ActivatorContent>
-                </MudFileUpload>
-
-                <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
-                    <MudMenuItem OnClick="ExportToExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
-                    <MudMenuItem OnClick="ExportToPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
-                </MudMenu>
-
-                <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Add"
-                           OnClick="NavigateToCreate"
-                           Style="background-color: #1A56DB; font-weight: 600;">
-                    Create New
-                </MudButton>
-
-                @if (selectedDepartments.Any())
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Error"
-                               StartIcon="@Icons.Material.Filled.Delete"
-                               OnClick="DeleteSelected">
-                        Delete Selected (@selectedDepartments.Count)
-                    </MudButton>
-                }
-
-                <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                           StartIcon="@Icons.Material.Filled.Refresh"
-                           OnClick="LoadDepartments">
-                    Refresh
-                </MudButton>
-            </div>
-        </div>
-
+<MudCard Elevation="2" Class="mb-4" Style="border-radius: 16px;">
+    <MudCardContent Class="pa-6">
+        @* Statistics Cards with beautiful gradients *@
         <MudGrid Class="mb-6">
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="2" Class="pa-4">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Domain" Color="Color.Primary" Size="Size.Large" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Domain" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count()</MudText>
-                            <MudText Typo="Typo.body2" Class="text-grey">Total Departments</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@FilteredDepartments.Count()</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Total Departments</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="2" Class="pa-4">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #059669 0%, #10B981 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count(d => d.IsActive)</MudText>
-                            <MudText Typo="Typo.body2" Class="text-grey">Active Departments</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@FilteredDepartments.Count(d => d.IsActive)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Active Departments</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="2" Class="pa-4">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Size="Size.Large" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Block" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count(d => !d.IsActive)</MudText>
-                            <MudText Typo="Typo.body2" Class="text-grey">Inactive Departments</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@FilteredDepartments.Count(d => !d.IsActive)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Inactive Departments</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="2" Class="pa-4">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Color="Color.Warning" Size="Size.Large" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.AccountTree" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@FilteredDepartments.Count(d => d.ParentDepartmentId.HasValue)</MudText>
-                            <MudText Typo="Typo.body2" Class="text-grey">With Parent</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@FilteredDepartments.Count(d => d.ParentDepartmentId.HasValue)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">With Parent</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
+        @* Toolbar with improved styling *@
+        <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background: #F9FAFB; border-radius: 12px;">
+            <div class="d-flex flex-wrap justify-space-between align-center gap-4">
+                <div class="d-flex flex-wrap gap-3">
+                    <MudTextField @bind-Value="searchQuery" Placeholder="Search departments by name..."
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium" Class="mt-0" Style="min-width: 280px;"
+                                  Variant="Variant.Outlined" Clearable="true" />
+
+                    <MudSelect T="string" @bind-Value="activeFilter" Label="Filter" Variant="Variant.Outlined" 
+                               Class="mt-0" Style="min-width: 140px;">
+                        <MudSelectItem Value="@("all")">All</MudSelectItem>
+                        <MudSelectItem Value="@("active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("inactive")">Inactive</MudSelectItem>
+                    </MudSelect>
+
+                    <MudSelect T="string" @bind-Value="sortBy" Label="Sort" Variant="Variant.Outlined" 
+                               Class="mt-0" Style="min-width: 140px;">
+                        <MudSelectItem Value="@("name-asc")">Name A-Z</MudSelectItem>
+                        <MudSelectItem Value="@("name-desc")">Name Z-A</MudSelectItem>
+                        <MudSelectItem Value="@("id-asc")">ID Low → High</MudSelectItem>
+                        <MudSelectItem Value="@("id-desc")">ID High → Low</MudSelectItem>
+                    </MudSelect>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
+                        <ActivatorContent>
+                            <MudTooltip Text="Import departments from Excel" Arrow="true">
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.UploadFile"
+                                           Class="rounded-lg">
+                                    Import
+                                </MudButton>
+                            </MudTooltip>
+                        </ActivatorContent>
+                    </MudFileUpload>
+
+                    <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" 
+                             Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                             Class="rounded-lg">
+                        <MudMenuItem OnClick="ExportToExcel" Icon="@Icons.Custom.FileFormats.FileExcel" 
+                                     IconColor="Color.Success">
+                            <MudText Class="ml-2">Export to Excel</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="ExportToPdf" Icon="@Icons.Custom.FileFormats.FilePdf" 
+                                     IconColor="Color.Error">
+                            <MudText Class="ml-2">Export to PDF</MudText>
+                        </MudMenuItem>
+                    </MudMenu>
+
+                    <MudTooltip Text="Refresh department list" Arrow="true">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="LoadDepartments"
+                                   Class="rounded-lg">
+                            Refresh
+                        </MudButton>
+                    </MudTooltip>
+
+                    <MudTooltip Text="Create new department" Arrow="true">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="NavigateToCreate"
+                                   Class="rounded-lg"
+                                   Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); font-weight: 600;">
+                            Create New
+                        </MudButton>
+                    </MudTooltip>
+
+                    @if (selectedDepartments.Any())
+                    {
+                        <MudTooltip Text="Delete selected departments" Arrow="true">
+                            <MudButton Variant="Variant.Filled" Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Delete"
+                                       OnClick="DeleteSelected"
+                                       Class="rounded-lg">
+                                Delete (@selectedDepartments.Count)
+                            </MudButton>
+                        </MudTooltip>
+                    }
+                </div>
+            </div>
+        </MudPaper>
+
         @if (isLoading)
         {
-            <div class="d-flex justify-center my-4">
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <div class="d-flex flex-column justify-center my-20 align-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading departments...</MudText>
             </div>
         }
         else if (!SortedDepartments.Any())
         {
-            <div class="text-center py-12">
-                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Info" Class="mb-4" />
-                <MudText Typo="Typo.h5" Class="fw-bold mb-2 text-grey">
+            <div class="text-center py-16">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Info" Class="mb-6" />
+                <MudText Typo="Typo.h5" Class="fw-bold mb-3" Style="color: #374151;">
                     @(string.IsNullOrWhiteSpace(searchQuery) ? "No departments found" : "No departments match your search")
                 </MudText>
-                <MudText Typo="Typo.body1" Class="mb-6 text-grey">
+                <MudText Typo="Typo.body1" Class="mb-8" Style="color: #6B7280;">
                     @(string.IsNullOrWhiteSpace(searchQuery) ? "Get started by creating your first department!" : "Try adjusting your search or filter criteria.")
                 </MudText>
                 @if (string.IsNullOrWhiteSpace(searchQuery))
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToCreate" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToCreate" 
+                               StartIcon="@Icons.Material.Filled.Add" Size="Size.Large"
+                               Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); border-radius: 8px;">
                         Create First Department
                     </MudButton>
                 }
@@ -146,43 +186,56 @@
         {
             <MudTable Items="@PagedDepartments" T="DepartmentDto" Hover="true" Breakpoint="Breakpoint.Sm"
                       MultiSelection="true" @bind-SelectedItems="selectedDepartments" SelectOnRowClick="false"
-                      Elevation="0" Filter="new Func<DepartmentDto,bool>(d => true)">
+                      Elevation="1" Filter="new Func<DepartmentDto,bool>(d => true)"
+                      Class="rounded-xl">
                 <HeaderContent>
-                    <MudTh Style="font-weight: 600;"></MudTh>
-                    <MudTh Style="font-weight: 600;">Department ID</MudTh>
-                    <MudTh Style="font-weight: 600;">Name</MudTh>
-                    <MudTh Style="font-weight: 600;">Parent Department</MudTh>
-                    <MudTh Style="font-weight: 600; text-align: center;">Active</MudTh>
-                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;"></MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Department ID</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Name</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Parent Department</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151; text-align: center;">Active</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd></MudTd>
-                    <MudTd DataLabel="Department ID">@context.DepartmentId</MudTd>
-                    <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Department ID" Style="font-weight: 500;">@context.DepartmentId</MudTd>
+                    <MudTd DataLabel="Name">
+                        <div class="d-flex align-center">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary" Class="mr-3">
+                                @context.DepartmentName[0]
+                            </MudAvatar>
+                            <MudText Style="font-weight: 500;">@context.DepartmentName</MudText>
+                        </div>
+                    </MudTd>
                     <MudTd DataLabel="Parent Department">
-                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
                             @(context.ParentDepartmentName ?? "None")
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Active" Style="text-align: center;">
                         @if (context.IsActive)
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled" 
+                                     Icon="@Icons.Material.Filled.CheckCircle">Active</MudChip>
                         }
                         else
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                     Icon="@Icons.Material.Filled.Cancel">Inactive</MudChip>
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
                         <MudTooltip Text="View details" Arrow="true">
-                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => NavigateToDetails(context.DepartmentId))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" 
+                                           Size="Size.Small" OnClick="@(() => NavigateToDetails(context.DepartmentId))" />
                         </MudTooltip>
                         <MudTooltip Text="Edit department" Arrow="true">
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => NavigateToEdit(context.DepartmentId))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" 
+                                           Size="Size.Small" OnClick="@(() => NavigateToEdit(context.DepartmentId))" />
                         </MudTooltip>
                         <MudTooltip Text="Delete department" Arrow="true">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
+                                           Size="Size.Small" OnClick="@(() => DeleteDepartment(context))" />
                         </MudTooltip>
                     </MudTd>
                 </RowTemplate>

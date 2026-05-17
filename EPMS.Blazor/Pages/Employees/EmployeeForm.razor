@@ -10,116 +10,209 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@(IsEdit? Icons.Material.Filled.Edit : Icons.Material.Filled.PersonAdd)" Class="mr-3 mb-n1" />
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(IsEdit? Icons.Material.Filled.Edit : Icons.Material.Filled.PersonAdd)" 
+                     Class="mr-3 mb-n1" 
+                     Color="@(IsEdit ? Color.Warning : Color.Primary)" />
             @(IsEdit ? "Update Employee Profile" : "Register New Employee")
         </MudText>
     </TitleContent>
     <DialogContent>
         <MudForm @ref="form">
-            <MudGrid Spacing="2">
-                @* --- Basic Section --- *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.EmployeeCode" Label="Employee Code" Variant="Variant.Outlined" Margin="Margin.Dense" 
-                                  Required="true" RequiredError="Code is required!" Placeholder="e.g. EMP-001"
-                                  Validation="@(new Func<string, Task<string?>>(ValidateEmployeeCode))" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.FullName" Label="Full Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" RequiredError="Name is required!" />
-                </MudItem>
+            @* Basic Information Section *@
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: linear-gradient(135deg, #F3F4F6 0%, #F9FAFB 100%); border-radius: 12px;">
+                <MudText Typo="Typo.subtitle1" Class="mb-4" Style="font-weight: 600; color: #374151;">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" Color="Color.Primary" />
+                    Basic Information
+                </MudText>
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.EmployeeCode" Label="Employee Code" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                      Required="true" RequiredError="Employee code is required!" Placeholder="e.g. EMP-001"
+                                      Validation="@(new Func<string, Task<string?>>(ValidateEmployeeCode))"
+                                      Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.FullName" Label="Full Name" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                      Required="true" RequiredError="Full name is required!"
+                                      Class="rounded-lg" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
 
-                @* --- Identification & Contact --- *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.NrcNumber" Label="NRC Number" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="12/YAKANA(N)123456" 
-                                  Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{1,2}/[A-Z]+\([A-Z]\)\d{6}$") ? null : "Invalid NRC format (e.g. 12/ABCDEF(N)123456)"))" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="InputType.Email" 
-                                  Validation="@(new EmailAddressAttribute {ErrorMessage = "Invalid email address"})" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.Phone" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" 
-                                  Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^[0-9+ ]{7,15}$") ? null : "Invalid phone number"))" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudSelect T="string" Label="Employment Status" @bind-Value="Model.EmploymentStatus" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Employment status is required!">
-                        <MudSelectItem Value="@("Permanent")">Permanent</MudSelectItem>
-                        <MudSelectItem Value="@("Contract")">Contract</MudSelectItem>
-                        <MudSelectItem Value="@("Probation")">Probation</MudSelectItem>
-                        <MudSelectItem Value="@("Intern")">Intern</MudSelectItem>
-                    </MudSelect>
-                </MudItem>
+            @* Contact & Identification Section *@
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: linear-gradient(135deg, #F0F9FF 0%, #F0FDF4 100%); border-radius: 12px;">
+                <MudText Typo="Typo.subtitle1" Class="mb-4" Style="font-weight: 600; color: #374151;">
+                    <MudIcon Icon="@Icons.Material.Filled.ContactMail" Class="mr-2" Color="Color.Info" />
+                    Contact & Identification
+                </MudText>
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.NrcNumber" Label="NRC Number" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                      Placeholder="12/ABCDEF(N)123456" 
+                                      Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{1,2}/[A-Z]+\([A-Z]\)\d{6}$") ? null : "Invalid NRC format (e.g. 12/ABCDEF(N)123456)"))"
+                                      Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                      InputType="InputType.Email" 
+                                      Validation="@(new EmailAddressAttribute {ErrorMessage = "Please enter a valid email address"})"
+                                      Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.Phone" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                      Validation="@(new Func<string, string>(v => string.IsNullOrEmpty(v) || System.Text.RegularExpressions.Regex.IsMatch(v, @"^[0-9+ ]{7,15}$") ? null : "Please enter a valid phone number"))"
+                                      Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="string" Label="Employment Status" @bind-Value="Model.EmploymentStatus" 
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" 
+                                   Required="true" RequiredError="Employment status is required!"
+                                   Class="rounded-lg">
+                            <MudSelectItem Value="@("Permanent")">
+                                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-2" Color="Color.Success" />
+                                Permanent
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("Contract")">
+                                <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" Color="Color.Info" />
+                                Contract
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("Probation")">
+                                <MudIcon Icon="@Icons.Material.Filled.Schedule" Class="mr-2" Color="Color.Warning" />
+                                Probation
+                            </MudSelectItem>
+                            <MudSelectItem Value="@("Intern")">
+                                <MudIcon Icon="@Icons.Material.Filled.School" Class="mr-2" Color="Color.Secondary" />
+                                Intern
+                            </MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
 
-                @* --- Organization Section --- *@
-                <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Department" @bind-Value="Model.DepartmentId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Department is required!">
-                        <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
-                        @foreach (var dept in departments)
-                        {
-                            <MudSelectItem T="int?" Value="@dept.DepartmentId">@dept.DepartmentName</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Team" @bind-Value="Model.TeamId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
-                        <MudSelectItem T="int?" Value="@((int?)null)">Select Team (Optional)</MudSelectItem>
-                        @foreach (var team in teams)
-                        {
-                            <MudSelectItem T="int?" Value="@team.TeamId">@team.TeamName</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Position" @bind-Value="Model.PositionId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Position is required!">
-                        <MudSelectItem T="int?" Value="@((int?)null)">Select Position</MudSelectItem>
-                        @foreach (var pos in positions)
-                        {
-                            <MudSelectItem T="int?" Value="@pos.PositionId">@pos.PositionTitle</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+            @* Organization Section *@
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: linear-gradient(135deg, #FFF7ED 0%, #FEF3C7 100%); border-radius: 12px;">
+                <MudText Typo="Typo.subtitle1" Class="mb-4" Style="font-weight: 600; color: #374151;">
+                    <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" Color="Color.Warning" />
+                    Organization Details
+                </MudText>
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" Label="Department" @bind-Value="Model.DepartmentId" 
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" 
+                                   Required="true" RequiredError="Please select a department"
+                                   Class="rounded-lg">
+                            <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
+                            @foreach (var dept in departments)
+                            {
+                                <MudSelectItem T="int?" Value="@dept.DepartmentId">@dept.DepartmentName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" Label="Team (Optional)" @bind-Value="Model.TeamId" 
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                   Class="rounded-lg">
+                            <MudSelectItem T="int?" Value="@((int?)null)">No Team</MudSelectItem>
+                            @foreach (var team in teams)
+                            {
+                                <MudSelectItem T="int?" Value="@team.TeamId">@team.TeamName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" Label="Position" @bind-Value="Model.PositionId" 
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" 
+                                   Required="true" RequiredError="Please select a position"
+                                   Class="rounded-lg">
+                            <MudSelectItem T="int?" Value="@((int?)null)">Select Position</MudSelectItem>
+                            @foreach (var pos in positions)
+                            {
+                                <MudSelectItem T="int?" Value="@pos.PositionId">@pos.PositionTitle</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" Label="Reports To (Manager)" @bind-Value="Model.ReportsTo" 
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                   Class="rounded-lg">
+                            <MudSelectItem T="int?" Value="@((int?)null)">
+                                <MudIcon Icon="@Icons.Material.Filled.Star" Class="mr-2" Color="Color.Warning" />
+                                None (Top Level)
+                            </MudSelectItem>
+                            @foreach (var emp in allEmployees.Where(x => x.EmployeeId != EmployeeId))
+                            {
+                                <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName (@emp.PositionTitle)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
 
-                @* --- Dates & Finance --- *@
-                <MudItem xs="12" sm="4">
-                    <MudDatePicker Label="Join Date" @bind-Date="Model.JoinDate" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" Required="true" RequiredError="Join date is required!" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" 
-                                  Editable="true" Validation="@(new Func<DateTime?, string?>(ValidateDateOfBirth))" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudNumericField @bind-Value="Model.CurrentSalary" Label="Salary (MMK)" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Format="N0" Min="0" />
-                </MudItem>
-
-                @* --- Hierarchy & Address --- *@
-                <MudItem xs="12">
-                    <MudSelect T="int?" Label="Reports To (Manager)" @bind-Value="Model.ReportsTo" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
-                        <MudSelectItem T="int?" Value="@((int?)null)">None (Top Level)</MudSelectItem>
-                        @foreach (var emp in allEmployees.Where(x => x.EmployeeId != EmployeeId))
-                        {
-                            <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName (@emp.PositionTitle)</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="Model.Address" Label="Home Address" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
-                </MudItem>
-
-                <MudItem xs="12">
-                    <MudSelect T="bool" Label="Employee Status" @bind-Value="IsActive" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Required="true">
-                        <MudSelectItem Value="true">Active</MudSelectItem>
-                        <MudSelectItem Value="false">Inactive</MudSelectItem>
-                    </MudSelect>
-                </MudItem>
-            </MudGrid>
+            @* Additional Details Section *@
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%); border-radius: 12px;">
+                <MudText Typo="Typo.subtitle1" Class="mb-4" Style="font-weight: 600; color: #374151;">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" Color="Color.Secondary" />
+                    Additional Details
+                </MudText>
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Join Date" @bind-Date="Model.JoinDate" 
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" 
+                                       Required="true" RequiredError="Join date is required!"
+                                       Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" 
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" 
+                                       Validation="@(new Func<DateTime?, string?>(ValidateDateOfBirth))"
+                                       Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudNumericField @bind-Value="Model.CurrentSalary" Label="Salary (MMK)" 
+                                         Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                         HideSpinButtons="true" Format="N0" Min="0"
+                                         Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Model.Address" Label="Home Address" 
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2"
+                                      Class="rounded-lg" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSelect T="bool" Label="Employee Status" @bind-Value="IsActive" 
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" 
+                                   Required="true"
+                                   Class="rounded-lg">
+                            <MudSelectItem Value="true">
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" Color="Color.Success" />
+                                Active
+                            </MudSelectItem>
+                            <MudSelectItem Value="false">
+                                <MudIcon Icon="@Icons.Material.Filled.Block" Class="mr-2" Color="Color.Error" />
+                                Inactive
+                            </MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudTooltip Text="Cancel and close dialog" Arrow="true">
-            <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Close">Cancel</MudButton>
+            <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" 
+                       StartIcon="@Icons.Material.Filled.Close"
+                       Class="rounded-lg px-6">
+                Cancel
+            </MudButton>
         </MudTooltip>
         <MudTooltip Text="@(IsEdit ? "Save changes to this employee" : "Save and create this employee")" Arrow="true">
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="px-10" StartIcon="@Icons.Material.Filled.Save">SAVE</MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" 
+                       Class="rounded-lg px-8"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); font-weight: 600;">
+                @(IsEdit ? "UPDATE" : "SAVE")
+            </MudButton>
         </MudTooltip>
     </DialogActions>
 </MudDialog>

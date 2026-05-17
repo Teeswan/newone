@@ -4,72 +4,88 @@
 
 <PageTitle>Team Details</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Elevation="4" Class="pa-8" Rounded="true">
-        <div class="d-flex align-center mb-6">
-            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
-                <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" />
-            </MudAvatar>
-            <div>
-                <MudText Typo="Typo.h4" Class="fw-bold mb-0">Team Details</MudText>
-                <MudText Typo="Typo.body2" Class="text-grey">View complete team information</MudText>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudCard Elevation="2" Style="border-radius: 16px;">
+        <MudCardContent Class="pa-8">
+            <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+                <div class="d-flex align-center">
+                    <div Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); border-radius: 16px; padding: 16px; margin-right: 16px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" Style="color: white;" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.h4" Class="fw-bold mb-0" Style="color: #111827;">Team Details</MudText>
+                        <MudText Typo="Typo.body2" Style="color: #6B7280;">View complete team information</MudText>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <MudTooltip Text="Edit this team" Arrow="true">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Warning" OnClick="NavigateToEdit" 
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   Class="rounded-lg">
+                            Edit
+                        </MudButton>
+                    </MudTooltip>
+                </div>
             </div>
-        </div>
-        <MudDivider Class="mb-8" />
+            
+            <MudDivider Class="mb-8" />
 
-        @if (team == null)
-        {
-            <div class="text-center py-10">
-                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
-            </div>
-        }
-        else
-        {
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudPaper Elevation="1" Class="pa-6 mb-6" Rounded="true">
-                        <MudText Typo="Typo.h6" Class="mb-4 fw-bold text-primary">
-                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
-                            Basic Information
-                        </MudText>
-                        <MudGrid>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Team ID</MudText>
+            @if (team == null)
+            {
+                <div class="text-center py-16">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+                    <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading team details...</MudText>
+                </div>
+            }
+            else
+            {
+                <MudPaper Elevation="0" Class="pa-6" Style="background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); border-radius: 12px;">
+                    <MudText Typo="Typo.h6" Class="mb-6" Style="font-weight: 600; color: #111827;">
+                        <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" Color="Color.Primary" />
+                        Basic Information
+                    </MudText>
+                    <MudGrid Spacing="4">
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Team ID</MudText>
                                 <MudChip Color="Color.Primary" Size="Size.Medium" T="int">@team.TeamId</MudChip>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Name</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Team Name</MudText>
                                 <MudText Typo="Typo.h5" Class="fw-bold">@team.TeamName</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Manager</MudText>
-                                <MudText Typo="Typo.body1">@(team.ManagerName ?? "None")</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-2">Department</MudText>
-                                <MudText Typo="Typo.body1">@(team.DepartmentName ?? "None")</MudText>
-                            </MudItem>
-                        </MudGrid>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
-        }
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Manager</MudText>
+                                <MudText Typo="Typo.body1" Style="font-weight: 500;">@(team.ManagerName ?? "None")</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Department</MudText>
+                                <MudText Typo="Typo.body1" Style="font-weight: 500;">@(team.DepartmentName ?? "None")</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
 
-        <MudDivider Class="my-8" />
+            <MudDivider Class="my-8" />
 
-        <MudButtonGroup>
-            <MudTooltip Text="Edit this team" Arrow="true">
-                <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">
-                    Edit Team
-                </MudButton>
-            </MudTooltip>
-            <MudTooltip Text="Go back to teams list" Arrow="true">
-                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" StartIcon="@Icons.Material.Filled.ArrowBack">
-                    Back to List
-                </MudButton>
-            </MudTooltip>
-        </MudButtonGroup>
-    </MudPaper>
+            <div class="d-flex justify-end gap-3">
+                <MudTooltip Text="Go back to teams list" Arrow="true">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" 
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               Class="rounded-lg px-6">
+                        Back to List
+                    </MudButton>
+                </MudTooltip>
+            </div>
+        </MudCardContent>
+    </MudCard>
 </MudContainer>
 
 @code {

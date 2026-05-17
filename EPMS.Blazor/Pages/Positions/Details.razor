@@ -9,24 +9,39 @@
 
 <PageTitle>Position Details</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <div class="d-flex align-center mb-4">
-        <MudTooltip Text="Go back to positions list" Arrow="true">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="NavigateBack" Class="mr-2" />
-        </MudTooltip>
-        <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1A56DB;">Position Details</MudText>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+        <div class="d-flex align-center">
+            <MudTooltip Text="Go back to positions list" Arrow="true">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="NavigateBack" Class="mr-2" Size="Size.Large" />
+            </MudTooltip>
+            <MudText Typo="Typo.h4" Style="font-weight: 700; color: #111827;">
+                <MudIcon Icon="@Icons.Material.Filled.Work" Class="mr-2 mb-n1" Color="Color.Primary" />
+                Position Details
+            </MudText>
+        </div>
+        <div class="d-flex gap-3">
+            <MudTooltip Text="Edit this position" Arrow="true">
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" OnClick="NavigateToEdit" 
+                           StartIcon="@Icons.Material.Filled.Edit"
+                           Class="rounded-lg">
+                    Edit
+                </MudButton>
+            </MudTooltip>
+        </div>
     </div>
 
     @if (isLoading)
     {
-        <div class="d-flex flex-column justify-center my-10 align-center">
+        <div class="d-flex flex-column justify-center my-20 align-center">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-            <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading position details...</MudText>
+            <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading position details...</MudText>
         </div>
     }
     else if (position == null)
     {
-        <MudAlert Severity="Severity.Error" Class="ma-4" Icon="@Icons.Material.Filled.ErrorOutline">
+        <MudAlert Severity="Severity.Error" Class="ma-4" Icon="@Icons.Material.Filled.ErrorOutline"
+                  Style="border-radius: 12px;">
             Position not found.
         </MudAlert>
     }
@@ -34,109 +49,110 @@
     {
         <MudGrid Spacing="4">
             <MudItem xs="12" md="4">
-                <MudPaper Elevation="4" Class="pa-6" Rounded="true">
-                    <div class="d-flex align-center mb-6">
-                        <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
-                            <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" />
-                        </MudAvatar>
-                        <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold mb-0">Position Info</MudText>
+                <MudCard Elevation="2" Style="border-radius: 16px;">
+                    <MudCardContent Class="pa-6">
+                        <div class="d-flex align-center mb-6">
+                            <div Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); border-radius: 16px; padding: 16px; margin-right: 16px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" Style="color: white;" />
+                            </div>
+                            <div>
+                                <MudText Typo="Typo.h4" Class="fw-bold mb-0" Style="color: #111827;">Position Info</MudText>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <MudGrid>
-                        <MudItem xs="12">
-                            <MudPaper Class="pa-3 mb-3" Elevation="0" Rounded="true">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Position ID</MudText>
-                                <MudChip T="int" Size="Size.Medium" Color="Color.Primary">@position.PositionId</MudChip>
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem xs="12">
-                            <MudPaper Class="pa-3 mb-3" Elevation="0" Rounded="true">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Title</MudText>
-                                <MudText Typo="Typo.h5" Class="fw-bold">@position.PositionTitle</MudText>
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem xs="12">
-                            <MudPaper Class="pa-3" Elevation="0" Rounded="true">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Level</MudText>
-                                @if (!string.IsNullOrEmpty(position.LevelName))
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@position.LevelName</MudChip>
-                                }
-                                else
-                                {
-                                    <MudText Typo="Typo.body1" Class="text-grey">None</MudText>
-                                }
-                            </MudPaper>
-                        </MudItem>
-                    </MudGrid>
-
-                    <MudDivider Class="my-6" />
-
-                    <MudGrid>
-                        <MudItem xs="12">
-                            <MudTooltip Text="Edit this position" Arrow="true">
-                                <MudButton Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit" Style="width: 100%;">
-                                    Edit Position
-                                </MudButton>
-                            </MudTooltip>
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
+                        
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudPaper Class="pa-4 mb-4" Elevation="0" Style="background: #F9FAFB; border-radius: 12px;">
+                                    <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Position ID</MudText>
+                                    <MudChip T="int" Size="Size.Medium" Color="Color.Primary">@position.PositionId</MudChip>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudPaper Class="pa-4 mb-4" Elevation="0" Style="background: #F9FAFB; border-radius: 12px;">
+                                    <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Title</MudText>
+                                    <MudText Typo="Typo.h5" Class="fw-bold">@position.PositionTitle</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudPaper Class="pa-4" Elevation="0" Style="background: #F9FAFB; border-radius: 12px;">
+                                    <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Level</MudText>
+                                    @if (!string.IsNullOrEmpty(position.LevelName))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@position.LevelName</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body1" Style="color: #6B7280;">None</MudText>
+                                    }
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
             </MudItem>
 
             <MudItem xs="12" md="8">
-                <MudPaper Elevation="4" Class="pa-6" Rounded="true">
-                    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-                        <MudItem>
-                            <MudText Typo="Typo.h5" Class="fw-bold">Assigned Permissions</MudText>
-                        </MudItem>
-                        <MudItem>
-                            <div class="d-flex gap-2">
-                                @if (selectedPermissions.Any())
-                                {
-                                    <MudTooltip Text="Revoke selected permissions" Arrow="true">
-                                        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="BulkRevoke" StartIcon="@Icons.Material.Filled.Delete">
-                                            Revoke @selectedPermissions.Count
+                <MudCard Elevation="2" Style="border-radius: 16px;">
+                    <MudCardContent Class="pa-6">
+                        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+                            <MudItem>
+                                <MudText Typo="Typo.h5" Class="fw-bold" Style="color: #111827;">Assigned Permissions</MudText>
+                            </MudItem>
+                            <MudItem>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @if (selectedPermissions.Any())
+                                    {
+                                        <MudTooltip Text="Revoke selected permissions" Arrow="true">
+                                            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="BulkRevoke" 
+                                                       StartIcon="@Icons.Material.Filled.Delete"
+                                                       Class="rounded-lg">
+                                                Revoke @selectedPermissions.Count
+                                            </MudButton>
+                                        </MudTooltip>
+                                    }
+                                    <MudTooltip Text="Seed default permissions" Arrow="true">
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="SeedPermissions" 
+                                                   StartIcon="@Icons.Material.Filled.Extension"
+                                                   Class="rounded-lg">
+                                            Seed Permissions
                                         </MudButton>
                                     </MudTooltip>
-                                }
-                                <MudTooltip Text="Seed default permissions" Arrow="true">
-                                    <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="SeedPermissions" StartIcon="@Icons.Material.Filled.Extension">
-                                        Seed Permissions
-                                    </MudButton>
-                                </MudTooltip>
-                                <MudTooltip Text="Assign new permission" Arrow="true">
-                                    <MudButton Color="Color.Primary" OnClick="ShowAssignPermissionDialog" StartIcon="@Icons.Material.Filled.Add">
-                                        Assign Permission
-                                    </MudButton>
-                                </MudTooltip>
-                            </div>
-                        </MudItem>
-                    </MudGrid>
+                                    <MudTooltip Text="Assign new permission" Arrow="true">
+                                        <MudButton Color="Color.Primary" OnClick="ShowAssignPermissionDialog" 
+                                                   StartIcon="@Icons.Material.Filled.Add"
+                                                   Class="rounded-lg"
+                                                   Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%);">
+                                            Assign Permission
+                                        </MudButton>
+                                    </MudTooltip>
+                                </div>
+                            </MudItem>
+                        </MudGrid>
 
                     @if (assignedPermissions == null)
                     {
-                        <div class="d-flex justify-center my-10">
-                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                        <div class="d-flex flex-column justify-center my-16 align-center">
+                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                            <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading permissions...</MudText>
                         </div>
                     }
                     else if (!assignedPermissions.Any())
                     {
-                        <MudAlert Severity="Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.Info">
+                        <MudAlert Severity="Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.Info"
+                                  Style="border-radius: 12px;">
                             No permissions assigned yet.
                         </MudAlert>
                     }
                     else
                     {
-                        <MudTable Items="@assignedPermissions" T="PermissionDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0"
-                                  MultiSelection="true" @bind-SelectedItems="selectedPermissions" SelectOnRowClick="false">
+                        <MudTable Items="@assignedPermissions" T="PermissionDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="1"
+                                  MultiSelection="true" @bind-SelectedItems="selectedPermissions" SelectOnRowClick="false"
+                                  Class="rounded-xl">
                             <HeaderContent>
                                 <MudTh></MudTh>
-                                <MudTh Style="font-weight: 600;">Permission Code</MudTh>
-                                <MudTh Style="font-weight: 600;">Description</MudTh>
-                                <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
+                                <MudTh Style="font-weight: 700; color: #374151;">Permission Code</MudTh>
+                                <MudTh Style="font-weight: 700; color: #374151;">Description</MudTh>
+                                <MudTh Style="font-weight: 700; color: #374151; text-align: right;">Actions</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd></MudTd>
@@ -156,7 +172,8 @@
                             </RowTemplate>
                         </MudTable>
                     }
-                </MudPaper>
+                    </MudCardContent>
+                </MudCard>
             </MudItem>
         </MudGrid>
     }

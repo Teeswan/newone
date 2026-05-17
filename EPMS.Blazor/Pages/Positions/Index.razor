@@ -7,107 +7,145 @@
 
 <PageTitle>Positions</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Position Management</MudText>
+<MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700; color: #111827;">
+    <MudIcon Icon="@Icons.Material.Filled.Work" Class="mr-2 mb-n1" Color="Color.Primary" />
+    Position Management
+</MudText>
 
-<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
-    <MudCardContent>
-
-        @* Statistics Cards *@
+<MudCard Elevation="2" Class="mb-4" Style="border-radius: 16px;">
+    <MudCardContent Class="pa-6">
+        @* Statistics Cards with beautiful gradients *@
         <MudGrid Class="mb-6">
             <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" Color="Color.Primary" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(positions?.Count() ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">Total Positions</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(positions?.Count() ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Total Positions</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #059669 0%, #10B981 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" Color="Color.Success" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(positions?.Count(p => !string.IsNullOrEmpty(p.LevelName)) ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">With Level</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(positions?.Count(p => !string.IsNullOrEmpty(p.LevelName)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">With Level</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Size="Size.Large" Color="Color.Warning" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(positions?.Count(p => string.IsNullOrEmpty(p.LevelName)) ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">Without Level</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(positions?.Count(p => string.IsNullOrEmpty(p.LevelName)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Without Level</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
-        @* Toolbar: Search and Actions *@
-        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
-            <MudTextField @bind-Value="searchString" Placeholder="Search positions..."
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;"
-                          Clearable="true" />
+        @* Toolbar with improved styling *@
+        <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background: #F9FAFB; border-radius: 12px;">
+            <div class="d-flex flex-wrap justify-space-between align-center gap-4">
+                <MudTextField @bind-Value="searchString" Placeholder="Search positions by title or level..."
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium" Class="mt-0" Style="min-width: 280px;"
+                              Variant="Variant.Outlined" Clearable="true" />
 
-            <div class="d-flex gap-2">
-                <MudTooltip Text="Refresh position list" Arrow="true">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                               StartIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="RefreshPositions">
-                        Refresh
-                    </MudButton>
-                </MudTooltip>
+                <div class="d-flex gap-3">
+                    <MudTooltip Text="Refresh position list" Arrow="true">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="RefreshPositions"
+                                   Class="rounded-lg">
+                            Refresh
+                        </MudButton>
+                    </MudTooltip>
 
-                <MudTooltip Text="Add a new position" Arrow="true">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.Add"
-                               OnClick="NavigateToCreate"
-                               Style="background-color: #1A56DB; font-weight: 600;">
-                        Create New
-                    </MudButton>
-                </MudTooltip>
+                    <MudTooltip Text="Add a new position" Arrow="true">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="NavigateToCreate"
+                                   Class="rounded-lg"
+                                   Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); font-weight: 600;">
+                            Create New
+                        </MudButton>
+                    </MudTooltip>
+                </div>
             </div>
-        </div>
+        </MudPaper>
 
         @if (positions == null)
         {
-            <div class="d-flex flex-column justify-center my-10 align-center">
+            <div class="d-flex flex-column justify-center my-20 align-center">
                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading positions...</MudText>
+                <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading positions...</MudText>
+            </div>
+        }
+        else if (!FilteredPositions.Any())
+        {
+            <div class="text-center py-16">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Info" Class="mb-6" />
+                <MudText Typo="Typo.h5" Class="fw-bold mb-3" Style="color: #374151;">
+                    @(string.IsNullOrWhiteSpace(searchString) ? "No positions found" : "No positions match your search")
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-8" Style="color: #6B7280;">
+                    @(string.IsNullOrWhiteSpace(searchString) ? "Get started by creating your first position!" : "Try adjusting your search criteria.")
+                </MudText>
+                @if (string.IsNullOrWhiteSpace(searchString))
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToCreate" 
+                               StartIcon="@Icons.Material.Filled.Add" Size="Size.Large"
+                               Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); border-radius: 8px;">
+                        Create First Position
+                    </MudButton>
+                }
             </div>
         }
         else
         {
             <MudTable Items="@FilteredPositions" T="PositionDto" Hover="true" Breakpoint="Breakpoint.Sm"
-                      Elevation="0">
+                      Elevation="1"
+                      Class="rounded-xl">
                 <HeaderContent>
-                    <MudTh Style="font-weight: 600;">Position ID</MudTh>
-                    <MudTh Style="font-weight: 600;">Title</MudTh>
-                    <MudTh Style="font-weight: 600;">Level</MudTh>
-                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Position ID</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Title</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Level</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Position ID">
                         <MudChip T="int" Size="Size.Medium" Color="Color.Primary">@context.PositionId</MudChip>
                     </MudTd>
                     <MudTd DataLabel="Title">
-                        <MudText Typo="Typo.body1" Class="fw-bold">@context.PositionTitle</MudText>
+                        <div class="d-flex align-center">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary" Class="mr-3">
+                                @context.PositionTitle[0]
+                            </MudAvatar>
+                            <MudText Typo="Typo.body1" Style="font-weight: 500;">@context.PositionTitle</MudText>
+                        </div>
                     </MudTd>
                     <MudTd DataLabel="Level">
                         @if (!string.IsNullOrEmpty(context.LevelName))
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@context.LevelName</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@context.LevelName</MudChip>
                         }
                         else
                         {
-                            <MudText Typo="Typo.caption" Class="text-grey">None</MudText>
+                            <MudText Typo="Typo.caption" Style="color: #6B7280;">None</MudText>
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">

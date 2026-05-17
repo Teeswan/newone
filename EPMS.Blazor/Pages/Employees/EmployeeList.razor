@@ -9,162 +9,196 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
-<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: bold; color: #1A56DB;">Employee Management</MudText>
+<MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700; color: #111827;">
+    <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Class="mr-2 mb-n1" Color="Color.Primary" />
+    Employee Management
+</MudText>
 
-<MudCard Elevation="1" Style="border-radius: 8px; border: 1px solid #E5E7EB;">
-    <MudCardContent>
-
-        @* Statistics Cards *@
+<MudCard Elevation="2" Class="mb-4" Style="border-radius: 12px;">
+    <MudCardContent Class="pa-6">
+        @* Statistics Cards with better styling *@
         <MudGrid Class="mb-6">
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Primary" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">Total Employees</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(Employees?.Count ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Total Employees</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #059669 0%, #10B981 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count(e => e.IsActive ?? false) ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">Active Employees</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(Employees?.Count(e => e.IsActive ?? false) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Active Employees</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Large" Color="Color.Error" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Block" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count(e => !(e.IsActive ?? false)) ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">Inactive Employees</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(Employees?.Count(e => !(e.IsActive ?? false)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">Inactive Employees</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="1" Class="pa-4" Rounded="true">
+                <MudPaper Elevation="0" Class="pa-5" Style="border-radius: 12px; background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.SupervisorAccount" Size="Size.Large" Color="Color.Warning" Class="mr-3" />
+                        <div class="mr-4" Style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.SupervisorAccount" Size="Size.Large" Style="color: white;" />
+                        </div>
                         <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold">@(Employees?.Count(e => !string.IsNullOrEmpty(e.ManagerName)) ?? 0)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-grey">With Manager</MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">@(Employees?.Count(e => !string.IsNullOrEmpty(e.ManagerName)) ?? 0)</MudText>
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.85); font-weight: 500;">With Manager</MudText>
                         </div>
                     </div>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
-        @* Toolbar: Search and Actions *@
-        <div class="d-flex flex-wrap justify-space-between align-center mb-4 gap-4">
-            <MudTextField @bind-Value="searchString" Placeholder="Search employees..."
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium" Class="mt-0" Style="max-width: 350px;"
-                          Clearable="true" />
+        @* Toolbar with improved styling *@
+        <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+            <div class="d-flex flex-wrap justify-space-between align-center gap-4">
+                <MudTextField @bind-Value="searchString" Placeholder="Search by name, code, position, or department..."
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium" Class="mt-0" Style="min-width: 300px;"
+                              Variant="Variant.Outlined" Clearable="true" />
 
-            <div class="d-flex gap-2">
-                <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
-                    <ActivatorContent>
-                        <MudTooltip Text="Import employees from Excel" Arrow="true">
-                            <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                                       StartIcon="@Icons.Material.Filled.FileUpload">
-                                Import Excel
-                            </MudButton>
-                        </MudTooltip>
-                    </ActivatorContent>
-                </MudFileUpload>
+                <div class="d-flex gap-3">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="ImportExcel" Accept=".xlsx">
+                        <ActivatorContent>
+                            <MudTooltip Text="Import employees from Excel" Arrow="true">
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.UploadFile"
+                                           Class="rounded-lg">
+                                    Import
+                                </MudButton>
+                            </MudTooltip>
+                        </ActivatorContent>
+                    </MudFileUpload>
 
-                <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
-                    <MudTooltip Text="Export employees to Excel" Arrow="true">
-                        <MudMenuItem OnClick="ExportExcel" Icon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Success">Excel</MudMenuItem>
+                    <MudMenu StartIcon="@Icons.Material.Filled.Download" Label="Export" Color="Color.Secondary" 
+                             Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                             Class="rounded-lg">
+                        <MudMenuItem OnClick="ExportExcel" Icon="@Icons.Custom.FileFormats.FileExcel" 
+                                     IconColor="Color.Success">
+                            <MudText Class="ml-2">Export to Excel</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="ExportPdf" Icon="@Icons.Custom.FileFormats.FilePdf" 
+                                     IconColor="Color.Error">
+                            <MudText Class="ml-2">Export to PDF</MudText>
+                        </MudMenuItem>
+                    </MudMenu>
+
+                    <MudTooltip Text="Refresh employee list" Arrow="true">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="RefreshEmployees"
+                                   Class="rounded-lg">
+                            Refresh
+                        </MudButton>
                     </MudTooltip>
-                    <MudTooltip Text="Export employees to PDF" Arrow="true">
-                        <MudMenuItem OnClick="ExportPdf" Icon="@Icons.Custom.FileFormats.FilePdf" IconColor="Color.Error">PDF</MudMenuItem>
+
+                    <MudTooltip Text="Add a new employee" Arrow="true">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.PersonAdd"
+                                   OnClick="OpenAddDialog"
+                                   Class="rounded-lg"
+                                   Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); font-weight: 600;">
+                            Add Employee
+                        </MudButton>
                     </MudTooltip>
-                </MudMenu>
-
-                <MudTooltip Text="Refresh employee list" Arrow="true">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                               StartIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="RefreshEmployees">
-                        Refresh
-                    </MudButton>
-                </MudTooltip>
-
-                <MudTooltip Text="Add a new employee" Arrow="true">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.Add"
-                               OnClick="OpenAddDialog"
-                               Style="background-color: #1A56DB; font-weight: 600;">
-                        Add Employee
-                    </MudButton>
-                </MudTooltip>
+                </div>
             </div>
-        </div>
+        </MudPaper>
 
         @if (Employees == null)
         {
-            <div class="d-flex flex-column justify-center my-10 align-center">
+            <div class="d-flex flex-column justify-center my-16 align-center">
                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading employees...</MudText>
+                <MudText Typo="Typo.body1" Class="mt-6 text-grey-darken-1" Style="font-weight: 500;">Loading employees...</MudText>
             </div>
         }
         else
         {
             <MudTable Items="@Employees" T="EmployeeDto" Hover="true" Breakpoint="Breakpoint.Sm"
-                      Elevation="0" Filter="new Func<EmployeeDto,bool>(FilterFunc)">
+                      Elevation="1" Filter="new Func<EmployeeDto,bool>(FilterFunc)"
+                      Class="rounded-xl"
+                      MultiSelection="true"
+                      @bind-SelectedItems="SelectedEmployees">
                 <HeaderContent>
-                    <MudTh Style="font-weight: 600;">Code</MudTh>
-                    <MudTh Style="font-weight: 600;">Full Name</MudTh>
-                    <MudTh Style="font-weight: 600;">Department</MudTh>
-                    <MudTh Style="font-weight: 600;">Team</MudTh>
-                    <MudTh Style="font-weight: 600;">Position</MudTh>
-                    <MudTh Style="font-weight: 600; text-align: center;">Reports To</MudTh>
-                    <MudTh Style="font-weight: 600; text-align: center;">Status</MudTh>
-                    <MudTh Style="font-weight: 600; text-align: right;">Actions</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Employee Code</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Full Name</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Department</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Team</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Position</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151; text-align: center;">Reports To</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151; text-align: center;">Status</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
-                    <MudTd DataLabel="Full Name">@context.FullName</MudTd>
-                    <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
-                    <MudTd DataLabel="Team">@context.TeamName</MudTd>
+                    <MudTd DataLabel="Employee Code" Style="font-weight: 500;">@context.EmployeeCode</MudTd>
+                    <MudTd DataLabel="Full Name">
+                        <div class="d-flex align-center">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary" Class="mr-3">
+                                @context.FullName[0]
+                            </MudAvatar>
+                            <MudText Style="font-weight: 500;">@context.FullName</MudText>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Department">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
+                            @context.DepartmentName
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Team">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">
+                            @context.TeamName
+                        </MudChip>
+                    </MudTd>
                     <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
                     <MudTd DataLabel="Reports To" Style="text-align: center;">
-                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
                             @(context.ManagerName ?? "No Manager")
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Status" Style="text-align: center;">
                         @if (context.IsActive ?? false)
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled" 
+                                     Icon="@Icons.Material.Filled.CheckCircle">Active</MudChip>
                         }
                         else
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                     Icon="@Icons.Material.Filled.Cancel">Inactive</MudChip>
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        @* View Details *@
-                        <MudTooltip Text="View employee details" Arrow="true">
+                        <MudTooltip Text="View details" Arrow="true">
                             <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info"
                                            Size="Size.Small" OnClick="@(() => ViewDetails(context.EmployeeId))" />
                         </MudTooltip>
-
-                        @* Edit *@
                         <MudTooltip Text="Edit employee" Arrow="true">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
                                            Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
                         </MudTooltip>
-
-                        @* Delete *@
                         <MudTooltip Text="Delete employee" Arrow="true">
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
                                            Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
@@ -181,6 +215,7 @@
 
 @code {
     private List<EmployeeDto>? Employees;
+    private HashSet<EmployeeDto> SelectedEmployees = new();
     private string searchString = "";
 
     protected override async Task OnInitializedAsync()

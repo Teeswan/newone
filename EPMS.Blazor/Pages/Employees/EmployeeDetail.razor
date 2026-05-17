@@ -3,20 +3,38 @@
 @using EPMS.Blazor.Services
 @inject IEmployeeBlazorService EmployeeService
 @inject NavigationManager Navigation
+@inject IDialogService DialogService
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    @* Header with Back Button *@
-    <div class="d-flex align-center mb-4">
-        <MudTooltip Text="Go back to employees list" Arrow="true">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="mr-2" />
-        </MudTooltip>
-        <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1A56DB;">Employee Profile</MudText>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    @* Header with Back Button and Actions *@
+    <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+        <div class="d-flex align-center">
+            <MudTooltip Text="Go back to employees list" Arrow="true">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" 
+                               Color="Color.Primary" Size="Size.Large" Class="mr-3" />
+            </MudTooltip>
+            <MudText Typo="Typo.h4" Style="font-weight: 700; color: #111827;">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2 mb-n1" Color="Color.Primary" />
+                Employee Profile
+            </MudText>
+        </div>
+        <div class="d-flex gap-3">
+            <MudTooltip Text="Edit employee" Arrow="true">
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.Edit"
+                           OnClick="OpenEditDialog"
+                           Class="rounded-lg">
+                    Edit
+                </MudButton>
+            </MudTooltip>
+        </div>
     </div>
 
     @if (detail == null)
     {
-        <div class="d-flex justify-center my-10">
+        <div class="d-flex flex-column justify-center my-20 align-center">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading employee profile...</MudText>
         </div>
     }
     else
@@ -24,43 +42,66 @@
         <MudGrid>
             @* Left Side: Profile Card *@
             <MudItem xs="12" md="4">
-                <MudCard Elevation="1" Style="border-radius: 12px; height: 100%;">
-                    <MudCardContent Class="d-flex flex-column align-center py-8">
-                        <MudAvatar Style="height:120px; width:120px; font-size: 3rem;" Color="Color.Primary" Variant="Variant.Filled">
-                            @detail.FullName[0]
-                        </MudAvatar>
-                        <MudText Typo="Typo.h6" Class="mt-4" Style="font-weight: bold;">@detail.FullName</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@detail.EmployeeCode</MudText>
+                <MudCard Elevation="2" Class="mb-4" Style="border-radius: 16px;">
+                    <MudCardContent Class="d-flex flex-column align-center py-10">
+                        @* Profile Avatar with gradient background *@
+                        <div Style="position: relative;">
+                            <div Style="position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; 
+                                       background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 50%, #10B981 100%); 
+                                       border-radius: 50%; opacity: 0.2;"></div>
+                            <MudAvatar Style="height: 140px; width: 140px; font-size: 3.5rem; position: relative; z-index: 1;" 
+                                       Color="Color.Primary" Variant="Variant.Filled" Class="shadow-lg">
+                                @detail.FullName[0]
+                            </MudAvatar>
+                        </div>
                         
-                        <div class="d-flex gap-2 mt-2">
-                            <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Size="Size.Small">
+                        <MudText Typo="Typo.h5" Class="mt-6" Style="font-weight: 700; color: #111827;">@detail.FullName</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Style="font-weight: 500;">@detail.EmployeeCode</MudText>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small"
+                                     Icon="@Icons.Material.Filled.Work">
                                 @detail.EmploymentStatus
                             </MudChip>
                             @if (detail.IsActive ?? false)
                             {
-                                <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">Active</MudChip>
+                                <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Size="Size.Small"
+                                         Icon="@Icons.Material.Filled.CheckCircle">Active</MudChip>
                             }
                             else
                             {
-                                <MudChip T="string" Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Inactive</MudChip>
+                                <MudChip T="string" Color="Color.Error" Variant="Variant.Filled" Size="Size.Small"
+                                         Icon="@Icons.Material.Filled.Cancel">Inactive</MudChip>
                             }
                         </div>
 
-                        <MudDivider DividerType="DividerType.Middle" Class="my-4" Style="width: 80%;" />
+                        <MudDivider DividerType="DividerType.Middle" Class="my-6" Style="width: 85%;" />
 
-                        <div class="w-100 px-4">
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText Typo="Typo.body2" Style="color: #6B7280;">Department:</MudText>
-                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@detail.DepartmentName</MudText>
-                            </div>
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText Typo="Typo.body2" Style="color: #6B7280;">Team:</MudText>
-                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@detail.TeamName</MudText>
-                            </div>
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body2" Style="color: #6B7280;">Position:</MudText>
-                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@detail.PositionTitle</MudText>
-                            </div>
+                        @* Organization Info *@
+                        <div class="w-100 px-6">
+                            <MudText Typo="Typo.subtitle2" Class="mb-4" Style="font-weight: 600; color: #374151;">
+                                <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" Color="Color.Primary" />
+                                Organization
+                            </MudText>
+                            
+                            <MudPaper Elevation="0" Class="pa-4 mb-3" Style="background: #F9FAFB; border-radius: 12px;">
+                                <div class="d-flex justify-space-between align-center mb-3">
+                                    <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Department</MudText>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                                        @detail.DepartmentName
+                                    </MudChip>
+                                </div>
+                                <div class="d-flex justify-space-between align-center mb-3">
+                                    <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Team</MudText>
+                                    <MudChip T="string" Color="Color.Secondary" Variant="Variant.Text" Size="Size.Small">
+                                        @detail.TeamName
+                                    </MudChip>
+                                </div>
+                                <div class="d-flex justify-space-between align-center">
+                                    <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Position</MudText>
+                                    <MudText Typo="Typo.body2" Style="font-weight: 600; color: #111827;">@detail.PositionTitle</MudText>
+                                </div>
+                            </MudPaper>
                         </div>
                     </MudCardContent>
                 </MudCard>
@@ -68,47 +109,82 @@
 
             @* Right Side: Information Tabs *@
             <MudItem xs="12" md="8">
-                <MudCard Elevation="1" Style="border-radius: 12px;">
-                    <MudCardContent>
-                        <MudTabs Elevation="0" Outlined="false" Color="Color.Primary">
+                <MudCard Elevation="2" Style="border-radius: 16px;">
+                    <MudCardContent Class="pa-6">
+                        <MudTabs Elevation="0" Outlined="false" Color="Color.Primary" Rounded="true"
+                                 Class="rounded-xl">
                             @* Tab 1: Official Info *@
                             <MudTabPanel Text="Official Info" Icon="@Icons.Material.Filled.Badge">
-                                <MudGrid Class="mt-4">
+                                <MudText Typo="Typo.h6" Class="mb-6 mt-2" Style="font-weight: 600; color: #111827;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" Color="Color.Primary" />
+                                    Official Information
+                                </MudText>
+                                <MudGrid Spacing="4">
                                     <MudItem xs="12" sm="6">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">NRC Number</MudText>
-                                        <MudText Typo="Typo.body1">@(detail.NrcNumber ?? "N/A")</MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">NRC Number</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.NrcNumber ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                     <MudItem xs="12" sm="6">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Join Date</MudText>
-                                        <MudText Typo="Typo.body1">@detail.JoinDate?.ToString("dd MMM yyyy")</MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Join Date</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @detail.JoinDate?.ToString("dd MMMM yyyy")
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                     <MudItem xs="12" sm="6">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Reporting Manager</MudText>
-                                        <MudText Typo="Typo.body1">@(detail.ManagerName ?? "No Direct Manager")</MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Reporting Manager</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.ManagerName ?? "No Direct Manager")
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                     <MudItem xs="12" sm="6">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
-                                        <MudText Typo="Typo.body1">@detail.Email</MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Email Address</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @detail.Email
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                 </MudGrid>
                             </MudTabPanel>
 
                             @* Tab 2: Financial & Personal *@
                             <MudTabPanel Text="Salary & Personal" Icon="@Icons.Material.Filled.Payments">
-                                <MudGrid Class="mt-4">
+                                <MudText Typo="Typo.h6" Class="mb-6 mt-2" Style="font-weight: 600; color: #111827;">
+                                    <MudIcon Icon="@Icons.Material.Filled.MonetizationOn" Class="mr-2" Color="Color.Success" />
+                                    Salary & Personal Details
+                                </MudText>
+                                <MudGrid Spacing="4">
                                     <MudItem xs="12" sm="6">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Basic Salary</MudText>
-                                        <MudText Typo="Typo.body1" Style="color: #059669; font-weight: bold;">
-                                            @detail.CurrentSalary?.ToString("N0") MMK
-                                        </MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%); border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #065F46; font-weight: 500;">Basic Salary</MudText>
+                                            <MudText Typo="Typo.h4" Style="color: #059669; font-weight: 700;">
+                                                @detail.CurrentSalary?.ToString("N0") MMK
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                     <MudItem xs="12" sm="6">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Phone Number</MudText>
-                                        <MudText Typo="Typo.body1">@(detail.Phone ?? "N/A")</MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Phone Number</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 600; color: #111827;">
+                                                @(detail.Phone ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                     <MudItem xs="12">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Address</MudText>
-                                        <MudText Typo="Typo.body1">@(detail.Address ?? "Not Provided")</MudText>
+                                        <MudPaper Elevation="0" Class="pa-4" Style="background: #F9FAFB; border-radius: 12px;">
+                                            <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Home Address</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 500; color: #374151;">
+                                                @(detail.Address ?? "Not provided")
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
                                 </MudGrid>
                             </MudTabPanel>
@@ -132,10 +208,34 @@
         }
         catch (Exception ex)
         {
-            // Error handling
             Console.WriteLine(ex.Message);
         }
     }
 
     private void GoBack() => Navigation.NavigateTo("/employees");
+
+    private async Task OpenEditDialog()
+    {
+        if (detail == null) return;
+        
+        var parameters = new DialogParameters 
+        { 
+            ["IsEdit"] = true, 
+            ["EmployeeId"] = detail.EmployeeId 
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EmployeeForm>("Update Employee", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is UpdateEmployeeRequest request)
+        {
+            var success = await EmployeeService.UpdateEmployeeAsync(detail.EmployeeId, request);
+            if (success)
+            {
+                detail = await EmployeeService.GetEmployeeDetailsAsync(Id);
+                StateHasChanged();
+            }
+        }
+    }
 }
