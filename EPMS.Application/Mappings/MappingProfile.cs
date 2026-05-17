@@ -142,7 +142,9 @@ public class MappingProfile : Profile
                 o => o.MapFrom(s => s.Manager != null
                     ? s.Manager.FullName : string.Empty))
             .ForMember(d => d.CreatedAt,
-                o => o.MapFrom(s => s.CreatedAt ?? DateTime.MinValue));
+                o => o.MapFrom(s => s.CreatedAt ?? DateTime.MinValue))
+            .ForMember(d => d.Objectives, o => o.MapFrom(s => s.PipObjectives))
+            .ForMember(d => d.Meetings, o => o.MapFrom(s => s.PipMeetings));
 
         CreateMap<PipObjective, PipObjectiveDto>()
             .ForMember(d => d.PipId, o => o.MapFrom(s => s.Pipid ?? 0))
