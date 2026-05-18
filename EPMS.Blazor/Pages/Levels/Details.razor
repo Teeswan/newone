@@ -5,84 +5,99 @@
 
 <PageTitle>Level Details</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <div class="d-flex align-center mb-4">
-        <MudTooltip Text="Go back to levels list" Arrow="true">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="NavigateBack" Class="mr-2" />
-        </MudTooltip>
-        <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1A56DB;">Level Details</MudText>
-    </div>
-
-    @if (isLoading)
-    {
-        <div class="d-flex flex-column justify-center my-10 align-center">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-            <MudText Typo="Typo.body1" Class="mt-4 text-grey">Loading level details...</MudText>
-        </div>
-    }
-    else if (level == null)
-    {
-        <MudAlert Severity="Severity.Error" Class="ma-4" Icon="@Icons.Material.Filled.ErrorOutline">
-            Level not found.
-        </MudAlert>
-    }
-    else
-    {
-        <MudGrid Spacing="4">
-            <MudItem xs="12" md="12">
-                <MudPaper Elevation="4" Class="pa-6" Rounded="true">
-                    <div class="d-flex align-center mb-6">
-                        <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
-                            <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" />
-                        </MudAvatar>
-                        <div>
-                            <MudText Typo="Typo.h4" Class="fw-bold mb-0">Level Info</MudText>
-                        </div>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudCard Elevation="2" Style="border-radius: 16px;">
+        <MudCardContent Class="pa-8">
+            <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+                <div class="d-flex align-center">
+                    <MudTooltip Text="Go back to levels list" Arrow="true">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="NavigateBack" Class="mr-2" Size="Size.Large" />
+                    </MudTooltip>
+                    <div Style="background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%); border-radius: 16px; padding: 16px; margin-right: 16px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Grade" Size="Size.Large" Style="color: white;" />
                     </div>
-                    
-                    <MudGrid>
+                    <div>
+                        <MudText Typo="Typo.h4" Class="fw-bold mb-0" Style="color: #111827;">Level Details</MudText>
+                        <MudText Typo="Typo.body2" Style="color: #6B7280;">View complete level information</MudText>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <MudTooltip Text="Edit this level" Arrow="true">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Warning" OnClick="NavigateToEdit" 
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   Class="rounded-lg">
+                            Edit
+                        </MudButton>
+                    </MudTooltip>
+                </div>
+            </div>
+            
+            <MudDivider Class="mb-8" />
+
+            @if (isLoading)
+            {
+                <div class="d-flex flex-column justify-center my-20 align-center">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                    <MudText Typo="Typo.body1" Class="mt-6" Style="font-weight: 500; color: #6B7280;">Loading level details...</MudText>
+                </div>
+            }
+            else if (level == null)
+            {
+                <MudAlert Severity="Severity.Error" Class="ma-4" Icon="@Icons.Material.Filled.ErrorOutline"
+                          Style="border-radius: 12px;">
+                    Level not found.
+                </MudAlert>
+            }
+            else
+            {
+                <MudPaper Elevation="0" Class="pa-6" Style="background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); border-radius: 12px;">
+                    <MudText Typo="Typo.h6" Class="mb-6" Style="font-weight: 600; color: #111827;">
+                        <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" Color="Color.Primary" />
+                        Basic Information
+                    </MudText>
+                    <MudGrid Spacing="4">
                         <MudItem xs="12" sm="6">
-                            <MudPaper Class="pa-3 mb-3" Elevation="0" Rounded="true">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Level ID</MudText>
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Level ID</MudText>
                                 <MudChip T="string" Size="Size.Medium" Color="Color.Primary">@level.LevelId</MudChip>
                             </MudPaper>
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudPaper Class="pa-3 mb-3" Elevation="0" Rounded="true">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Level Name</MudText>
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Level Name</MudText>
                                 <MudText Typo="Typo.h5" Class="fw-bold">@level.LevelName</MudText>
                             </MudPaper>
                         </MudItem>
                         <MudItem xs="12">
-                            <MudPaper Class="pa-3" Elevation="0" Rounded="true">
-                                <MudText Typo="Typo.subtitle2" Class="text-grey mb-1">Description</MudText>
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Description</MudText>
                                 @if (!string.IsNullOrEmpty(level.LevelDescription))
                                 {
                                     <MudText Typo="Typo.body1">@level.LevelDescription</MudText>
                                 }
                                 else
                                 {
-                                    <MudText Typo="Typo.body1" Class="text-grey">No description</MudText>
+                                    <MudText Typo="Typo.body1" Style="color: #6B7280;">None</MudText>
                                 }
                             </MudPaper>
                         </MudItem>
                     </MudGrid>
-
-                    <MudDivider Class="my-6" />
-
-                    <MudGrid>
-                        <MudItem xs="12">
-                            <MudTooltip Text="Edit this level" Arrow="true">
-                                <MudButton Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit" Style="width: 100%;">
-                                    Edit Level
-                                </MudButton>
-                            </MudTooltip>
-                        </MudItem>
-                    </MudGrid>
                 </MudPaper>
-            </MudItem>
-        </MudGrid>
-    }
+            }
+
+            <MudDivider Class="my-8" />
+
+            <div class="d-flex justify-end gap-3">
+                <MudTooltip Text="Go back to levels list" Arrow="true">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack" 
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               Class="rounded-lg px-6">
+                        Back to List
+                    </MudButton>
+                </MudTooltip>
+            </div>
+        </MudCardContent>
+    </MudCard>
 </MudContainer>
 
 @code {
