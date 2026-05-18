@@ -178,6 +178,7 @@
                     <MudTh Style="font-weight: 700; color: #374151;">Name</MudTh>
                     <MudTh Style="font-weight: 700; color: #374151;">Manager</MudTh>
                     <MudTh Style="font-weight: 700; color: #374151;">Department</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Status</MudTh>
                     <MudTh Style="font-weight: 700; color: #374151; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -200,6 +201,16 @@
                         <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">
                             @(context.DepartmentName ?? "None")
                         </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        @if (context.IsActive)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle" Class="px-3" Style="font-weight: 600;">Active</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Block" Class="px-3" Style="font-weight: 600;">Inactive</MudChip>
+                        }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
                         <MudTooltip Text="View details" Arrow="true">

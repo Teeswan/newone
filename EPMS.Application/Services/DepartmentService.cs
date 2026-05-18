@@ -39,8 +39,12 @@ public class DepartmentService : IDepartmentService
 
     public async Task<DepartmentDto?> UpdateAsync(int id, UpdateDepartmentRequest request)
     {
-        var entity = _mapper.Map<Department>(request);
+        var entity = await _repository.GetByIdAsync(id);
+        if (entity == null) return null;
+
+        _mapper.Map(request, entity);
         entity.DepartmentId = id;
+        
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<DepartmentDto?>(updated);
     }

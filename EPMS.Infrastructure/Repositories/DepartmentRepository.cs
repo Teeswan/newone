@@ -25,9 +25,21 @@ public class DepartmentRepository : BaseRepository<Department, int>, IDepartment
 
     public override async Task<IEnumerable<Department>> GetAllAsync()
     {
-        return await _dbSet.Where(d => d.IsActive == true)
+        return await _dbSet.Where(d => d.IsDeleted == false)
             .Include(d => d.ParentDepartment)
             .AsNoTracking()
             .ToListAsync();
+    }
+
+    public override async Task<Department?> GetByIdAsync(int id)
+    {
+        return await _dbSet.Include(d => d.ParentDepartment)
+            .FirstOrDefaultAsync(d => d.DepartmentId == id);
+    }
+
+    public override async Task<Department?> GetByIdFromDbAsync(int id)
+    {
+        return await _dbSet.Include(d => d.ParentDepartment)
+            .FirstOrDefaultAsync(d => d.DepartmentId == id);
     }
 }

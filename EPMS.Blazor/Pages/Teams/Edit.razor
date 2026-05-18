@@ -72,12 +72,15 @@
                                         {
                                             <MudSelectItem T="int?" Value="@((int?)emp.EmployeeId)">@emp.FullName</MudSelectItem>
                                         }
-                                    }
-                                </MudSelect>
-                            </MudItem>
-                            <MudItem xs="12">
-                                <MudSelect 
-                                    @bind-Value="team.DepartmentId" 
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudCheckBox @bind-Value="team.IsActive" Label="Team is Active" Color="Color.Primary" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudSelect 
+                                @bind-Value="team.DepartmentId" 
                                     Label="Department"
                                     Required="true"
                                     Variant="Variant.Outlined"
@@ -139,7 +142,8 @@
             {
                 TeamName = teamDto.TeamName,
                 ManagerId = teamDto.ManagerId,
-                DepartmentId = teamDto.DepartmentId
+                DepartmentId = teamDto.DepartmentId,
+                IsActive = teamDto.IsActive
             };
         }
         departments = await DepartmentService.GetAllDepartmentsAsync();

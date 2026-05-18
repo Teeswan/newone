@@ -69,6 +69,21 @@
                                 <MudText Typo="Typo.body1" Style="font-weight: 500;">@(team.DepartmentName ?? "None")</MudText>
                             </MudPaper>
                         </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Status</MudText>
+                                <div class="mt-1">
+                                    @if (team.IsActive)
+                                    {
+                                        <MudChip T="string" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Style="font-weight: 600;">Active</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Color="Color.Error" Icon="@Icons.Material.Filled.Block" Size="Size.Small" Style="font-weight: 600;">Inactive</MudChip>
+                                    }
+                                </div>
+                            </MudPaper>
+                        </MudItem>
                     </MudGrid>
                 </MudPaper>
             }

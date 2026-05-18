@@ -66,6 +66,9 @@
                                 }
                             </MudSelect>
                         </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudCheckBox @bind-Value="team.IsActive" Label="Team is Active" Color="Color.Primary" />
+                        </MudItem>
                         <MudItem xs="12">
                             <MudSelect 
                                 @bind-Value="team.DepartmentId" 

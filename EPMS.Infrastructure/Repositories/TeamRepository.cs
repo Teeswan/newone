@@ -31,6 +31,20 @@ public class TeamRepository : BaseRepository<Team, int>, ITeamRepository
             .ToListAsync();
     }
 
+    public override async Task<Team?> GetByIdAsync(int id)
+    {
+        return await _dbSet.Include(t => t.Manager)
+            .Include(t => t.Department)
+            .FirstOrDefaultAsync(t => t.TeamId == id);
+    }
+
+    public override async Task<Team?> GetByIdFromDbAsync(int id)
+    {
+        return await _dbSet.Include(t => t.Manager)
+            .Include(t => t.Department)
+            .FirstOrDefaultAsync(t => t.TeamId == id);
+    }
+
     public async Task<IEnumerable<dynamic>> GetTeamsByDepartmentAsync(int departmentId)
     {
         // Using dynamic here because sp_GetTeamsByDepartment returns joined data (manager name, member count)

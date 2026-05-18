@@ -8,6 +8,7 @@ public class TeamDto
     public string? ManagerName { get; set; }
     public int? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
+    public bool IsActive { get; set; } = true;
 }
 
 public class TeamDetailDto : TeamDto
