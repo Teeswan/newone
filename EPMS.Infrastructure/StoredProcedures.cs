@@ -58,6 +58,13 @@ public static class StoredProcedures
     public const string PerformanceOutcomes_GetByEmployeeId = "sp_PerformanceOutcomes_GetByEmployeeId";
     public const string PerformanceOutcomes_GetByCycleId = "sp_PerformanceOutcomes_GetByCycleId";
 
+    // Position KPI
+    public const string PositionKpis_GetAll = "sp_PositionKpi_GetAll";
+    public const string PositionKpis_GetById = "sp_PositionKpi_GetById";
+    public const string PositionKpis_Create = "sp_PositionKpi_Create";
+    public const string PositionKpis_Update = "sp_PositionKpi_Update";
+    public const string PositionKpis_Delete = "sp_PositionKpi_Delete";
+
     // Org & Security
     public const string Departments_GetTree = "sp_GetDepartmentTree";
     public const string Permissions_GetByPosition = "sp_GetPermissionsByPosition";
