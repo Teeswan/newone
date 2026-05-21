@@ -6,7 +6,7 @@ namespace EPMS.Application.Interfaces;
 
 public interface IKpiQueryService
 {
-    Task<IEnumerable<KpiMasterDto>> GetKpisByPositionAsync(int? positionId, bool isActive = true);
+    Task<IEnumerable<PositionKpiDto>> GetKpiByPositionAsync(int? positionId, bool isActive = true);
     Task<IEnumerable<EmployeeKpiAssignmentDto>> GetEmployeeKpiAssignmentAsync(int employeeId, int cycleId);
     Task<KpiScoreSummaryDto?> GetKpiScoreSummaryAsync(int employeeId, int cycleId);
     Task<IEnumerable<AggregatedKpiDto>> GetDepartmentKpiSummaryAsync(int cycleId);

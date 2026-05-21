@@ -1,17 +1,17 @@
-@page "/kpi-master"
+@page "/position-kpi"
 @using EPMS.Blazor.Services
 @using EPMS.Shared.DTOs
 @using EPMS.Domain.Enums
-@inject IKpiMasterBlazorService KpiService
+@inject IPositionKpiBlazorService KpiService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
 
-<MudText Typo="Typo.h4" Class="mb-4">KPI Master Management</MudText>
+<MudText Typo="Typo.h4" Class="mb-4">Position KPI Management</MudText>
 
 <MudPaper Class="pa-4 mb-4">
     <MudStack Row="true" Spacing="2">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/kpi-master/create">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/position-kpi/create">
             Add New KPI
         </MudButton>
         <MudSpacer />
@@ -28,7 +28,7 @@
     </MudStack>
 </MudPaper>
 
-<MudTable Items="@_kpis" Loading="@_loading" Hover="true" Bordered="true" Striped="true" Filter="new Func<KpiMasterDto,bool>(FilterFunc)">
+<MudTable Items="@_kpis" Loading="@_loading" Hover="true" Bordered="true" Striped="true" Filter="new Func<PositionKpiDto,bool>(FilterFunc)">
     <ToolBarContent>
         <MudText Typo="Typo.h6">KPI Templates</MudText>
         <MudSpacer />
@@ -56,7 +56,7 @@
                      Color="@(context.IsActive ? Color.Success : Color.Error)" />
         </MudTd>
         <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/kpi-master/edit/{context.KpiId}")" />
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/position-kpi/edit/{context.KpiId}")" />
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeactivateKpi(context))" Disabled="@(!context.IsActive)" />
         </MudTd>
     </RowTemplate>
@@ -66,7 +66,7 @@
 </MudTable>
 
 @code {
-    private IEnumerable<KpiMasterDto> _kpis = new List<KpiMasterDto>();
+    private IEnumerable<PositionKpiDto> _kpis = new List<PositionKpiDto>();
     private bool _loading = true;
     private string _searchString = "";
 
@@ -80,7 +80,7 @@
         _loading = true;
         try
         {
-            _kpis = await KpiService.GetKpiMastersAsync();
+            _kpis = await KpiService.GetPositionKpisAsync();
         }
         finally
         {
@@ -88,7 +88,7 @@
         }
     }
 
-    private bool FilterFunc(KpiMasterDto kpi)
+    private bool FilterFunc(PositionKpiDto kpi)
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
         if (kpi.KpiName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) return true;
@@ -105,7 +105,7 @@
         _ => Color.Default
     };
 
-    private async Task DeactivateKpi(KpiMasterDto kpi)
+    private async Task DeactivateKpi(PositionKpiDto kpi)
     {
         bool? result = await DialogService.ShowMessageBox("Confirm Deactivation", $"Are you sure you want to deactivate {kpi.KpiName}?", yesText: "Yes", noText: "No");
         if (result == true)
@@ -126,7 +126,7 @@
     private async Task DownloadTemplate()
     {
         var bytes = await KpiService.DownloadTemplateAsync();
-        var fileName = "KPI_Master_Import_Template.xlsx";
+        var fileName = "Position_KPI_Import_Template.xlsx";
         await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, Convert.ToBase64String(bytes));
     }
 

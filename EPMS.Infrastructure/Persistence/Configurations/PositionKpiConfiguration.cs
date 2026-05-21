@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EPMS.Infrastructure.Persistence.Configurations;
 
-public class KpiMasterConfiguration : IEntityTypeConfiguration<KpiMaster>
+public class PositionKpiConfiguration : IEntityTypeConfiguration<PositionKpi>
 {
-    public void Configure(EntityTypeBuilder<KpiMaster> builder)
+    public void Configure(EntityTypeBuilder<PositionKpi> builder)
     {
         builder.ToTable("KPIs");
 

@@ -3,7 +3,7 @@ using EPMS.Domain.Entities;
 using EPMS.Shared.DTOs;          
 using EPMS.Shared.Requests;      
 using EPMS.Domain.Enums;
-using EPMS.Application.UseCases.KpiMaster.Commands;
+using EPMS.Application.UseCases.PositionKpi.Commands;
 
 namespace EPMS.Application.Mappings;
 
@@ -184,16 +184,16 @@ public class MappingProfile : Profile
 
         // Inside your MappingProfile constructor:
 
-        CreateMap<KpiMaster, KpiMasterDto>()
+        CreateMap<PositionKpi, PositionKpiDto>()
             .ForMember(dest => dest.KpiId, opt => opt.MapFrom(src => src.KpiId))
             .ForMember(dest => dest.PriorityLevel, opt => opt.MapFrom(src => src.PriorityLevel.ToString()))
             .ForMember(dest => dest.Direction, opt => opt.MapFrom(src => src.Direction.ToString()))
             .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : "N/A"));
 
-        //CreateMap<CreateKpiMasterRequest, KpiMaster>();
-        //CreateMap<UpdateKpiMasterRequest, KpiMaster>();
+        //CreateMap<CreatePositionKpiRequest, PositionKpi>();
+        //CreateMap<UpdatePositionKpiRequest, PositionKpi>();
 
         // Import Mapping (for the Excel Bulk Import feature)
-        CreateMap<KpiImportDto, KpiMaster>();
+        CreateMap<PositionKpiImportDto, PositionKpi>();
     }
 }

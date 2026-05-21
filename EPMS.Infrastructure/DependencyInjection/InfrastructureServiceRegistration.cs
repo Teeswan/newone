@@ -157,7 +157,7 @@ public static class InfrastructureServiceRegistration
 
         // ?? KPI Module ????????????????????????????????????????????????????????
         services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
-        services.AddScoped<IKpiMasterRepository, KpiMasterRepository>();
+        services.AddScoped<IPositionKpiRepository, PositionKpiRepository>();
         services.AddScoped<IKpiAssignmentRepository, KpiAssignmentRepository>();
         services.AddScoped<IKpiCacheService, KpiCacheService>();
         services.AddScoped<IKpiQueryService, KpiQueryService>();

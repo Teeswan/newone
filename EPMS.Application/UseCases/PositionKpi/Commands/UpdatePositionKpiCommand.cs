@@ -7,9 +7,9 @@ using EPMS.Shared.Common;
 using FluentValidation;
 using MediatR;
 
-namespace EPMS.Application.UseCases.KpiMaster.Commands;
+namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record UpdateKpiMasterCommand : IRequest<Result>
+public record UpdatePositionKpiCommand : IRequest<Result>
 {
     public int KpiId { get; init; }
     public string KpiName { get; init; } = null!;
@@ -22,7 +22,7 @@ public record UpdateKpiMasterCommand : IRequest<Result>
     public int? PositionId { get; init; }
     public int? UpdatedByEmployeeId { get; init; }
 
-    public class Validator : AbstractValidator<UpdateKpiMasterCommand>
+    public class Validator : AbstractValidator<UpdatePositionKpiCommand>
     {
         public Validator()
         {
@@ -35,14 +35,14 @@ public record UpdateKpiMasterCommand : IRequest<Result>
     }
 }
 
-public class UpdateKpiMasterCommandHandler : IRequestHandler<UpdateKpiMasterCommand, Result>
+public class UpdatePositionKpiCommandHandler : IRequestHandler<UpdatePositionKpiCommand, Result>
 {
-    private readonly IKpiMasterRepository _repository;
+    private readonly IPositionKpiRepository _repository;
     private readonly IKpiCacheService _cacheService;
     private readonly IAuditLogService _auditLogService;
 
-    public UpdateKpiMasterCommandHandler(
-        IKpiMasterRepository repository,
+    public UpdatePositionKpiCommandHandler(
+        IPositionKpiRepository repository,
         IKpiCacheService cacheService,
         IAuditLogService auditLogService)
     {
@@ -51,7 +51,7 @@ public class UpdateKpiMasterCommandHandler : IRequestHandler<UpdateKpiMasterComm
         _auditLogService = auditLogService;
     }
 
-    public async Task<Result> Handle(UpdateKpiMasterCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdatePositionKpiCommand request, CancellationToken cancellationToken)
     {
         var kpi = await _repository.GetByIdAsync(request.KpiId);
         if (kpi == null) return Result.Failure("KPI not found.");
@@ -75,9 +75,9 @@ public class UpdateKpiMasterCommandHandler : IRequestHandler<UpdateKpiMasterComm
 
         await _repository.UpdateAsync(kpi);
 
-        await _cacheService.RemoveAsync($"kpimaster:id:{kpi.KpiId}");
-        await _cacheService.RemoveByPatternAsync("kpimaster:list:*");
-        await _auditLogService.LogAsync("KpiMaster", "Update", kpi.KpiId, $"Updated KPI: {kpi.KpiName}", request.UpdatedByEmployeeId);
+        await _cacheService.RemoveAsync($"positionkpi:id:{kpi.KpiId}");
+        await _cacheService.RemoveByPatternAsync("positionkpi:list:*");
+        await _auditLogService.LogAsync("PositionKpi", "Update", kpi.KpiId, $"Updated KPI: {kpi.KpiName}", request.UpdatedByEmployeeId);
 
         return Result.Success();
     }

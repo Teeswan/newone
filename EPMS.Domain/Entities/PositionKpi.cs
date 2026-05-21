@@ -4,7 +4,7 @@ using EPMS.Domain.Exceptions;
 
 namespace EPMS.Domain.Entities;
 
-public class KpiMaster
+public class PositionKpi
 {
     public int KpiId { get; private set; }
     public string KpiName { get; private set; } = null!;
@@ -22,9 +22,9 @@ public class KpiMaster
     // Navigation properties ( Member 2 )
     public virtual Position? Position { get; private set; }
 
-    private KpiMaster() { } // EF Core
+    private PositionKpi() { } // EF Core
 
-    public static KpiMaster Create(
+    public static PositionKpi Create(
         string kpiName,
         string? category,
         string? unit,
@@ -38,7 +38,7 @@ public class KpiMaster
         ArgumentNullException.ThrowIfNull(kpiName);
         ValidateWeightBand(priorityLevel, weightPercent);
 
-        return new KpiMaster
+        return new PositionKpi
         {
             KpiName = kpiName,
             Category = category,

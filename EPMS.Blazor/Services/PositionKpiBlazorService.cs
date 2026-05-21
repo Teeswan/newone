@@ -1,58 +1,63 @@
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Common;
 using System.Net.Http.Json;
-using EPMS.Application.UseCases.KpiMaster.Commands;
+using EPMS.Application.UseCases.PositionKpi.Commands;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 
 namespace EPMS.Blazor.Services
 {
-    public interface IKpiMasterBlazorService
+    public interface IPositionKpiBlazorService
     {
-        Task<IEnumerable<KpiMasterDto>> GetKpiMastersAsync();
-        Task<KpiMasterDto?> GetByIdAsync(int id);
-        Task<IEnumerable<KpiMasterDto>> GetByPositionAsync(int positionId);
-        Task<int> CreateAsync(CreateKpiMasterCommand command);
-        Task<bool> UpdateAsync(int id, UpdateKpiMasterCommand command);
+        Task<IEnumerable<PositionKpiDto>> GetPositionKpisAsync();
+        Task<PositionKpiDto?> GetByIdAsync(int id);
+        Task<IEnumerable<PositionKpiDto>> GetByPositionAsync(int positionId);
+        Task<int> CreateAsync(CreatePositionKpiCommand command);
+        Task<bool> UpdateAsync(int id, UpdatePositionKpiCommand command);
         Task<bool> DeactivateAsync(int id);
         Task<BulkImportResultDto?> BulkImportExcelAsync(Stream fileStream, string fileName);
         Task<byte[]> DownloadTemplateAsync();
     }
 
-    public class KpiMasterBlazorService : IKpiMasterBlazorService
+    public class PositionKpiBlazorService : IPositionKpiBlazorService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "api/kpi-master";
+        private const string BaseUrl = "api/position-kpi";
 
-        public KpiMasterBlazorService(HttpClient httpClient)
+        public PositionKpiBlazorService(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<KpiMasterDto>> GetKpiMastersAsync()
+        public async Task<IEnumerable<PositionKpiDto>> GetPositionKpisAsync()
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<KpiMasterDto>>>(BaseUrl);
-            return response?.Data ?? Enumerable.Empty<KpiMasterDto>();
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<PositionKpiDto>>>(BaseUrl);
+            return response?.Data ?? Enumerable.Empty<PositionKpiDto>();
         }
 
-        public async Task<KpiMasterDto?> GetByIdAsync(int id)
+        public async Task<PositionKpiDto?> GetByIdAsync(int id)
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<KpiMasterDto>>($"{BaseUrl}/{id}");
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PositionKpiDto>>($"{BaseUrl}/{id}");
             return response?.Data;
         }
 
-        public async Task<IEnumerable<KpiMasterDto>> GetByPositionAsync(int positionId)
+        public async Task<IEnumerable<PositionKpiDto>> GetByPositionAsync(int positionId)
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<KpiMasterDto>>>(BaseUrl + "/by-position/" + positionId);
-            return response?.Data ?? Enumerable.Empty<KpiMasterDto>();
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<PositionKpiDto>>>(BaseUrl + "/by-position/" + positionId);
+            return response?.Data ?? Enumerable.Empty<PositionKpiDto>();
         }
 
-        public async Task<int> CreateAsync(CreateKpiMasterCommand command)
+        public async Task<int> CreateAsync(CreatePositionKpiCommand command)
         {
             var response = await _httpClient.PostAsJsonAsync(BaseUrl, command);
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<int>>();
             return result?.Data ?? 0;
         }
 
-        public async Task<bool> UpdateAsync(int id, UpdateKpiMasterCommand command)
+        public async Task<bool> UpdateAsync(int id, UpdatePositionKpiCommand command)
         {
             var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", command);
             return response.IsSuccessStatusCode;

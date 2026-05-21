@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE sp_GetKpisByPosition
+CREATE OR ALTER PROCEDURE sp_GetKpiByPosition
     @PositionId INT = NULL,
     @IsActive BIT = 1,
     @PageNumber INT = 1,
@@ -15,4 +15,3 @@ BEGIN
     OFFSET (@PageNumber - 1) * @PageSize ROWS
     FETCH NEXT @PageSize ROWS ONLY;
 END
-GO

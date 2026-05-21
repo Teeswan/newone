@@ -71,6 +71,16 @@ public class EmployeeKpiController : ControllerBase
             : BadRequest(ApiResponse<decimal>.FailureResponse(result.Message, result.Errors));
     }
 
+    [HttpPost("assign-master")]
+    [HasPermission(Permissions.Kpis.Manage)]
+    public async Task<ActionResult<ApiResponse<int>>> AssignMaster(AssignKpiFromMasterCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return result.IsSuccess 
+            ? Ok(ApiResponse<int>.SuccessResponse(result.Value!, "KPI assigned from master"))
+            : BadRequest(ApiResponse<int>.FailureResponse(result.Message));
+    }
+
     [HttpPost("finalise")]
     [HasPermission(Permissions.Kpis.Manage)]
     public async Task<ActionResult<ApiResponse<object>>> Finalise(FinaliseKpiAssignmentCommand command)

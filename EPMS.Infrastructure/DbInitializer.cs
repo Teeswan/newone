@@ -18,6 +18,11 @@ public static class DbInitializer
     {
         using var scope = host.Services.CreateScope();
         var services = scope.ServiceProvider;
+        var dbContext = services.GetRequiredService<AppDbContext>();
+        
+        // Ensure tables are created before running stored procedures
+        dbContext.Database.EnsureCreated();
+
         var configuration = services.GetRequiredService<IConfiguration>();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -67,7 +72,14 @@ public static class DbInitializer
             "AppraisalResponses_StoredProcedures.sql",
             "FormQuestions_StoredProcedures.sql",
             "PerformanceEvaluations_StoredProcedures.sql",
-            "PerformanceOutcomes_StoredProcedures.sql"
+            "PerformanceOutcomes_StoredProcedures.sql",
+            "sp_GetKpiByPosition.sql",
+            "sp_GetEmployeeKpiAssignment.sql",
+            "sp_GetKpiScoreSummary.sql",
+            "sp_GetDepartmentKpiSummary.sql",
+            "sp_GetTeamKpiSummary.sql",
+            "sp_GetPositionKpiSummary.sql",
+            "sp_GetKpiAuditLog.sql"
         };
 
         var allFiles = Directory.GetFiles(sqlScriptsPath, "*.sql");

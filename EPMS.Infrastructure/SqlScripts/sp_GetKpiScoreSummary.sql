@@ -24,4 +24,3 @@ BEGIN
         END AS Rating
     FROM ScoreData;
 END
-GO

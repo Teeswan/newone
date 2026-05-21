@@ -65,7 +65,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Team> Teams { get; set; }
 
-    public virtual DbSet<KpiMaster> KpiMasters { get; set; }
+    public virtual DbSet<PositionKpi> PositionKpis { get; set; }
     public virtual DbSet<EmployeeKpiAssignment> EmployeeKpiAssignments { get; set; }
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<User> Users { get; set; }

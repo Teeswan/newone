@@ -71,7 +71,7 @@ builder.Services.AddHttpClient<IPerformanceOutcomeBlazorService, PerformanceOutc
 builder.Services.AddHttpClient<IFormQuestionBlazorService, FormQuestionBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-builder.Services.AddHttpClient<IKpiMasterBlazorService, KpiMasterBlazorService>(client => client.BaseAddress = apiBaseUrl)
+builder.Services.AddHttpClient<IPositionKpiBlazorService, PositionKpiBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddHttpClient<IEmployeeKpiBlazorService, EmployeeKpiBlazorService>(client => client.BaseAddress = apiBaseUrl)

@@ -19,4 +19,3 @@ BEGIN
     ) sub ON e.EmployeeID = sub.EmployeeID
     GROUP BY p.PositionID, p.PositionName;
 END
-GO

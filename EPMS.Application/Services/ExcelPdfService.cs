@@ -2,7 +2,7 @@ using ClosedXML.Excel;
 using EPMS.Application.Interfaces;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
-using EPMS.Application.UseCases.KpiMaster.Commands;
+using EPMS.Application.UseCases.PositionKpi.Commands;
 using EPMS.Application.UseCases.KpiAssignment.Commands;
 using EPMS.Domain.Enums;
 using QuestPDF.Fluent;
@@ -708,18 +708,18 @@ public class ExcelPdfService : IExcelPdfService
         return count;
     }
 
-    public async Task<IEnumerable<KpiImportDto>> ImportKpiMasterFromExcelAsync(Stream fileStream)
+    public async Task<IEnumerable<PositionKpiImportDto>> ImportPositionKpiFromExcelAsync(Stream fileStream)
     {
         using var workbook = new XLWorkbook(fileStream);
         var ws = workbook.Worksheets.First();
-        var list = new List<KpiImportDto>();
+        var list = new List<PositionKpiImportDto>();
 
         foreach (var row in ws.RowsUsed().Skip(1))
         {
             var kpiName = row.Cell(1).GetString();
             if (string.IsNullOrWhiteSpace(kpiName)) continue;
 
-            var dto = new KpiImportDto(
+            var dto = new PositionKpiImportDto(
                 KpiName: kpiName,
                 Category: row.Cell(2).GetString(),
                 Unit: row.Cell(3).GetString(),
@@ -735,10 +735,10 @@ public class ExcelPdfService : IExcelPdfService
         return await Task.FromResult(list);
     }
 
-    public async Task<byte[]> ExportKpiMasterTemplateAsync()
+    public async Task<byte[]> ExportPositionKpiTemplateAsync()
     {
         using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("KPI_Import_Template");
+        var ws = workbook.Worksheets.Add("Position_KPI_Import_Template");
 
         ws.Cell(1, 1).Value = "KpiName";
         ws.Cell(1, 2).Value = "Category";

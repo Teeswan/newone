@@ -13,4 +13,3 @@ BEGIN
       AND (@UserId IS NULL OR ChangedByUserId = @UserId)
     ORDER BY ChangedAt DESC;
 END
-GO

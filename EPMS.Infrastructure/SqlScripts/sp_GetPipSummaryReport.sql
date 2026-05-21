@@ -1,6 +1,3 @@
-﻿USE [EmployeePerformance]
-GO
-
 CREATE OR ALTER PROCEDURE [dbo].[sp_GetPipSummaryReport]
     @ManagerID INT = NULL,
     @Status    NVARCHAR(20) = NULL
@@ -10,8 +7,8 @@ BEGIN
 
     SELECT
         pp.PIPID                                                    AS PipId,
-        emp.FirstName + ' ' + emp.LastName                         AS EmployeeName,
-        mgr.FirstName + ' ' + mgr.LastName                         AS ManagerName,
+        emp.FullName                                               AS EmployeeName,
+        mgr.FullName                                               AS ManagerName,
         pp.Status,
         pp.StartDate,
         pp.EndDate,
@@ -28,9 +25,8 @@ BEGIN
         (@ManagerID IS NULL OR pp.ManagerID = @ManagerID)
         AND (@Status IS NULL OR pp.Status = @Status)
     GROUP BY
-        pp.PIPID, emp.FirstName, emp.LastName,
-        mgr.FirstName, mgr.LastName,
+        pp.PIPID, emp.FullName,
+        mgr.FullName,
         pp.Status, pp.StartDate, pp.EndDate, pp.OverallGoal
     ORDER BY pp.CreatedAt DESC;
 END
-GO

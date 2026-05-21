@@ -35,14 +35,14 @@ public class EmployeeKpiAssignment
     // Navigation properties
     public virtual Employee Employee { get; private set; } = null!;
     public virtual AppraisalCycle Cycle { get; private set; } = null!;
-    public virtual KpiMaster? Kpi { get; private set; }
+    public virtual PositionKpi? Kpi { get; private set; }
 
     private EmployeeKpiAssignment() { } // EF Core
 
     public static EmployeeKpiAssignment CreateSnapshot(
         int employeeId,
         int cycleId,
-        KpiMaster kpi)
+        PositionKpi kpi)
     {
         return new EmployeeKpiAssignment
         {

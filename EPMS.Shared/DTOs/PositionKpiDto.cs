@@ -2,7 +2,7 @@ using EPMS.Domain.Enums;
 
 namespace EPMS.Shared.DTOs;
 
-public class KpiMasterDto
+public class PositionKpiDto
 {
     public int KpiId { get; set; }
     public string KpiName { get; set; } = null!;

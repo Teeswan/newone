@@ -8,12 +8,13 @@ using EPMS.Domain.Enums;
 using EPMS.Domain.Interfaces;
 using EPMS.Shared.Common;
 using MediatR;
+using System;
 
-namespace EPMS.Application.UseCases.KpiMaster.Commands;
+namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record BulkImportKpiMasterCommand(List<KpiImportDto> Kpis, int? EmployeeId) : IRequest<Result<BulkImportResultDto>>;
+public record BulkImportPositionKpiCommand(List<PositionKpiImportDto> Kpis, int? EmployeeId) : IRequest<Result<BulkImportResultDto>>;
 
-public record KpiImportDto(
+public record PositionKpiImportDto(
     string KpiName,
     string? Category,
     string? Unit,
@@ -23,18 +24,18 @@ public record KpiImportDto(
     KpiDirection Direction,
     int? PositionId);
 
-public class BulkImportKpiMasterCommandHandler : IRequestHandler<BulkImportKpiMasterCommand, Result<BulkImportResultDto>>
+public class BulkImportPositionKpiCommandHandler : IRequestHandler<BulkImportPositionKpiCommand, Result<BulkImportResultDto>>
 {
-    private readonly IKpiMasterRepository _repository;
+    private readonly IPositionKpiRepository _repository;
     private readonly IAuditLogService _auditLogService;
 
-    public BulkImportKpiMasterCommandHandler(IKpiMasterRepository repository, IAuditLogService auditLogService)
+    public BulkImportPositionKpiCommandHandler(IPositionKpiRepository repository, IAuditLogService auditLogService)
     {
         _repository = repository;
         _auditLogService = auditLogService;
     }
 
-    public async Task<Result<BulkImportResultDto>> Handle(BulkImportKpiMasterCommand request, CancellationToken cancellationToken)
+    public async Task<Result<BulkImportResultDto>> Handle(BulkImportPositionKpiCommand request, CancellationToken cancellationToken)
     {
         var result = new BulkImportResultDto();
 
@@ -49,7 +50,7 @@ public class BulkImportKpiMasterCommandHandler : IRequestHandler<BulkImportKpiMa
                     continue;
                 }
 
-                var kpi = Domain.Entities.KpiMaster.Create(
+                var kpi = Domain.Entities.PositionKpi.Create(
                     importDto.KpiName,
                     importDto.Category,
                     importDto.Unit,
@@ -62,7 +63,7 @@ public class BulkImportKpiMasterCommandHandler : IRequestHandler<BulkImportKpiMa
 
                 await _repository.AddAsync(kpi);
                 result.Imported++;
-                await _auditLogService.LogAsync("KpiMaster", "Import", kpi.KpiId, $"Imported KPI: {kpi.KpiName}", request.EmployeeId);
+                await _auditLogService.LogAsync("PositionKpi", "Import", kpi.KpiId, $"Imported KPI: {kpi.KpiName}", request.EmployeeId);
             }
             catch (Exception ex)
             {

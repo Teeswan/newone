@@ -23,4 +23,3 @@ BEGIN
     WHERE EmployeeID = @EmployeeId AND CycleID = @CycleId
     ORDER BY CategorySnapshot, KpiNameSnapshot;
 END
-GO

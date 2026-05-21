@@ -13,13 +13,13 @@ public record ActivateCycleKpiSnapshotCommand(int CycleId, int? EmployeeId) : IR
 
 public class ActivateCycleKpiSnapshotCommandHandler : IRequestHandler<ActivateCycleKpiSnapshotCommand, Result>
 {
-    private readonly IKpiMasterRepository _kpiRepository;
+    private readonly IPositionKpiRepository _kpiRepository;
     private readonly IKpiAssignmentRepository _assignmentRepository;
     private readonly IEmployeeRepository _employeeRepository;
     private readonly IAuditLogService _auditLogService;
 
     public ActivateCycleKpiSnapshotCommandHandler(
-        IKpiMasterRepository kpiRepository,
+        IPositionKpiRepository kpiRepository,
         IKpiAssignmentRepository assignmentRepository,
         IEmployeeRepository employeeRepository,
         IAuditLogService auditLogService)

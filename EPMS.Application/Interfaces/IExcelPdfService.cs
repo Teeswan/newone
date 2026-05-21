@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using EPMS.Application.UseCases.KpiMaster.Commands;
+using EPMS.Application.UseCases.PositionKpi.Commands;
 using EPMS.Application.UseCases.KpiAssignment.Commands;
 
 namespace EPMS.Application.Interfaces;
@@ -31,8 +31,8 @@ public interface IExcelPdfService
     Task<int> ImportDepartmentsFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
     Task<int> ImportTeamsFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
     Task<int> ImportEmployeesFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
-    Task<IEnumerable<KpiImportDto>> ImportKpiMasterFromExcelAsync(Stream fileStream);
-    Task<byte[]> ExportKpiMasterTemplateAsync();
+    Task<IEnumerable<PositionKpiImportDto>> ImportPositionKpiFromExcelAsync(Stream fileStream);
+    Task<byte[]> ExportPositionKpiTemplateAsync();
     Task<IEnumerable<EmployeeKpiImportDto>> ImportEmployeeKpiFromExcelAsync(Stream fileStream);
     Task<byte[]> ExportEmployeeKpiTemplateAsync();
 

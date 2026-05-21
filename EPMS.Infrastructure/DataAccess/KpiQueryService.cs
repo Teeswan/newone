@@ -18,11 +18,11 @@ public class KpiQueryService : IKpiQueryService
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<IEnumerable<KpiMasterDto>> GetKpisByPositionAsync(int? positionId, bool isActive = true)
+    public async Task<IEnumerable<PositionKpiDto>> GetKpiByPositionAsync(int? positionId, bool isActive = true)
     {
         using var connection = _connectionFactory.CreateConnection();
-        return await connection.QueryAsync<KpiMasterDto>(
-            "sp_GetKpisByPosition",
+        return await connection.QueryAsync<PositionKpiDto>(
+            "sp_GetKpiByPosition",
             new { PositionId = positionId, IsActive = isActive },
             commandType: CommandType.StoredProcedure);
     }

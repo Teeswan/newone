@@ -12,6 +12,7 @@ namespace EPMS.Blazor.Services
         Task<IEnumerable<EmployeeKpiAssignmentDto>> GetAssignmentsAsync(int employeeId, int cycleId);
         Task<KpiScoreSummaryDto?> GetScoreSummaryAsync(int employeeId, int cycleId);
         Task<bool> AddAdHocAsync(AddAdHocKpiCommand command);
+        Task<bool> AssignMasterAsync(AssignKpiFromMasterCommand command);
         Task<bool> FinaliseAsync(FinaliseKpiAssignmentCommand command);
         Task<KpiScoreSummaryDto?> EnterActualAsync(EnterActualValueCommand command);
         Task<bool> UpdateAsync(int id, UpdateKpiAssignmentCommand command);
@@ -47,6 +48,12 @@ namespace EPMS.Blazor.Services
         public async Task<bool> AddAdHocAsync(AddAdHocKpiCommand command)
         {
             var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/ad-hoc", command);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> AssignMasterAsync(AssignKpiFromMasterCommand command)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/assign-master", command);
             return response.IsSuccessStatusCode;
         }
 

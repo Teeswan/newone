@@ -20,4 +20,3 @@ BEGIN
     WHERE t.IsDeleted = 0
     GROUP BY t.TeamID, t.TeamName;
 END
-GO

@@ -11,54 +11,54 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EPMS.Infrastructure.Repositories;
 
-public class KpiMasterRepository : IKpiMasterRepository
+public class PositionKpiRepository : IPositionKpiRepository
 {
     private readonly AppDbContext _context;
     private readonly IDbConnectionFactory _connectionFactory;
 
-    public KpiMasterRepository(AppDbContext context, IDbConnectionFactory connectionFactory)
+    public PositionKpiRepository(AppDbContext context, IDbConnectionFactory connectionFactory)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
     }
 
-    public async Task<KpiMaster?> GetByIdAsync(int id)
+    public async Task<PositionKpi?> GetByIdAsync(int id)
     {
         if (id <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(id), "KPI id must be greater than zero.");
         }
 
-        return await _context.KpiMasters
+        return await _context.PositionKpis
             .Include(k => k.Position)
             .FirstOrDefaultAsync(k => k.KpiId == id);
     }
 
-    public async Task<IEnumerable<KpiMaster>> GetListByPositionAsync(int? positionId, bool isActive = true)
+    public async Task<IEnumerable<PositionKpi>> GetListByPositionAsync(int? positionId, bool isActive = true)
     {
-        return await _context.KpiMasters
+        return await _context.PositionKpis
             .Where(k => k.PositionId == positionId && k.IsActive == isActive)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<KpiMaster>> GetGlobalKpisAsync(bool isActive = true)
+    public async Task<IEnumerable<PositionKpi>> GetGlobalKpisAsync(bool isActive = true)
     {
-        return await _context.KpiMasters
+        return await _context.PositionKpis
             .Where(k => k.PositionId == null && k.IsActive == isActive)
             .ToListAsync();
     }
 
-    public async Task AddAsync(KpiMaster kpi)
+    public async Task AddAsync(PositionKpi kpi)
     {
         ArgumentNullException.ThrowIfNull(kpi);
-        await _context.KpiMasters.AddAsync(kpi);
+        await _context.PositionKpis.AddAsync(kpi);
         await _context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(KpiMaster kpi)
+    public async Task UpdateAsync(PositionKpi kpi)
     {
         ArgumentNullException.ThrowIfNull(kpi);
-        _context.KpiMasters.Update(kpi);
+        _context.PositionKpis.Update(kpi);
         await _context.SaveChangesAsync();
     }
 

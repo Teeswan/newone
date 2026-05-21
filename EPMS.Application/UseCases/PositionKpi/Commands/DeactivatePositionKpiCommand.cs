@@ -5,18 +5,18 @@ using EPMS.Domain.Interfaces;
 using EPMS.Shared.Common;
 using MediatR;
 
-namespace EPMS.Application.UseCases.KpiMaster.Commands;
+namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record DeactivateKpiMasterCommand(int KpiId, int? EmployeeId) : IRequest<Result>;
+public record DeactivatePositionKpiCommand(int KpiId, int? EmployeeId) : IRequest<Result>;
 
-public class DeactivateKpiMasterCommandHandler : IRequestHandler<DeactivateKpiMasterCommand, Result>
+public class DeactivatePositionKpiCommandHandler : IRequestHandler<DeactivatePositionKpiCommand, Result>
 {
-    private readonly IKpiMasterRepository _repository;
+    private readonly IPositionKpiRepository _repository;
     private readonly IKpiCacheService _cacheService;
     private readonly IAuditLogService _auditLogService;
 
-    public DeactivateKpiMasterCommandHandler(
-        IKpiMasterRepository repository,
+    public DeactivatePositionKpiCommandHandler(
+        IPositionKpiRepository repository,
         IKpiCacheService cacheService,
         IAuditLogService auditLogService)
     {
@@ -25,7 +25,7 @@ public class DeactivateKpiMasterCommandHandler : IRequestHandler<DeactivateKpiMa
         _auditLogService = auditLogService;
     }
 
-    public async Task<Result> Handle(DeactivateKpiMasterCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeactivatePositionKpiCommand request, CancellationToken cancellationToken)
     {
         var kpi = await _repository.GetByIdAsync(request.KpiId);
         if (kpi == null) return Result.Failure("KPI not found.");
@@ -38,9 +38,9 @@ public class DeactivateKpiMasterCommandHandler : IRequestHandler<DeactivateKpiMa
         kpi.Deactivate();
         await _repository.UpdateAsync(kpi);
 
-        await _cacheService.RemoveAsync($"kpimaster:id:{kpi.KpiId}");
-        await _cacheService.RemoveByPatternAsync("kpimaster:list:*");
-        await _auditLogService.LogAsync("KpiMaster", "SoftDelete", kpi.KpiId, $"Deactivated KPI: {kpi.KpiName}", request.EmployeeId);
+        await _cacheService.RemoveAsync($"positionkpi:id:{kpi.KpiId}");
+        await _cacheService.RemoveByPatternAsync("positionkpi:list:*");
+        await _auditLogService.LogAsync("PositionKpi", "SoftDelete", kpi.KpiId, $"Deactivated KPI: {kpi.KpiName}", request.EmployeeId);
 
         return Result.Success();
     }

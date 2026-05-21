@@ -20,4 +20,3 @@ BEGIN
     WHERE d.IsDeleted = 0
     GROUP BY d.DepartmentID, d.DepartmentName;
 END
-GO

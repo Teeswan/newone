@@ -8,9 +8,9 @@ using EPMS.Shared.Common;
 using FluentValidation;
 using MediatR;
 
-namespace EPMS.Application.UseCases.KpiMaster.Commands;
+namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record CreateKpiMasterCommand : IRequest<Result<int>>
+public record CreatePositionKpiCommand : IRequest<Result<int>>
 {
     public string KpiName { get; init; } = null!;
     public string? Category { get; init; }
@@ -22,7 +22,7 @@ public record CreateKpiMasterCommand : IRequest<Result<int>>
     public int? PositionId { get; init; }
     public int? CreatedByEmployeeId { get; init; }
 
-    public class Validator : AbstractValidator<CreateKpiMasterCommand>
+    public class Validator : AbstractValidator<CreatePositionKpiCommand>
     {
         public Validator()
         {
@@ -34,14 +34,14 @@ public record CreateKpiMasterCommand : IRequest<Result<int>>
     }
 }
 
-public class CreateKpiMasterCommandHandler : IRequestHandler<CreateKpiMasterCommand, Result<int>>
+public class CreatePositionKpiCommandHandler : IRequestHandler<CreatePositionKpiCommand, Result<int>>
 {
-    private readonly IKpiMasterRepository _repository;
+    private readonly IPositionKpiRepository _repository;
     private readonly IKpiCacheService _cacheService;
     private readonly IAuditLogService _auditLogService;
 
-    public CreateKpiMasterCommandHandler(
-        IKpiMasterRepository repository,
+    public CreatePositionKpiCommandHandler(
+        IPositionKpiRepository repository,
         IKpiCacheService cacheService,
         IAuditLogService auditLogService)
     {
@@ -50,14 +50,14 @@ public class CreateKpiMasterCommandHandler : IRequestHandler<CreateKpiMasterComm
         _auditLogService = auditLogService;
     }
 
-    public async Task<Result<int>> Handle(CreateKpiMasterCommand request, CancellationToken cancellationToken)
+    public async Task<Result<int>> Handle(CreatePositionKpiCommand request, CancellationToken cancellationToken)
     {
         if (await _repository.ExistsDuplicateAsync(request.KpiName, request.Category, request.PositionId))
         {
             return Result<int>.Failure("A KPI with the same name and category already exists for this position.");
         }
 
-        var kpi = Domain.Entities.KpiMaster.Create(
+        var kpi = Domain.Entities.PositionKpi.Create(
             request.KpiName,
             request.Category,
             request.Unit,
@@ -70,8 +70,8 @@ public class CreateKpiMasterCommandHandler : IRequestHandler<CreateKpiMasterComm
 
         await _repository.AddAsync(kpi);
 
-        await _cacheService.RemoveByPatternAsync("kpimaster:list:*");
-        await _auditLogService.LogAsync("KpiMaster", "Create", kpi.KpiId, $"Created KPI: {kpi.KpiName}", request.CreatedByEmployeeId);
+        await _cacheService.RemoveByPatternAsync("positionkpi:list:*");
+        await _auditLogService.LogAsync("PositionKpi", "Create", kpi.KpiId, $"Created KPI: {kpi.KpiName}", request.CreatedByEmployeeId);
 
         return Result<int>.Success(kpi.KpiId);
     }
