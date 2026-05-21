@@ -97,6 +97,20 @@ public class EmployeeKpiAssignment
         _domainEvents.Add(new KpiActualEnteredEvent(AssignmentId, actual));
     }
 
+    public void UpdateDetails(string name, string? category, string? unit, KpiDirection direction, decimal weight, decimal target)
+    {
+        if (Status == KpiAssignmentStatus.Locked)
+            throw new InvalidOperationException("Cannot update a locked assignment.");
+
+        KpiNameSnapshot = name;
+        CategorySnapshot = category;
+        UnitSnapshot = unit;
+        Direction = direction;
+        WeightPercent = weight;
+        TargetValue = target;
+        VersionNo++;
+    }
+
     public void UpdateScores(decimal kpiScore, decimal weightedScore)
     {
         KpiScore = kpiScore;

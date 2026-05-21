@@ -1,0 +1,135 @@
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Application.UseCases.KpiAssignment.Commands
+@using EPMS.Domain.Enums
+@inject IEmployeeKpiBlazorService EmpKpiService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.KpiName" Label="KPI Name" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Category" Label="Category" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Unit" Label="Unit (e.g., %, USD)" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="KpiDirection" Label="Direction" @bind-Value="_model.Direction" Variant="Variant.Outlined">
+                        <MudSelectItem Value="KpiDirection.HigherIsBetter">Higher is Better</MudSelectItem>
+                        <MudSelectItem Value="KpiDirection.LowerIsBetter">Lower is Better</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_model.WeightPercent" Label="Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_model.TargetValue" Label="Target Value" Variant="Variant.Outlined" />
+                </MudItem>
+                @if (IsEdit)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_model.ActualValue" Label="Actual Value" Variant="Variant.Outlined" Clearable="true" />
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">@(IsEdit ? "Update" : "Add")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int EmployeeId { get; set; }
+    [Parameter] public int CycleId { get; set; }
+    [Parameter] public EmployeeKpiAssignmentDto? Assignment { get; set; }
+
+    private MudForm _form = null!;
+    private KpiDialogModel _model = new();
+    private bool IsEdit => Assignment != null;
+
+    protected override void OnInitialized()
+    {
+        if (Assignment != null)
+        {
+            _model = new KpiDialogModel
+            {
+                AssignmentId = Assignment.AssignmentId,
+                KpiName = Assignment.KpiNameSnapshot,
+                Category = Assignment.CategorySnapshot,
+                Unit = Assignment.UnitSnapshot,
+                Direction = Assignment.Direction,
+                WeightPercent = Assignment.WeightPercent,
+                TargetValue = Assignment.TargetValue,
+                ActualValue = Assignment.ActualValue
+            };
+        }
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        if (IsEdit)
+        {
+            var command = new UpdateKpiAssignmentCommand(
+                _model.AssignmentId,
+                _model.KpiName,
+                _model.Category,
+                _model.Unit,
+                _model.Direction,
+                _model.WeightPercent,
+                _model.TargetValue,
+                _model.ActualValue
+            );
+            var success = await EmpKpiService.UpdateAsync(_model.AssignmentId, command);
+            if (success)
+            {
+                Snackbar.Add("KPI updated", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        else
+        {
+            var command = new AddAdHocKpiCommand
+            {
+                EmployeeId = EmployeeId,
+                CycleId = CycleId,
+                KpiName = _model.KpiName,
+                Category = _model.Category,
+                Unit = _model.Unit,
+                Direction = _model.Direction,
+                WeightPercent = _model.WeightPercent,
+                TargetValue = _model.TargetValue
+            };
+            var success = await EmpKpiService.AddAdHocAsync(command);
+            if (success)
+            {
+                Snackbar.Add("Ad-hoc KPI added", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    public class KpiDialogModel
+    {
+        public int AssignmentId { get; set; }
+        public string KpiName { get; set; } = "";
+        public string? Category { get; set; }
+        public string? Unit { get; set; }
+        public KpiDirection Direction { get; set; } = KpiDirection.HigherIsBetter;
+        public decimal WeightPercent { get; set; }
+        public decimal TargetValue { get; set; }
+        public decimal? ActualValue { get; set; }
+    }
+}

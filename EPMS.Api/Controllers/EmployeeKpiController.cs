@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using EPMS.Application.Interfaces;
 
+using EPMS.Shared.Enums;
+
 namespace EPMS.Api.Controllers;
 
 [ApiController]
@@ -47,6 +49,16 @@ public class EmployeeKpiController : ControllerBase
         return result.IsSuccess 
             ? Ok(ApiResponse<KpiScoreSummaryDto>.SuccessResponse(result.Value!))
             : BadRequest(ApiResponse<KpiScoreSummaryDto>.FailureResponse(result.Message));
+    }
+
+    [HttpGet("aggregated-summary/{cycleId}/{type}")]
+    [HasPermission(Permissions.Kpis.View)]
+    public async Task<ActionResult<ApiResponse<IEnumerable<AggregatedKpiDto>>>> GetAggregatedSummary(int cycleId, AggregationType type)
+    {
+        var result = await _mediator.Send(new GetAggregatedKpiQuery(cycleId, type));
+        return result.IsSuccess 
+            ? Ok(ApiResponse<IEnumerable<AggregatedKpiDto>>.SuccessResponse(result.Value!))
+            : BadRequest(ApiResponse<IEnumerable<AggregatedKpiDto>>.FailureResponse(result.Message));
     }
 
     [HttpPost("ad-hoc")]
@@ -87,6 +99,29 @@ public class EmployeeKpiController : ControllerBase
         return result.IsSuccess 
             ? Ok(ApiResponse<object>.SuccessResponse(null!, "Cycle snapshots created"))
             : BadRequest(ApiResponse<object>.FailureResponse(result.Message));
+    }
+
+    [HttpPut("{id}")]
+    [HasPermission(Permissions.Kpis.Manage)]
+    public async Task<ActionResult<ApiResponse<bool>>> Update(int id, UpdateKpiAssignmentCommand command)
+    {
+        if (id != command.AssignmentId)
+            return BadRequest(ApiResponse<bool>.FailureResponse("ID mismatch"));
+
+        var result = await _mediator.Send(command);
+        return result.IsSuccess 
+            ? Ok(ApiResponse<bool>.SuccessResponse(true, "Assignment updated successfully"))
+            : BadRequest(ApiResponse<bool>.FailureResponse(result.Message));
+    }
+
+    [HttpDelete("{id}")]
+    [HasPermission(Permissions.Kpis.Manage)]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
+    {
+        var result = await _mediator.Send(new DeleteKpiAssignmentCommand(id));
+        return result.IsSuccess 
+            ? Ok(ApiResponse<bool>.SuccessResponse(true, "Assignment deleted successfully"))
+            : BadRequest(ApiResponse<bool>.FailureResponse(result.Message));
     }
 
     [HttpPost("excel-bulk-import")]

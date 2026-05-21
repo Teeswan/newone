@@ -11,27 +11,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EPMS.Infrastructure.Repositories;
 
-public class KpiAssignmentRepository : IKpiAssignmentRepository
+public class KpiAssignmentRepository : BaseRepository<EmployeeKpiAssignment, int>, IKpiAssignmentRepository
 {
-    private readonly AppDbContext _context;
     private readonly IDbConnectionFactory _connectionFactory;
 
-    public KpiAssignmentRepository(AppDbContext context, IDbConnectionFactory connectionFactory)
+    public KpiAssignmentRepository(AppDbContext context, IDbConnectionFactory connectionFactory) : base(context)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
     }
 
     public async Task<IEnumerable<EmployeeKpiAssignment>> GetAssignmentsByEmployeeCycleAsync(int employeeId, int cycleId)
     {
-        return await _context.EmployeeKpiAssignments
+        return await _dbSet
             .Where(e => e.EmployeeId == employeeId && e.CycleId == cycleId)
             .ToListAsync();
     }
 
-    public async Task<EmployeeKpiAssignment?> GetByIdAsync(int assignmentId)
+    public override async Task<EmployeeKpiAssignment?> GetByIdAsync(int assignmentId)
     {
-        return await _context.EmployeeKpiAssignments
+        return await _dbSet
             .FirstOrDefaultAsync(e => e.AssignmentId == assignmentId);
     }
 
@@ -46,21 +44,14 @@ public class KpiAssignmentRepository : IKpiAssignmentRepository
     public async Task AddRangeAsync(IEnumerable<EmployeeKpiAssignment> assignments)
     {
         ArgumentNullException.ThrowIfNull(assignments);
-        await _context.EmployeeKpiAssignments.AddRangeAsync(assignments);
+        await _dbSet.AddRangeAsync(assignments);
         await _context.SaveChangesAsync();
     }
 
     public async Task AddAsync(EmployeeKpiAssignment assignment)
     {
         ArgumentNullException.ThrowIfNull(assignment);
-        await _context.EmployeeKpiAssignments.AddAsync(assignment);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateAsync(EmployeeKpiAssignment assignment)
-    {
-        ArgumentNullException.ThrowIfNull(assignment);
-        _context.EmployeeKpiAssignments.Update(assignment);
+        await _dbSet.AddAsync(assignment);
         await _context.SaveChangesAsync();
     }
 }

@@ -3,6 +3,8 @@ using EPMS.Shared.Common;
 using System.Net.Http.Json;
 using EPMS.Application.UseCases.KpiAssignment.Commands;
 
+using EPMS.Shared.Enums;
+
 namespace EPMS.Blazor.Services
 {
     public interface IEmployeeKpiBlazorService
@@ -12,6 +14,9 @@ namespace EPMS.Blazor.Services
         Task<bool> AddAdHocAsync(AddAdHocKpiCommand command);
         Task<bool> FinaliseAsync(FinaliseKpiAssignmentCommand command);
         Task<KpiScoreSummaryDto?> EnterActualAsync(EnterActualValueCommand command);
+        Task<bool> UpdateAsync(int id, UpdateKpiAssignmentCommand command);
+        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<AggregatedKpiDto>> GetAggregatedSummaryAsync(int cycleId, AggregationType type);
         Task<bool> ActivateCycleSnapshotAsync(ActivateCycleKpiSnapshotCommand command);
         Task<BulkImportResultDto?> BulkImportExcelAsync(Stream fileStream, string fileName);
         Task<byte[]> DownloadTemplateAsync();
@@ -56,6 +61,24 @@ namespace EPMS.Blazor.Services
             var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/enter-actual", command);
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<KpiScoreSummaryDto>>();
             return result?.Data;
+        }
+
+        public async Task<bool> UpdateAsync(int id, UpdateKpiAssignmentCommand command)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", command);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"{BaseUrl}/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<IEnumerable<AggregatedKpiDto>> GetAggregatedSummaryAsync(int cycleId, AggregationType type)
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<AggregatedKpiDto>>>($"{BaseUrl}/aggregated-summary/{cycleId}/{type}");
+            return response?.Data ?? Enumerable.Empty<AggregatedKpiDto>();
         }
 
         public async Task<bool> ActivateCycleSnapshotAsync(ActivateCycleKpiSnapshotCommand command)

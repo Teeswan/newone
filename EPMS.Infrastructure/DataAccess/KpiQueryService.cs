@@ -45,6 +45,33 @@ public class KpiQueryService : IKpiQueryService
             commandType: CommandType.StoredProcedure);
     }
 
+    public async Task<IEnumerable<AggregatedKpiDto>> GetDepartmentKpiSummaryAsync(int cycleId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        return await connection.QueryAsync<AggregatedKpiDto>(
+            "sp_GetDepartmentKpiSummary",
+            new { CycleId = cycleId },
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<IEnumerable<AggregatedKpiDto>> GetTeamKpiSummaryAsync(int cycleId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        return await connection.QueryAsync<AggregatedKpiDto>(
+            "sp_GetTeamKpiSummary",
+            new { CycleId = cycleId },
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<IEnumerable<AggregatedKpiDto>> GetPositionKpiSummaryAsync(int cycleId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        return await connection.QueryAsync<AggregatedKpiDto>(
+            "sp_GetPositionKpiSummary",
+            new { CycleId = cycleId },
+            commandType: CommandType.StoredProcedure);
+    }
+
     public async Task<IEnumerable<dynamic>> GetKpiAuditLogAsync(string entityType, DateTime? dateFrom, DateTime? dateTo, int? userId)
     {
         using var connection = _connectionFactory.CreateConnection();

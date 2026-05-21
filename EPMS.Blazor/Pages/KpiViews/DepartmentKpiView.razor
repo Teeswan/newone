@@ -1,0 +1,104 @@
+@page "/kpi-views/department"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Enums
+@inject IEmployeeKpiBlazorService EmpKpiService
+@inject IAppraisalCycleBlazorService CycleService
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Department KPI Summary</MudText>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudGrid>
+        <MudItem xs="12" md="10">
+            <MudSelect T="int" Label="Appraisal Cycle" @bind-Value="_cycleId" Variant="Variant.Outlined">
+                @foreach (var cycle in _cycles)
+                {
+                    <MudSelectItem Value="@cycle.CycleId">@cycle.CycleName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="2" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadData" FullWidth="true" Style="height: 56px;">View</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (_loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (_summaries != null && _summaries.Any())
+{
+    <MudTable Items="@_summaries" Hover="true" Bordered="true" Striped="true" T="AggregatedKpiDto">
+        <HeaderContent>
+            <MudTh>Department Name</MudTh>
+            <MudTh>Employee Count</MudTh>
+            <MudTh>Average Score</MudTh>
+            <MudTh>Status</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Department Name">@context.EntityName</MudTd>
+            <MudTd DataLabel="Employee Count">@context.EmployeeCount</MudTd>
+            <MudTd DataLabel="Average Score">
+                <MudText Color="@GetScoreColor(context.AverageScore)" Style="font-weight: bold;">
+                    @context.AverageScore.ToString("F2")%
+                </MudText>
+            </MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip T="string" Color="@GetScoreColor(context.AverageScore)" Variant="Variant.Text">
+                    @GetRatingLabel(context.AverageScore)
+                </MudChip>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else if (_cycleId > 0 && !_loading)
+{
+    <MudAlert Severity="Severity.Info">No data found for this cycle.</MudAlert>
+}
+
+@code {
+    private int _cycleId;
+    private IEnumerable<AppraisalCycleDto> _cycles = new List<AppraisalCycleDto>();
+    private IEnumerable<AggregatedKpiDto>? _summaries;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cycles = await CycleService.GetAllAppraisalCyclesAsync();
+        if (_cycles.Any()) _cycleId = _cycles.First().CycleId;
+    }
+
+    private async Task LoadData()
+    {
+        if (_cycleId <= 0) return;
+
+        _loading = true;
+        try
+        {
+            _summaries = await EmpKpiService.GetAggregatedSummaryAsync(_cycleId, AggregationType.Department);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private Color GetScoreColor(decimal score)
+    {
+        if (score >= 86) return Color.Success;
+        if (score >= 71) return Color.Info;
+        if (score >= 60) return Color.Warning;
+        return Color.Error;
+    }
+
+    private string GetRatingLabel(decimal score)
+    {
+        if (score >= 86) return "Excellent";
+        if (score >= 71) return "Good";
+        if (score >= 60) return "Meets Requirement";
+        if (score >= 40) return "Needs Improvement";
+        return "Unsatisfactory";
+    }
+}
