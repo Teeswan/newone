@@ -62,6 +62,8 @@ public static class ApplicationServiceRegistration
 
         // Services
         services.AddScoped<IPipService, PipService>();
+        services.AddScoped<IAccountInitializationService, AccountInitializationService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

@@ -3,6 +3,12 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using EPMS.Infrastructure.Contexts;
+using EPMS.Infrastructure.Repositories;
+using EPMS.Infrastructure.Services;
+using EPMS.Domain.Entities;
+using EPMS.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace EPMS.Infrastructure;
 
@@ -113,70 +119,48 @@ public static class DbInitializer
             Console.WriteLine($"Processed script: {Path.GetFileName(file)}");
         }
 
-        SeedData(connection);
+        connection.Close();
+
+        SeedDataWithEf(scope);
     }
 
-    private static void SeedData(SqlConnection connection)
+    private static void SeedDataWithEf(IServiceScope scope)
     {
-        // 1. Seed Permissions
-        string seedPermissions = @"
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Employees.View')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Employees.View', 'View Employees');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Employees.Manage')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Employees.Manage', 'Manage Employees');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Departments.View')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Departments.View', 'View Departments');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Departments.Manage')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Departments.Manage', 'Manage Departments');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Teams.View')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Teams.View', 'View Teams');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Teams.Manage')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Teams.Manage', 'Manage Teams');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Levels.View')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Levels.View', 'View Levels');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Levels.Manage')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Levels.Manage', 'Manage Levels');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Positions.View')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Positions.View', 'View Positions');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Positions.Manage')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Positions.Manage', 'Manage Positions');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Security.ViewPermissions')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Security.ViewPermissions', 'View Security Permissions');
-            IF NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Security.Manage')
-            INSERT INTO Permissions (PermissionCode, Description) VALUES ('Permissions.Security.Manage', 'Manage Security Settings');
-        ";
-        using (var cmd = new SqlCommand(seedPermissions, connection)) cmd.ExecuteNonQuery();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-        // 2. Seed Positions
-        string seedPositions = @"
-            IF NOT EXISTS (SELECT 1 FROM Positions WHERE PositionTitle = 'Admin')
-            INSERT INTO Positions (PositionTitle) VALUES ('Admin');
-        ";
-        using (var cmd = new SqlCommand(seedPositions, connection)) cmd.ExecuteNonQuery();
+        // 1. Seed Permissions (already in SQL, but ensure)
+        // 2. Seed System Setting - Default Password
+        if (!dbContext.SystemSettings.Any(s => s.Key == "DefaultPassword"))
+        {
+            var defaultPasswordHashed = passwordHasher.HashPassword("admin123");
+            dbContext.SystemSettings.Add(new SystemSetting
+            {
+                Key = "DefaultPassword",
+                Value = defaultPasswordHashed,
+                Description = "Default password for new employee accounts",
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
 
-        // 3. Seed PositionPermissions
-        string seedPosPermissions = @"
-            DECLARE @AdminId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
-            IF @AdminId IS NOT NULL
-            BEGIN
-                -- Inserting only into existing columns
-                INSERT INTO PositionPermissions (PositionId, PermissionId)
-                SELECT @AdminId, PermissionId
-                FROM Permissions p
-                WHERE NOT EXISTS (SELECT 1 FROM PositionPermissions WHERE PositionId = @AdminId AND PermissionId = p.PermissionId);
-            END
-        ";
-        using (var cmd = new SqlCommand(seedPosPermissions, connection)) cmd.ExecuteNonQuery();
+        // 3. Seed Admin Employee
+        var adminPosition = dbContext.Positions.FirstOrDefault(p => p.PositionTitle == "Admin");
+        if (adminPosition != null && !dbContext.Employees.Any(e => e.Username == "admin"))
+        {
+            var adminPasswordHashed = passwordHasher.HashPassword("admin123");
+            dbContext.Employees.Add(new Employee
+            {
+                EmployeeCode = "EMP001",
+                FullName = "System Admin",
+                PositionId = adminPosition.PositionId,
+                Username = "admin",
+                PasswordHash = adminPasswordHashed,
+                IsFirstLogin = false,
+                IsActive = true,
+                Email = "admin@example.com"
+            });
+        }
 
-        // // 4. Seed Employee with login credentials
-        // string seedUser = @"
-        //     DECLARE @AdminPosId INT = (SELECT PositionId FROM Positions WHERE PositionTitle = 'Admin');
-        //     IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeCode = 'EMP001')
-        //     BEGIN
-        //         INSERT INTO Employees (EmployeeCode, FullName, PositionId, Username, PasswordHash) 
-        //         VALUES ('EMP001', 'System Admin', @AdminPosId, 'admin', 'admin123');
-        //     END
-        // ";
-        // using (var cmd = new SqlCommand(seedUser, connection)) cmd.ExecuteNonQuery();
+        dbContext.SaveChanges();
     }
 }

@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace EPMS.Shared.DTOs;
 
-namespace EPMS.Shared.DTOs
+public class LoginResponseDto
 {
-    public class LoginResponseDto
-    {
-        public string Token { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
-    }
+    public int EmployeeId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public bool IsFirstLogin { get; set; }
+    public string Token { get; set; } = string.Empty;
 }
+

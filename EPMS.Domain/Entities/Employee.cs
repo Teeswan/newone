@@ -19,6 +19,8 @@ public partial class Employee : ISoftDelete
 
     public string? PasswordHash { get; set; }
 
+    public bool IsFirstLogin { get; set; }
+
     public int? DepartmentId { get; set; }
 
     public int? PositionId { get; set; }

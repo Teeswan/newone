@@ -69,6 +69,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<EmployeeKpiAssignment> EmployeeKpiAssignments { get; set; }
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -605,6 +606,15 @@ public partial class AppDbContext : DbContext
                       j.HasKey(ur => new { ur.UserId, ur.RoleId });
                       j.ToTable("UserRoles");
                 });
+        });
+
+        modelBuilder.Entity<SystemSetting>(entity =>
+        {
+            entity.HasKey(e => e.SystemSettingId);
+            entity.HasIndex(e => e.Key).IsUnique();
+            entity.Property(e => e.Key).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Value).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
         });
 
         OnModelCreatingPartial(modelBuilder);

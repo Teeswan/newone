@@ -1,12 +1,14 @@
 @page "/login"
 @attribute [AllowAnonymous]
 @using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using EPMS.Client.Identity 
+@using EPMS.Blazor.Services
 
-@inject HttpClient Http
+@inject IAuthBlazorService AuthService
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
@@ -30,9 +32,9 @@
             
             <MudTextField 
                 T="string"
-                Label="Username" 
-                @bind-Value="loginModel.Username"
-                Placeholder="Enter your username"
+                Label="Email or Username" 
+                @bind-Value="loginModel.Identifier"
+                Placeholder="Enter your email or username"
                 Variant="Variant.Outlined"
                 Style="width: 100%"
                 Class="mb-4"
@@ -71,7 +73,7 @@
 </MudContainer>
 
 @code {
-    private LoginRequestDto loginModel = new();
+    private LoginRequest loginModel = new();
     private string? errorMessage;
 
     private async Task HandleLogin()
@@ -79,24 +81,23 @@
         errorMessage = null;
         try
         {
-            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+            var result = await AuthService.LoginAsync(loginModel);
 
-            if (response.IsSuccessStatusCode)
+            if (result != null)
             {
-                var rawJson = await response.Content.ReadAsStringAsync();
-                var result = System.Text.Json.JsonSerializer.Deserialize<LoginResponseDto>(rawJson, 
-                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (result != null && !string.IsNullOrWhiteSpace(result.Token))
+                await LocalStorage.SetItemAsync("authToken", result.Token);
+                await LocalStorage.SetItemAsync("loginResponse", result);
+                ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication(result.Token);
+                
+                if (result.IsFirstLogin)
                 {
-                    await LocalStorage.SetItemAsync("authToken", result.Token);
-                    ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication(result.Token);
-                    Navigation.NavigateTo("/");
-                    Snackbar.Add("Welcome back! Login successful.", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+                    Navigation.NavigateTo("/change-password");
+                    Snackbar.Add("Please change your password to continue.", Severity.Warning, config => { config.Icon = Icons.Material.Filled.Warning; });
                 }
                 else
                 {
-                    errorMessage = "Login failed - no token received.";
+                    Navigation.NavigateTo("/");
+                    Snackbar.Add("Welcome back! Login successful.", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
                 }
             }
             else
