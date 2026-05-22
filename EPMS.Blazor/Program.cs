@@ -80,6 +80,9 @@ builder.Services.AddHttpClient<IEmployeeKpiBlazorService, EmployeeKpiBlazorServi
 builder.Services.AddHttpClient<IMeetingBlazorService, MeetingBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
+builder.Services.AddHttpClient<IKpiHierarchyBlazorService, KpiHierarchyBlazorService>(client => client.BaseAddress = apiBaseUrl)
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+
 builder.Services.AddHttpClient<IAuthBlazorService, AuthBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 

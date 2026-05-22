@@ -1,0 +1,103 @@
+@page "/kpi-hierarchy/employee"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Shared.Constants
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IKpiHierarchyBlazorService KpiService
+@inject IEmployeeBlazorService EmployeeService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Employee KPIs</MudText>
+    
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="6">
+            <MudAutocomplete T="EmployeeDto" Label="Employee" SearchFunc="@SearchEmployees"
+                            Value="@_selectedEmployee" ValueChanged="@OnEmployeeChanged"
+                            ToStringFunc="@(e => e?.FullName)"
+                            AnchorOrigin="Origin.BottomCenter" />
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadEmployeeKpis" Disabled="@(_selectedEmployee == null)">Load KPIs</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Class="ml-2" OnClick="OpenAssignDialog" Disabled="@(_selectedEmployee == null)">Assign KPI</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (_employeeKpis != null && _employeeKpis.Any())
+    {
+        <MudTable Items="@_employeeKpis" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>KPI Name</MudTh>
+                <MudTh>Target</MudTh>
+                <MudTh>Weight</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Created At</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
+                <MudTd DataLabel="Target">@context.EmployeeTarget</MudTd>
+                <MudTd DataLabel="Weight">@context.Weight%</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">@(context.IsActive ? "Active" : "Inactive")</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToShortDateString()</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (_hasLoaded)
+    {
+        <MudAlert Severity="Severity.Info">No KPIs assigned to this employee.</MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private IEnumerable<EmployeeDto> _employees = new List<EmployeeDto>();
+    private IEnumerable<EmployeeKpiDto> _employeeKpis = new List<EmployeeKpiDto>();
+    private EmployeeDto? _selectedEmployee;
+    private bool _hasLoaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _employees = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private async Task<IEnumerable<EmployeeDto>> SearchEmployees(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+            return _employees;
+        return _employees.Where(x => x.FullName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private void OnEmployeeChanged(EmployeeDto employee)
+    {
+        _selectedEmployee = employee;
+        _hasLoaded = false;
+        _employeeKpis = new List<EmployeeKpiDto>();
+    }
+
+    private async Task LoadEmployeeKpis()
+    {
+        if (_selectedEmployee == null) return;
+        _employeeKpis = await KpiService.GetEmpByEmpAsync(_selectedEmployee.EmployeeId);
+        _hasLoaded = true;
+    }
+
+    private async Task OpenAssignDialog()
+    {
+        if (_selectedEmployee == null) return;
+        var parameters = new DialogParameters 
+        { 
+            ["EmployeeId"] = _selectedEmployee.EmployeeId 
+        };
+        var dialog = DialogService.Show<AssignEmployeeKpiDialog>("Assign KPI to Employee", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadEmployeeKpis();
+        }
+    }
+}

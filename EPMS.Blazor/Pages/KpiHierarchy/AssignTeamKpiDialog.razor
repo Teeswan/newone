@@ -1,0 +1,87 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IKpiHierarchyBlazorService KpiService
+@inject ITeamBlazorService TeamService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudSelect T="int" Label="Department KPI" @bind-Value="_request.DeptKpiId" Required="true" OnSelectedValuesChanged="OnKpiSelected">
+                @foreach (var kpi in _deptKpis)
+                {
+                    <MudSelectItem Value="@kpi.DeptKpiId">@kpi.KpiName (@kpi.DepartmentName - @kpi.CycleName)</MudSelectItem>
+                }
+            </MudSelect>
+            
+            @if (_selectedKpi != null)
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-2">
+                    Department Target: @_selectedKpi.DepartmentTarget
+                </MudAlert>
+            }
+
+            <MudNumericField T="decimal" Label="Team Target" @bind-Value="_request.TeamTarget" Required="true" />
+            <MudNumericField T="decimal" Label="Weight %" @bind-Value="_request.Weight" Min="0" Max="100" Required="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Disabled="@(!_isValid)" OnClick="Submit">Assign</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int TeamId { get; set; }
+
+    private TeamKpiRequest _request = new();
+    private IEnumerable<DepartmentKpiDto> _deptKpis = new List<DepartmentKpiDto>();
+    private DepartmentKpiDto? _selectedKpi;
+    private MudForm _form = null!;
+    private bool _isValid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _request.TeamId = TeamId;
+        
+        // Fetch the team to get its department
+        var team = (await TeamService.GetAllTeamsAsync()).FirstOrDefault(t => t.TeamId == TeamId);
+        if (team != null && team.DepartmentId.HasValue)
+        {
+            var allDeptKpis = await KpiService.GetAllDeptAsync();
+            _deptKpis = allDeptKpis.Where(k => k.DepartmentId == team.DepartmentId.Value && k.IsActive).ToList();
+        }
+        else
+        {
+            _deptKpis = (await KpiService.GetAllDeptAsync()).Where(k => k.IsActive).ToList();
+        }
+    }
+
+    private void OnKpiSelected(IEnumerable<int> values)
+    {
+        var id = values.FirstOrDefault();
+        _selectedKpi = _deptKpis.FirstOrDefault(k => k.DeptKpiId == id);
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_isValid)
+        {
+            try
+            {
+                await KpiService.CreateTeamAsync(_request);
+                Snackbar.Add("KPI assigned to team successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

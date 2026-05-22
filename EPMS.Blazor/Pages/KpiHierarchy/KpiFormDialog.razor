@@ -1,0 +1,85 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Domain.Enums
+@using EPMS.Blazor.Services
+@inject IKpiHierarchyBlazorService KpiService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField T="string" Label="KPI Name" @bind-Value="_request.KpiName" Required="true" RequiredError="Name is required" />
+            <MudTextField T="string" Label="Category" @bind-Value="_request.Category" />
+            <MudTextField T="string" Label="Unit" @bind-Value="_request.Unit" />
+            <MudNumericField T="decimal" Label="Weight %" @bind-Value="_request.WeightPercent" Min="0" Max="100" />
+            <MudNumericField T="decimal?" Label="Target Value" @bind-Value="_request.TargetValue" />
+            <MudSelect T="PriorityLevel" Label="Priority" @bind-Value="_request.PriorityLevel">
+                @foreach (PriorityLevel item in Enum.GetValues(typeof(PriorityLevel)))
+                {
+                    <MudSelectItem Value="@item">@item</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="KpiDirection" Label="Direction" @bind-Value="_request.Direction">
+                @foreach (KpiDirection item in Enum.GetValues(typeof(KpiDirection)))
+                {
+                    <MudSelectItem Value="@item">@item</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Disabled="@(!_isValid)" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public KpiDto? Kpi { get; set; }
+
+    private KpiRequest _request = new();
+    private MudForm _form = null!;
+    private bool _isValid;
+
+    protected override void OnInitialized()
+    {
+        if (Kpi != null)
+        {
+            _request.KpiName = Kpi.KpiName;
+            _request.Category = Kpi.Category;
+            _request.Unit = Kpi.Unit;
+            _request.WeightPercent = Kpi.WeightPercent;
+            _request.TargetValue = Kpi.TargetValue;
+            _request.PriorityLevel = Kpi.PriorityLevel;
+            _request.Direction = Kpi.Direction;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_isValid)
+        {
+            try
+            {
+                if (Kpi == null)
+                {
+                    await KpiService.CreateMasterAsync(_request);
+                    Snackbar.Add("KPI created successfully", Severity.Success);
+                }
+                else
+                {
+                    await KpiService.UpdateMasterAsync(Kpi.KpiId, _request);
+                    Snackbar.Add("KPI updated successfully", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

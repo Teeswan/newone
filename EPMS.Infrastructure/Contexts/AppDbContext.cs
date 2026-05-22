@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml.Spreadsheet;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +73,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Kpi> Kpis { get; set; }
     public virtual DbSet<DepartmentKpi> DepartmentKpis { get; set; }
     public virtual DbSet<TeamKpi> TeamKpis { get; set; }
+    public virtual DbSet<EmployeeKpi> EmployeeKpis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -101,11 +101,42 @@ public partial class AppDbContext : DbContext
         });
 
         // 3. DepartmentKpi -> Kpi (Master)
+        modelBuilder.Entity<Kpi>(entity =>
+        {
+            entity.ToTable("Kpis");
+            entity.HasKey(k => k.KpiId);
+            entity.Property(k => k.PriorityLevel).HasConversion<string>().HasMaxLength(20);
+            entity.Property(k => k.Direction).HasConversion<int>();
+        });
+
         modelBuilder.Entity<DepartmentKpi>(entity =>
         {
+            entity.ToTable("DepartmentKpis");
+            entity.HasKey(d => d.DeptKpiId);
             entity.HasOne(d => d.KpiMaster)
                   .WithMany()
                   .HasForeignKey(d => d.KpiMasterId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 4. EmployeeKpi -> TeamKpi
+        modelBuilder.Entity<TeamKpi>(entity =>
+        {
+            entity.ToTable("TeamKpis");
+            entity.HasKey(t => t.TeamKpiId);
+        });
+
+        modelBuilder.Entity<EmployeeKpi>(entity =>
+        {
+            entity.ToTable("EmployeeKpis");
+            entity.HasKey(e => e.EmployeeKpiId);
+            entity.HasOne(e => e.Employee)
+                  .WithMany()
+                  .HasForeignKey(e => e.EmployeeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.TeamKpi)
+                  .WithMany()
+                  .HasForeignKey(e => e.TeamKpiId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

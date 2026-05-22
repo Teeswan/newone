@@ -93,6 +93,21 @@ public class MappingProfile : Profile
         CreateMap<CreatePositionRequest, Position>();
         CreateMap<UpdatePositionRequest, Position>();
 
+        // KPI Hierarchy Mappings
+        CreateMap<Kpi, KpiDto>();
+        CreateMap<DepartmentKpi, DepartmentKpiDto>()
+            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName))
+            .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle.CycleName))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.KpiMaster.KpiName));
+        CreateMap<TeamKpi, TeamKpiDto>()
+            .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.DepartmentKpi.KpiMaster.KpiName))
+            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.DepartmentKpi.DepartmentTarget));
+        CreateMap<EmployeeKpi, EmployeeKpiDto>()
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FullName))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.TeamKpi.DepartmentKpi.KpiMaster.KpiName))
+            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.TeamKpi.TeamTarget));
+
         CreateMap<OneOnOneMeeting, MeetingDto>()
             .ForMember(dest => dest.MeetingId, opt => opt.MapFrom(src => src.MeetingId))
             .ForMember(dest => dest.ManagerId, opt => opt.MapFrom(src => src.ManagerId))

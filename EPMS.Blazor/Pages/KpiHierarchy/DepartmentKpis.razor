@@ -1,0 +1,98 @@
+@page "/kpi-hierarchy/department"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Shared.Constants
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IKpiHierarchyBlazorService KpiService
+@inject IDepartmentBlazorService DeptService
+@inject IAppraisalCycleBlazorService CycleService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Department KPIs</MudText>
+    
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="4">
+            <MudSelect T="int" Label="Department" @bind-Value="_selectedDeptId" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var dept in _departments)
+                {
+                    <MudSelectItem Value="@dept.DepartmentId">@dept.DepartmentName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudSelect T="int" Label="Appraisal Cycle" @bind-Value="_selectedCycleId" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var cycle in _cycles)
+                {
+                    <MudSelectItem Value="@cycle.CycleId">@cycle.CycleName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadDeptKpis" Disabled="@(_selectedDeptId == 0 || _selectedCycleId == 0)">Load KPIs</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Class="ml-2" OnClick="OpenAssignDialog" Disabled="@(_selectedDeptId == 0 || _selectedCycleId == 0)">Assign KPI</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (_deptKpis != null && _deptKpis.Any())
+    {
+        <MudTable Items="@_deptKpis" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>KPI Name</MudTh>
+                <MudTh>Target</MudTh>
+                <MudTh>Weight</MudTh>
+                <MudTh>Created At</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
+                <MudTd DataLabel="Target">@context.DepartmentTarget</MudTd>
+                <MudTd DataLabel="Weight">@context.Weight%</MudTd>
+                <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToShortDateString()</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (_hasLoaded)
+    {
+        <MudAlert Severity="Severity.Info">No KPIs assigned to this department for the selected cycle.</MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private IEnumerable<DepartmentDto> _departments = new List<DepartmentDto>();
+    private IEnumerable<AppraisalCycleDto> _cycles = new List<AppraisalCycleDto>();
+    private IEnumerable<DepartmentKpiDto> _deptKpis = new List<DepartmentKpiDto>();
+    private int _selectedDeptId;
+    private int _selectedCycleId;
+    private bool _hasLoaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _departments = await DeptService.GetAllDepartmentsAsync();
+        _cycles = await CycleService.GetAllAppraisalCyclesAsync();
+    }
+
+    private async Task LoadDeptKpis()
+    {
+        _deptKpis = await KpiService.GetDeptByDeptAsync(_selectedDeptId, _selectedCycleId);
+        _hasLoaded = true;
+    }
+
+    private async Task OpenAssignDialog()
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["DepartmentId"] = _selectedDeptId, 
+            ["CycleId"] = _selectedCycleId 
+        };
+        var dialog = DialogService.Show<AssignDeptKpiDialog>("Assign KPI to Department", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadDeptKpis();
+        }
+    }
+}
