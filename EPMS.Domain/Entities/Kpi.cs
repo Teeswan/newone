@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using EPMS.Domain.Enums;
+using EPMS.Domain.Exceptions;
 
 namespace EPMS.Domain.Entities
 {
@@ -30,6 +30,10 @@ namespace EPMS.Domain.Entities
             KpiDirection direction,
             int? createdByEmployeeId)
         {
+            ArgumentNullException.ThrowIfNull(kpiName);
+
+            ValidateWeightBand(priorityLevel, weightPercent);
+
             return new Kpi
             {
                 KpiName = kpiName,
@@ -54,6 +58,10 @@ namespace EPMS.Domain.Entities
             PriorityLevel priorityLevel,
             KpiDirection direction)
         {
+            ArgumentNullException.ThrowIfNull(kpiName);
+
+            ValidateWeightBand(priorityLevel, weightPercent);
+
             KpiName = kpiName;
             Category = category;
             Unit = unit;
@@ -64,6 +72,28 @@ namespace EPMS.Domain.Entities
         }
 
         public void Deactivate() => IsActive = false;
+
         public void Activate() => IsActive = true;
+
+        private static void ValidateWeightBand(
+            PriorityLevel priority,
+            decimal weight)
+        {
+            bool isValid = priority switch
+            {
+                PriorityLevel.Critical => weight >= 20 && weight <= 35,
+                PriorityLevel.High => weight >= 10 && weight <= 15,
+                PriorityLevel.Medium => Math.Abs(weight - 10) < 0.01m,
+                PriorityLevel.Lower => Math.Abs(weight - 5) < 0.01m,
+                _ => false
+            };
+
+            if (!isValid)
+            {
+                throw new KpiWeightBandException(
+                    $"Invalid weight {weight}% for priority {priority}. " +
+                    "Rules: Critical 20-35%, High 10-15%, Medium 10%, Lower 5%.");
+            }
+        }
     }
 }

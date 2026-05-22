@@ -115,7 +115,8 @@ namespace EPMS.Application.Services
                 request.Weight);
             
             var created = await _repository.CreateAsync(entity);
-            return _mapper.Map<DepartmentKpiDto>(created);
+            var result = await _repository.GetByIdAsync(created.DeptKpiId);
+            return _mapper.Map<DepartmentKpiDto>(result);
         }
 
         public async Task<DepartmentKpiDto?> UpdateAsync(int id, DepartmentKpiRequest request)
@@ -131,7 +132,8 @@ namespace EPMS.Application.Services
 
             entity.Update(request.DepartmentTarget, request.Weight);
             await _repository.UpdateAsync(entity);
-            return _mapper.Map<DepartmentKpiDto>(entity);
+            var result = await _repository.GetByIdAsync(id);
+            return _mapper.Map<DepartmentKpiDto>(result);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -182,7 +184,8 @@ namespace EPMS.Application.Services
                 request.Weight);
             
             var created = await _repository.CreateAsync(entity);
-            return _mapper.Map<TeamKpiDto>(created);
+            var result = await _repository.GetByIdAsync(created.TeamKpiId);
+            return _mapper.Map<TeamKpiDto>(result);
         }
 
         public async Task<TeamKpiDto?> UpdateAsync(int id, TeamKpiRequest request)
@@ -198,7 +201,8 @@ namespace EPMS.Application.Services
 
             entity.Update(request.TeamTarget, request.Weight);
             await _repository.UpdateAsync(entity);
-            return _mapper.Map<TeamKpiDto>(entity);
+            var result = await _repository.GetByIdAsync(id);
+            return _mapper.Map<TeamKpiDto>(result);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -249,7 +253,8 @@ namespace EPMS.Application.Services
                 request.Weight);
             
             var created = await _repository.CreateAsync(entity);
-            return _mapper.Map<EmployeeKpiDto>(created);
+            var result = await _repository.GetByIdAsync(created.EmployeeKpiId);
+            return _mapper.Map<EmployeeKpiDto>(result);
         }
 
         public async Task<EmployeeKpiDto?> UpdateAsync(int id, EmployeeKpiRequest request)
@@ -265,7 +270,8 @@ namespace EPMS.Application.Services
 
             entity.Update(request.EmployeeTarget, request.Weight);
             await _repository.UpdateAsync(entity);
-            return _mapper.Map<EmployeeKpiDto>(entity);
+            var result = await _repository.GetByIdAsync(id);
+            return _mapper.Map<EmployeeKpiDto>(result);
         }
 
         public async Task<bool> DeleteAsync(int id)

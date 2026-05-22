@@ -102,10 +102,4 @@ public static class Permissions
         public const string View = "Permissions.Kpis.View";
         public const string Manage = "Permissions.Kpis.Manage";
     }
-
-    public static class KpiHierarchy
-    {
-        public const string View = "Permissions.KpiHierarchy.View";
-        public const string Manage = "Permissions.KpiHierarchy.Manage";
-    }
 }

@@ -8,7 +8,7 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_isValid">
-            <MudSelect T="int" Label="Department KPI" @bind-Value="_request.DeptKpiId" Required="true" OnSelectedValuesChanged="OnKpiSelected">
+            <MudSelect T="int" Label="Department KPI" Value="_request.DeptKpiId" ValueChanged="OnKpiValueChanged" Required="true">
                 @foreach (var kpi in _deptKpis)
                 {
                     <MudSelectItem Value="@kpi.DeptKpiId">@kpi.KpiName (@kpi.DepartmentName - @kpi.CycleName)</MudSelectItem>
@@ -51,17 +51,17 @@
         if (team != null && team.DepartmentId.HasValue)
         {
             var allDeptKpis = await KpiService.GetAllDeptAsync();
-            _deptKpis = allDeptKpis.Where(k => k.DepartmentId == team.DepartmentId.Value && k.IsActive).ToList();
+            _deptKpis = allDeptKpis.Where(k => k.DepartmentId == team.DepartmentId.Value).ToList();
         }
         else
         {
-            _deptKpis = (await KpiService.GetAllDeptAsync()).Where(k => k.IsActive).ToList();
+            _deptKpis = (await KpiService.GetAllDeptAsync()).ToList();
         }
     }
 
-    private void OnKpiSelected(IEnumerable<int> values)
+    private void OnKpiValueChanged(int id)
     {
-        var id = values.FirstOrDefault();
+        _request.DeptKpiId = id;
         _selectedKpi = _deptKpis.FirstOrDefault(k => k.DeptKpiId == id);
     }
 

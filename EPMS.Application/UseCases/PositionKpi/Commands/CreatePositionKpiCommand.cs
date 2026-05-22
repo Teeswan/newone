@@ -37,15 +37,18 @@ public record CreatePositionKpiCommand : IRequest<Result<int>>
 public class CreatePositionKpiCommandHandler : IRequestHandler<CreatePositionKpiCommand, Result<int>>
 {
     private readonly IPositionKpiRepository _repository;
+    private readonly IKpiRepository _kpiRepository;
     private readonly IKpiCacheService _cacheService;
     private readonly IAuditLogService _auditLogService;
 
     public CreatePositionKpiCommandHandler(
         IPositionKpiRepository repository,
+        IKpiRepository kpiRepository,
         IKpiCacheService cacheService,
         IAuditLogService auditLogService)
     {
         _repository = repository;
+        _kpiRepository = kpiRepository;
         _cacheService = cacheService;
         _auditLogService = auditLogService;
     }
@@ -57,7 +60,7 @@ public class CreatePositionKpiCommandHandler : IRequestHandler<CreatePositionKpi
             return Result<int>.Failure("A KPI with the same name and category already exists for this position.");
         }
 
-        var kpi = Domain.Entities.PositionKpi.Create(
+        var kpiMaster = Domain.Entities.Kpi.Create(
             request.KpiName,
             request.Category,
             request.Unit,
@@ -65,14 +68,21 @@ public class CreatePositionKpiCommandHandler : IRequestHandler<CreatePositionKpi
             request.TargetValue,
             request.PriorityLevel,
             request.Direction,
-            request.PositionId,
             request.CreatedByEmployeeId);
 
-        await _repository.AddAsync(kpi);
+        await _kpiRepository.CreateAsync(kpiMaster);
+
+        var positionKpi = Domain.Entities.PositionKpi.Create(
+            request.PositionId,
+            kpiMaster.KpiId,
+            request.WeightPercent,
+            true); // Defaulting to IsRequired = true
+
+        await _repository.AddAsync(positionKpi);
 
         await _cacheService.RemoveByPatternAsync("positionkpi:list:*");
-        await _auditLogService.LogAsync("PositionKpi", "Create", kpi.KpiId, $"Created KPI: {kpi.KpiName}", request.CreatedByEmployeeId);
+        await _auditLogService.LogAsync("PositionKpi", "Create", positionKpi.PositionKpiId, $"Created KPI: {request.KpiName}", request.CreatedByEmployeeId);
 
-        return Result<int>.Success(kpi.KpiId);
+        return Result<int>.Success(positionKpi.PositionKpiId);
     }
 }

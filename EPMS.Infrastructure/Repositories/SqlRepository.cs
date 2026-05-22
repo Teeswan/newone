@@ -23,7 +23,7 @@ public class SqlRepository<T, TKey> : BaseRepository<T, TKey>, ISqlRepository<T,
     public async Task<T?> FromSqlFirstOrDefaultAsync(string storedProcedureName, params object[] parameters)
     {
         var sql = FormattableStringFactory.Create($"EXEC {storedProcedureName} {string.Join(", ", parameters.Select((p, i) => $"{{{i}}}"))}", parameters);
-        return _dbSet.FromSqlInterpolated(sql).AsEnumerable().FirstOrDefault();
+        return await _dbSet.FromSqlInterpolated(sql).FirstOrDefaultAsync();
     }
 
     public async Task<int> ExecuteSqlAsync(string storedProcedureName, params object[] parameters)

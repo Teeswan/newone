@@ -63,5 +63,7 @@ public class EmployeeKpiAssignmentConfiguration : IEntityTypeConfiguration<Emplo
             .WithMany()
             .HasForeignKey(e => e.KpiId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        builder.Property(e => e.KpiId).HasColumnName("KPI_ID");
     }
 }
