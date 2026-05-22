@@ -18,11 +18,9 @@ public class PositionKpi
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public int? CreatedByEmployeeId { get; private set; }
-
-    // Navigation properties ( Member 2 )
     public virtual Position? Position { get; private set; }
 
-    private PositionKpi() { } // EF Core
+    private PositionKpi() { } 
 
     public static PositionKpi Create(
         string kpiName,

@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
+using DocumentFormat.OpenXml.Spreadsheet;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace EPMS.Infrastructure.Contexts;
 
@@ -70,6 +71,9 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<SystemSetting> SystemSettings { get; set; }
+    public virtual DbSet<Kpi> Kpis { get; set; }
+    public virtual DbSet<DepartmentKpi> DepartmentKpis { get; set; }
+    public virtual DbSet<TeamKpi> TeamKpis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -78,6 +82,32 @@ public partial class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
+        {
+            entity.HasOne(e => e.TeamKpi)
+                  .WithMany() // Assuming TeamKpi doesn't need to track its employees
+                  .HasForeignKey(e => e.TeamKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 2. TeamKpi -> DepartmentKpi
+        modelBuilder.Entity<TeamKpi>(entity =>
+        {
+            entity.HasOne(t => t.DepartmentKpi)
+                  .WithMany()
+                  .HasForeignKey(t => t.DeptKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 3. DepartmentKpi -> Kpi (Master)
+        modelBuilder.Entity<DepartmentKpi>(entity =>
+        {
+            entity.HasOne(d => d.KpiMaster)
+                  .WithMany()
+                  .HasForeignKey(d => d.KpiMasterId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<ApplicationForm>(entity =>
         {

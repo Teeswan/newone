@@ -27,6 +27,7 @@ public class EmployeeKpiAssignment
     public KpiAssignmentStatus Status { get; private set; } = KpiAssignmentStatus.Draft;
     public bool IsAdHoc { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public int? TeamKpiId { get; private set; }
 
     // Domain events
     private readonly List<object> _domainEvents = new();
@@ -36,19 +37,22 @@ public class EmployeeKpiAssignment
     public virtual Employee Employee { get; private set; } = null!;
     public virtual AppraisalCycle Cycle { get; private set; } = null!;
     public virtual PositionKpi? Kpi { get; private set; }
+    public virtual TeamKpi? TeamKpi { get; private set; }
 
     private EmployeeKpiAssignment() { } // EF Core
 
     public static EmployeeKpiAssignment CreateSnapshot(
         int employeeId,
         int cycleId,
-        PositionKpi kpi)
+        PositionKpi kpi,
+        int? teamKpiId = null)
     {
         return new EmployeeKpiAssignment
         {
             EmployeeId = employeeId,
             CycleId = cycleId,
             KpiId = kpi.KpiId,
+            TeamKpiId = teamKpiId,
             KpiNameSnapshot = kpi.KpiName,
             CategorySnapshot = kpi.Category,
             UnitSnapshot = kpi.Unit,
