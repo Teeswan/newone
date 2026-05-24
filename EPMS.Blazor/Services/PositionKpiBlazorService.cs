@@ -17,7 +17,7 @@ namespace EPMS.Blazor.Services
         Task<IEnumerable<PositionKpiDto>> GetByPositionAsync(int positionId);
         Task<int> CreateAsync(CreatePositionKpiCommand command);
         Task<bool> UpdateAsync(int id, UpdatePositionKpiCommand command);
-        Task<bool> DeactivateAsync(int id);
+        Task<bool> DeleteAsync(int id);
         Task<BulkImportResultDto?> BulkImportExcelAsync(Stream fileStream, string fileName);
         Task<byte[]> DownloadTemplateAsync();
     }
@@ -63,7 +63,7 @@ namespace EPMS.Blazor.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> DeactivateAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var response = await _httpClient.DeleteAsync($"{BaseUrl}/{id}");
             return response.IsSuccessStatusCode;

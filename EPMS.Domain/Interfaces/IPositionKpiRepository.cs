@@ -11,6 +11,7 @@ public interface IPositionKpiRepository
     Task<IEnumerable<PositionKpi>> GetGlobalKpisAsync(bool isActive = true);
     Task AddAsync(PositionKpi kpi);
     Task UpdateAsync(PositionKpi kpi);
+    Task DeleteAsync(int id);
     Task<bool> IsKpiReferencedByActiveCycleAsync(int kpiId);
     Task<bool> ExistsDuplicateAsync(string name, string? category, int? positionId);
 }

@@ -82,11 +82,11 @@ public class PositionKpiController : ControllerBase
 
     [HttpDelete("{id}")]
     [HasPermission(Permissions.Kpis.Manage)]
-    public async Task<ActionResult<ApiResponse<object>>> Deactivate(int id)
+    public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
-        var result = await _mediator.Send(new DeactivatePositionKpiCommand(id, null));
+        var result = await _mediator.Send(new DeletePositionKpiCommand(id, null));
         return result.IsSuccess 
-            ? Ok(ApiResponse<object>.SuccessResponse(null!, "Deactivated successfully"))
+            ? Ok(ApiResponse<object>.SuccessResponse(null!, "Deleted successfully"))
             : BadRequest(ApiResponse<object>.FailureResponse(result.Message));
     }
 

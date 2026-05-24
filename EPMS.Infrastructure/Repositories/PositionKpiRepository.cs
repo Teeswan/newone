@@ -69,6 +69,16 @@ public class PositionKpiRepository : IPositionKpiRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(int id)
+    {
+        var kpi = await _context.PositionKpis.FindAsync(id);
+        if (kpi != null)
+        {
+            _context.PositionKpis.Remove(kpi);
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task<bool> IsKpiReferencedByActiveCycleAsync(int kpiId)
     {
         if (kpiId <= 0)
@@ -77,7 +87,7 @@ public class PositionKpiRepository : IPositionKpiRepository
         }
 
         using var connection = _connectionFactory.CreateConnection();
-        const string sql = "SELECT COUNT(1) FROM EmployeeKpiAssignment WHERE KpiId = @KpiId AND Status = @Status";
+        const string sql = "SELECT COUNT(1) FROM EmployeeKpiAssignment WHERE KPI_ID = @KpiId AND Status = @Status";
         var count = await connection.ExecuteScalarAsync<int>(sql, new { KpiId = kpiId, Status = "Active" });
         return count > 0;
     }

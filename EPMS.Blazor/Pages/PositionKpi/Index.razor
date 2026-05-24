@@ -59,7 +59,7 @@
         </MudTd>
         <MudTd DataLabel="Actions">
             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/position-kpi/edit/{context.PositionKpiId}")" />
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeactivateKpi(context))" Disabled="@(!context.IsActive)" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteKpi(context))" />
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -107,20 +107,20 @@
         _ => Color.Default
     };
 
-    private async Task DeactivateKpi(PositionKpiDto kpi)
+    private async Task DeleteKpi(PositionKpiDto kpi)
     {
-        bool? result = await DialogService.ShowMessageBox("Confirm Deactivation", $"Are you sure you want to deactivate {kpi.KpiName}?", yesText: "Yes", noText: "No");
+        bool? result = await DialogService.ShowMessageBox("Confirm Deletion", $"Are you sure you want to delete {kpi.KpiName}?", yesText: "Delete", noText: "Cancel");
         if (result == true)
         {
-            var success = await KpiService.DeactivateAsync(kpi.KpiId);
+            var success = await KpiService.DeleteAsync(kpi.PositionKpiId);
             if (success)
             {
-                Snackbar.Add("KPI deactivated successfully", Severity.Success);
+                Snackbar.Add("KPI deleted successfully", Severity.Success);
                 await LoadData();
             }
             else
             {
-                Snackbar.Add("Failed to deactivate KPI", Severity.Error);
+                Snackbar.Add("Failed to delete KPI. It might be referenced in an appraisal cycle.", Severity.Error);
             }
         }
     }
