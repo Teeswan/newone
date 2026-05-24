@@ -28,10 +28,23 @@ public class UpdateSystemSettingsCommandHandler : IRequestHandler<UpdateSystemSe
 
     public async Task<bool> Handle(UpdateSystemSettingsCommand request, CancellationToken cancellationToken)
     {
-        var hashedPassword = _passwordHasher.HashPassword(request.NewDefaultPassword);
-        await _systemSettingRepository.SetValueAsync("DefaultPassword", hashedPassword);
+        try
+        {
+            var hashedPassword = _passwordHasher.HashPassword(request.NewDefaultPassword);
 
-        _logger.LogInformation("System settings updated: DefaultPassword changed");
-        return true;
+            // Ensure this operation is awaited and check for potential exceptions
+            await _systemSettingRepository.SetValueAsync("DefaultPassword", hashedPassword);
+
+            _logger.LogInformation("System settings updated: DefaultPassword changed");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Log the actual error so you can see it in the terminal
+            _logger.LogError(ex, "Failed to update DefaultPassword in repository.");
+
+            // Return false so the API returns a 400 Bad Request to the UI
+            return false;
+        }
     }
 }

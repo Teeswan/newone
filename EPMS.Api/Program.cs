@@ -110,7 +110,7 @@ app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabase();
+    await app.InitializeDatabaseAsync();
 }
 
 app.Run();

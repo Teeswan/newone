@@ -155,6 +155,7 @@ public class PermissionsController : ControllerBase
             { 
                 EmployeeCode = "EMP001", 
                 FullName = "System Admin",
+                Email = "admin@example.com",
                 PositionId = adminPosition.PositionId,
                 IsActive = true
             };
@@ -163,14 +164,6 @@ public class PermissionsController : ControllerBase
         else if (adminEmployee.PositionId != adminPosition.PositionId)
         {
             adminEmployee.PositionId = adminPosition.PositionId;
-            await _employeeRepository.UpdateAsync(adminEmployee);
-        }
-
-        // 5. Set admin username and password
-        if (string.IsNullOrEmpty(adminEmployee.Username))
-        {
-            adminEmployee.Username = "admin";
-            adminEmployee.PasswordHash = "admin123";
             await _employeeRepository.UpdateAsync(adminEmployee);
         }
 

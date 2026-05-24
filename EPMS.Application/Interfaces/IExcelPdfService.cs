@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using EPMS.Application.UseCases.PositionKpi.Commands;
-using EPMS.Application.UseCases.KpiAssignment.Commands;
+using EPMS.Shared.DTOs;
 
 namespace EPMS.Application.Interfaces;
 
 public interface IExcelPdfService
 {
-    // Excel Export
     Task<byte[]> ExportAppraisalCyclesToExcelAsync();
     Task<byte[]> ExportAppraisalQuestionsToExcelAsync();
     Task<byte[]> ExportAppraisalResponsesToExcelAsync();
@@ -20,7 +18,6 @@ public interface IExcelPdfService
     Task<byte[]> ExportTeamsToExcelAsync();
     Task<byte[]> ExportEmployeesToExcelAsync();
 
-    // Excel Import
     Task<int> ImportAppraisalCyclesFromExcelAsync(Stream fileStream);
     Task<int> ImportAppraisalQuestionsFromExcelAsync(Stream fileStream);
     Task<int> ImportAppraisalResponsesFromExcelAsync(Stream fileStream);
@@ -36,7 +33,6 @@ public interface IExcelPdfService
     Task<IEnumerable<EmployeeKpiImportDto>> ImportEmployeeKpiFromExcelAsync(Stream fileStream);
     Task<byte[]> ExportEmployeeKpiTemplateAsync();
 
-    // PDF Export
     Task<byte[]> ExportAppraisalCyclesToPdfAsync();
     Task<byte[]> ExportAppraisalQuestionsToPdfAsync();
     Task<byte[]> ExportAppraisalResponsesToPdfAsync();

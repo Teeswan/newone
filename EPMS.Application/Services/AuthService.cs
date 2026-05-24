@@ -14,29 +14,29 @@ public class AuthService : IAuthService
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<AuthService> _logger;
     private readonly IMapper _mapper;
+    private readonly ITokenService _tokenService;
 
     public AuthService(
         IEmployeeRepository employeeRepository,
         IPasswordHasher passwordHasher,
         ILogger<AuthService> logger,
-        IMapper mapper)
+        IMapper mapper,
+        ITokenService tokenService)
     {
         _employeeRepository = employeeRepository;
         _passwordHasher = passwordHasher;
         _logger = logger;
         _mapper = mapper;
+        _tokenService = tokenService;
     }
 
     public async Task<LoginResponseDto?> LoginAsync(LoginRequest request)
     {
-        var employees = await _employeeRepository.GetAllAsync();
-        var employee = employees.FirstOrDefault(e =>
-            (!string.IsNullOrEmpty(e.Email) && e.Email.Equals(request.Identifier, StringComparison.OrdinalIgnoreCase)) ||
-            (!string.IsNullOrEmpty(e.Username) && e.Username.Equals(request.Identifier, StringComparison.OrdinalIgnoreCase)));
+        var employee = await _employeeRepository.GetByEmailAsync(request.Email);
 
         if (employee == null)
         {
-            _logger.LogWarning("Failed login attempt for identifier: {Identifier}", request.Identifier);
+            _logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
             return null;
         }
 
@@ -65,9 +65,8 @@ public class AuthService : IAuthService
             EmployeeId = employee.EmployeeId,
             FullName = employee.FullName,
             Email = employee.Email,
-            Username = employee.Username,
             IsFirstLogin = employee.IsFirstLogin,
-            Token = "mock-jwt-token"
+            Token = _tokenService.CreateToken(employee)
         };
     }
 }

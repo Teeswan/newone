@@ -17,17 +17,6 @@ public record BulkImportPositionKpiCommand(
     int? EmployeeId
 ) : IRequest<Result<BulkImportResultDto>>;
 
-public record PositionKpiImportDto(
-    string KpiName,
-    string? Category,
-    string? Unit,
-    decimal WeightPercent,
-    decimal? TargetValue,
-    PriorityLevel PriorityLevel,
-    KpiDirection Direction,
-    int? PositionId
-);
-
 public class BulkImportPositionKpiCommandHandler
     : IRequestHandler<BulkImportPositionKpiCommand, Result<BulkImportResultDto>>
 {

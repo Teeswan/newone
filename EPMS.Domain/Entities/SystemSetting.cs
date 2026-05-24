@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EPMS.Domain.Entities;
 
 public class SystemSetting
 {
+    [Key]
     public int SystemSettingId { get; set; }
     public string Key { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;

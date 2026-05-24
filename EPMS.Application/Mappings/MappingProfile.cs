@@ -46,7 +46,9 @@ public class MappingProfile : Profile
 
         CreateMap<MeetingNote, NoteDto>().ReverseMap();
         CreateMap<Role, RoleDto>().ReverseMap();
-        CreateMap<User, UserDto>().ReverseMap();
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.Email : null))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null));
 
         // Org & Security Mappings
         CreateMap<Department, DepartmentDto>()

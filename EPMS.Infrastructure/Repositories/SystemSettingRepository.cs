@@ -19,23 +19,29 @@ public class SystemSettingRepository : BaseRepository<SystemSetting, int>, ISyst
 
     public async Task SetValueAsync(string key, string value)
     {
+        // Find the record by Key
         var setting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == key);
-        if (setting == null)
+
+        if (setting != null)
         {
-            setting = new SystemSetting
-            {
-                Key = key,
-                Value = value,
-                Description = "",
-                UpdatedAt = DateTime.UtcNow
-            };
-            _context.SystemSettings.Add(setting);
+            // Update existing record
+            setting.Value = value;
+            setting.UpdatedAt = DateTime.UtcNow;
+            _context.SystemSettings.Update(setting); // Explicitly mark as updated
         }
         else
         {
-            setting.Value = value;
-            setting.UpdatedAt = DateTime.UtcNow;
+            // Create new only if it truly doesn't exist
+            var newSetting = new SystemSetting
+            {
+                Key = key,
+                Value = value,
+                Description = "Default password",
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.SystemSettings.Add(newSetting);
         }
+
         await _context.SaveChangesAsync();
     }
 }

@@ -287,8 +287,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.EmployeeCode, "UQ__Employee__1F64254896E975DC").IsUnique();
 
-            entity.HasIndex(e => e.Username, "UQ_EmployeeUsername").IsUnique();
-
             entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
             entity.Property(e => e.BankAccountNumber).HasMaxLength(50);
             entity.Property(e => e.BankName).HasMaxLength(100);
@@ -308,7 +306,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Phone).HasMaxLength(20);
             entity.Property(e => e.PositionId).HasColumnName("PositionID");
             entity.Property(e => e.PromotionEligibility).HasDefaultValue(false);
-            entity.Property(e => e.Username).HasMaxLength(50);
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
 
             entity.HasOne(d => d.Department).WithMany(p => p.Employees)

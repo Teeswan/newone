@@ -32,9 +32,9 @@
             
             <MudTextField 
                 T="string"
-                Label="Email or Username" 
-                @bind-Value="loginModel.Username"
-                Placeholder="Enter your email or username"
+                Label="Email" 
+                @bind-Value="loginModel.Email"
+                Placeholder="Enter your email"
                 Variant="Variant.Outlined"
                 Style="width: 100%"
                 Class="mb-4"
@@ -102,7 +102,7 @@
             }
             else
             {
-                errorMessage = "Invalid username or password. Please try again.";
+                errorMessage = "Invalid email or password. Please try again.";
             }
         }
         catch (Exception)

@@ -14,7 +14,7 @@ namespace EPMS.Infrastructure;
 
 public static class DbInitializer
 {
-    public static void InitializeDatabase(this IHost host)
+    public static async Task InitializeDatabaseAsync(this IHost host)
     {
         using var scope = host.Services.CreateScope();
         var services = scope.ServiceProvider;
@@ -133,10 +133,10 @@ public static class DbInitializer
 
         connection.Close();
 
-        SeedDataWithEf(scope);
+        await SeedDataWithEfAsync(scope);
     }
 
-    private static void SeedDataWithEf(IServiceScope scope)
+    private static async Task SeedDataWithEfAsync(IServiceScope scope)
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
@@ -157,22 +157,46 @@ public static class DbInitializer
 
         // 3. Seed Admin Employee
         var adminPosition = dbContext.Positions.FirstOrDefault(p => p.PositionTitle == "Admin");
-        if (adminPosition != null && !dbContext.Employees.Any(e => e.Username == "admin"))
+        var accountInitializationService = scope.ServiceProvider.GetRequiredService<IAccountInitializationService>();
+        
+        if (adminPosition != null)
         {
+            var adminEmployee = dbContext.Employees.FirstOrDefault(e => e.Email == "admin@example.com");
             var adminPasswordHashed = passwordHasher.HashPassword("admin123");
-            dbContext.Employees.Add(new Employee
+            if (adminEmployee == null)
             {
-                EmployeeCode = "EMP001",
-                FullName = "System Admin",
-                PositionId = adminPosition.PositionId,
-                Username = "admin",
-                PasswordHash = adminPasswordHashed,
-                IsFirstLogin = false,
-                IsActive = true,
-                Email = "admin@example.com"
-            });
+                dbContext.Employees.Add(new Employee
+                {
+                    EmployeeCode = "EMP001",
+                    FullName = "System Admin",
+                    PositionId = adminPosition.PositionId,
+                    PasswordHash = adminPasswordHashed,
+                    IsFirstLogin = false,
+                    IsActive = true,
+                    Email = "admin@example.com"
+                });
+            }
+            else
+            {
+                // Update password hash if it's not the correct hashed version
+                // Check if password is plaintext "admin123" - if yes, update to hashed
+                var isPlainText = adminEmployee.PasswordHash == "admin123";
+                var isCorrectHash = passwordHasher.VerifyPassword(adminEmployee.PasswordHash, "admin123");
+                
+                if (isPlainText || !isCorrectHash)
+                {
+                    adminEmployee.PasswordHash = adminPasswordHashed;
+                }
+            }
         }
-
-        dbContext.SaveChanges();
+        
+        await dbContext.SaveChangesAsync();
+        
+        // 4. Initialize all existing employees with NULL PasswordHash
+        var allEmployees = dbContext.Employees.ToList();
+        foreach (var employee in allEmployees)
+        {
+            await accountInitializationService.InitializeAccountAsync(employee);
+        }
     }
 }

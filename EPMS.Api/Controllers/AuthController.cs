@@ -1,8 +1,11 @@
 using EPMS.Application.Interfaces;
 using EPMS.Application.Services;
+using EPMS.Application.UseCases.Auth.Commands;
 using EPMS.Domain.Interfaces;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -19,26 +22,70 @@ public class AuthController : ControllerBase
     private readonly IEmployeeRepository _employeeRepository;
     private readonly ITokenService _tokenService;
     private readonly IConfiguration _config;
+    private readonly IAuthService _authService;
+    private readonly IMediator _mediator;
+    private readonly IAccountInitializationService _accountInitializationService;
 
-    public AuthController(IEmployeeRepository employeeRepository, ITokenService tokenService, IConfiguration config)
+    public AuthController(
+        IEmployeeRepository employeeRepository, 
+        ITokenService tokenService, 
+        IConfiguration config,
+        IAuthService authService,
+        IMediator mediator,
+        IAccountInitializationService accountInitializationService)
     {
         _employeeRepository = employeeRepository;
         _tokenService = tokenService;
         _config = config;
+        _authService = authService;
+        _mediator = mediator;
+        _accountInitializationService = accountInitializationService;
+    }
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var result = await _authService.LoginAsync(request);
+        if (result == null)
+        {
+            return Unauthorized("Invalid email or password.");
+        }
+        return Ok(result);
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    [AllowAnonymous]
+    [HttpPost("bulk-create-accounts")]
+    public async Task<IActionResult> BulkCreateAccounts()
     {
-        var employee = await _employeeRepository.GetByUsernameAsync(request.Username);
-
-        if (employee == null || employee.PasswordHash != request.Password) // In real app, use password hashing!
-        {
-            return Unauthorized("Invalid username or password.");
-        }
-
-        var token = _tokenService.CreateToken(employee);
-        return Ok(new { Token = token });
+        var result = await _mediator.Send(new BulkCreateAccountsCommand());
+        return Ok(result);
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var command = new ChangePasswordCommand 
+        { 
+            EmployeeId = request.EmployeeId, 
+            NewPassword = request.NewPassword 
+        };
+        var result = await _mediator.Send(command);
+        if (result)
+            return Ok();
+        return BadRequest("Failed to change password");
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("initialize-employee/{employeeId}")]
+    public async Task<IActionResult> InitializeEmployee(int employeeId)
+    {
+        var employee = await _employeeRepository.GetByIdAsync(employeeId);
+        if (employee == null)
+            return NotFound("Employee not found");
+            
+        await _accountInitializationService.InitializeAccountAsync(employee);
+        return Ok("Employee initialized successfully");
     }
 
     [HttpGet("test-token/{positionId}")]
@@ -64,5 +111,19 @@ public class AuthController : ControllerBase
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
         return Ok(new { Token = tokenString });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("update-system-settings")]
+    public async Task<IActionResult> UpdateSystemSettings([FromBody] UpdateSystemSettingsRequest request)
+    {
+        var command = new UpdateSystemSettingsCommand 
+        { 
+            NewDefaultPassword = request.NewDefaultPassword 
+        };
+        var result = await _mediator.Send(command);
+        if (result)
+            return Ok();
+        return BadRequest("Failed to update system settings");
     }
 }

@@ -123,12 +123,10 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
         return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { EmployeeCode = employeeCode });
     }
 
-    public async Task<Employee?> GetByUsernameAsync(string username)
+    public async Task<Employee?> GetByEmailAsync(string email)
     {
-        ArgumentNullException.ThrowIfNull(username);
-        using IDbConnection db = new SqlConnection(_connectionString);
-        string sql = "SELECT TOP 1 * FROM Employees WHERE Username = @Username AND IsDeleted = 0";
-        return await db.QueryFirstOrDefaultAsync<Employee>(sql, new { Username = username });
+        ArgumentNullException.ThrowIfNull(email);
+        return await _dbSet.FirstOrDefaultAsync(e => e.Email == email && !e.IsDeleted);
     }
 
     public async Task<Employee?> GetByIdNoTrackingAsync(int id)

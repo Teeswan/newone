@@ -26,11 +26,19 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             if (!string.IsNullOrWhiteSpace(token))
             {
                 await _localStorage.RemoveItemAsync("authToken");
+                await _localStorage.RemoveItemAsync("loginResponse");
             }
             return _anonymous;
         }
 
         var claims = ParseClaimsFromJwt(token);
+        if (!claims.Any())
+        {
+            await _localStorage.RemoveItemAsync("authToken");
+            await _localStorage.RemoveItemAsync("loginResponse");
+            return _anonymous;
+        }
+
         var identity = new ClaimsIdentity(claims, "jwt", "name", "role");
         return new AuthenticationState(new ClaimsPrincipal(identity));
     }
@@ -64,29 +72,44 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
     private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
     {
         var claims = new List<Claim>();
-        var payload = jwt.Split('.')[1];
-        var jsonBytes = ParseBase64WithoutPadding(payload);
-
-       
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonBytes);
-
-        if (keyValuePairs != null)
+        
+        try
         {
-            foreach (var kvp in keyValuePairs)
+            if (string.IsNullOrWhiteSpace(jwt))
+                return claims;
+
+            var parts = jwt.Split('.');
+            if (parts.Length < 2)
+                return claims;
+
+            var payload = parts[1];
+            var jsonBytes = ParseBase64WithoutPadding(payload);
+
+            var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonBytes);
+
+            if (keyValuePairs != null)
             {
-                if (kvp.Value.ValueKind == JsonValueKind.Array)
+                foreach (var kvp in keyValuePairs)
                 {
-                    foreach (var element in kvp.Value.EnumerateArray())
+                    if (kvp.Value.ValueKind == JsonValueKind.Array)
                     {
-                        claims.Add(new Claim(kvp.Key, element.ToString()));
+                        foreach (var element in kvp.Value.EnumerateArray())
+                        {
+                            claims.Add(new Claim(kvp.Key, element.ToString()));
+                        }
                     }
-                }
-                else
-                {
-                    claims.Add(new Claim(kvp.Key, kvp.Value.ToString()));
+                    else
+                    {
+                        claims.Add(new Claim(kvp.Key, kvp.Value.ToString()));
+                    }
                 }
             }
         }
+        catch
+        {
+            // If parsing fails, just return empty claims
+        }
+        
         return claims;
     }
 

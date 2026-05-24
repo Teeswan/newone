@@ -14,16 +14,6 @@ namespace EPMS.Application.UseCases.KpiAssignment.Commands;
 
 public record BulkImportEmployeeKpiCommand(List<EmployeeKpiImportDto> Kpis, int? EmployeeId) : IRequest<Result<BulkImportResultDto>>;
 
-public record EmployeeKpiImportDto(
-    int EmployeeId,
-    int CycleId,
-    string KpiName,
-    string? Category,
-    string? Unit,
-    decimal WeightPercent,
-    decimal TargetValue,
-    KpiDirection Direction);
-
 public class BulkImportEmployeeKpiCommandHandler : IRequestHandler<BulkImportEmployeeKpiCommand, Result<BulkImportResultDto>>
 {
     private readonly IKpiAssignmentRepository _repository;

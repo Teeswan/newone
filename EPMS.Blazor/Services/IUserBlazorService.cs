@@ -1,9 +1,9 @@
-﻿using EPMS.Shared.DTOs;
+using EPMS.Shared.DTOs;
 
 namespace EPMS.Blazor.Services
 {
     public interface IUserBlazorService
     {
-        Task<List<UserRoleDto>> GetAllUsersAsync();
+        Task<List<UserDto>> GetAllUsersAsync();
     }
 }
