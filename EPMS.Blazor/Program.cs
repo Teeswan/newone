@@ -80,8 +80,8 @@ builder.Services.AddHttpClient<IEmployeeKpiBlazorService, EmployeeKpiBlazorServi
 builder.Services.AddHttpClient<IMeetingBlazorService, MeetingBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-builder.Services.AddHttpClient<IAuthBlazorService, AuthBlazorService>(client => client.BaseAddress = apiBaseUrl)
-    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+// AuthBlazorService should NOT use AuthenticationHeaderHandler (no token needed for login/change password)
+builder.Services.AddHttpClient<IAuthBlazorService, AuthBlazorService>(client => client.BaseAddress = apiBaseUrl);
 
 // Register a default HttpClient for components that inject it directly (like Login.razor)
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Default"));

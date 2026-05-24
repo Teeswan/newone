@@ -25,15 +25,29 @@ public class AuthBlazorService : IAuthBlazorService
 
     public async Task<bool> ChangePasswordAsync(int employeeId, string newPassword)
     {
-        var command = new { EmployeeId = employeeId, NewPassword = newPassword };
-        var response = await _httpClient.PostAsJsonAsync("/api/auth/change-password", command);
+        Console.WriteLine($"AuthBlazorService.ChangePasswordAsync called - employeeId: {employeeId}, newPassword: {newPassword}");
+        var request = new ChangePasswordRequest
+        {
+            EmployeeId = employeeId,
+            NewPassword = newPassword
+        };
+        var response = await _httpClient.PostAsJsonAsync("/api/auth/change-password", request);
+        Console.WriteLine($"AuthBlazorService.ChangePasswordAsync response status: {response.StatusCode}");
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"AuthBlazorService.ChangePasswordAsync error content: {errorContent}");
+        }
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateSystemSettingsAsync(string newDefaultPassword)
     {
-        var command = new { NewDefaultPassword = newDefaultPassword };
-        var response = await _httpClient.PostAsJsonAsync("/api/auth/update-system-settings", command);
+        var request = new UpdateSystemSettingsRequest
+        {
+            NewDefaultPassword = newDefaultPassword
+        };
+        var response = await _httpClient.PostAsJsonAsync("/api/auth/update-system-settings", request);
         return response.IsSuccessStatusCode;
     }
 

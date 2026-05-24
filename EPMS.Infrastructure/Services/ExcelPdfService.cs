@@ -2,14 +2,17 @@ using ClosedXML.Excel;
 using EPMS.Application.Interfaces;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
-using EPMS.Application.UseCases.PositionKpi.Commands;
-using EPMS.Application.UseCases.KpiAssignment.Commands;
 using EPMS.Domain.Enums;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
 
-namespace EPMS.Application.Services;
+namespace EPMS.Infrastructure.Services;
 
 public class ExcelPdfService : IExcelPdfService
 {
@@ -47,8 +50,6 @@ public class ExcelPdfService : IExcelPdfService
         _teamService = teamService;
         _employeeService = employeeService;
     }
-
-    // ===================== EXCEL EXPORT =====================
 
     public async Task<byte[]> ExportAppraisalCyclesToExcelAsync()
     {
@@ -354,8 +355,6 @@ public class ExcelPdfService : IExcelPdfService
         return WorkbookToBytes(workbook);
     }
 
-    // ===================== EXCEL IMPORT =====================
-
     public async Task<int> ImportAppraisalCyclesFromExcelAsync(Stream fileStream)
     {
         using var workbook = new XLWorkbook(fileStream);
@@ -538,7 +537,6 @@ public class ExcelPdfService : IExcelPdfService
             ws = foundWs;
         }
 
-        // Validate required columns
         var expectedColumns = new[] { "DepartmentId", "DepartmentName", "ParentDepartmentId", "IsActive" };
         var headerRow = ws.Row(1);
         for (int i = 0; i < expectedColumns.Length; i++)
@@ -551,7 +549,6 @@ public class ExcelPdfService : IExcelPdfService
         }
 
         int count = 0;
-
         int rowsToSkip = skipFirstRow ? 1 : 0;
         var existingDepartments = skipExisting ? (await _departmentService.GetAllAsync()).ToList() : new List<DepartmentDto>();
 
@@ -561,7 +558,7 @@ public class ExcelPdfService : IExcelPdfService
             
             if (string.IsNullOrWhiteSpace(deptName))
             {
-                continue; // Skip empty rows
+                continue;
             }
             
             if (skipExisting && existingDepartments.Any(d => d.DepartmentName.Equals(deptName, StringComparison.OrdinalIgnoreCase)))
@@ -600,7 +597,6 @@ public class ExcelPdfService : IExcelPdfService
             ws = foundWs;
         }
 
-        // Validate required columns
         var expectedColumns = new[] { "TeamId", "TeamName", "ManagerId", "DepartmentId" };
         var headerRow = ws.Row(1);
         for (int i = 0; i < expectedColumns.Length; i++)
@@ -613,7 +609,6 @@ public class ExcelPdfService : IExcelPdfService
         }
 
         int count = 0;
-
         int rowsToSkip = skipFirstRow ? 1 : 0;
         var existingTeams = skipExisting ? (await _teamService.GetAllAsync()).ToList() : new List<TeamDto>();
 
@@ -623,7 +618,7 @@ public class ExcelPdfService : IExcelPdfService
             
             if (string.IsNullOrWhiteSpace(teamName))
             {
-                continue; // Skip empty rows
+                continue;
             }
             
             if (skipExisting && existingTeams.Any(t => t.TeamName.Equals(teamName, StringComparison.OrdinalIgnoreCase)))
@@ -662,7 +657,6 @@ public class ExcelPdfService : IExcelPdfService
             ws = foundWs;
         }
 
-        // Validate required columns
         var expectedColumns = new[] { "EmployeeCode", "FullName", "Email", "Phone", "DepartmentId", "PositionId", "ReportsTo", "JoinDate", "EmploymentStatus", "IsActive" };
         var headerRow = ws.Row(1);
         for (int i = 0; i < expectedColumns.Length; i++)
@@ -751,7 +745,6 @@ public class ExcelPdfService : IExcelPdfService
 
         StyleHeaderRow(ws, 8);
 
-        // Add a sample row
         ws.Cell(2, 1).Value = "Sample KPI";
         ws.Cell(2, 2).Value = "Quality";
         ws.Cell(2, 3).Value = "Percentage";
@@ -808,7 +801,6 @@ public class ExcelPdfService : IExcelPdfService
 
         StyleHeaderRow(ws, 8);
 
-        // Add a sample row
         ws.Cell(2, 1).Value = 1;
         ws.Cell(2, 2).Value = 1;
         ws.Cell(2, 3).Value = "Individual Contribution";
@@ -821,8 +813,6 @@ public class ExcelPdfService : IExcelPdfService
         ws.Columns().AdjustToContents();
         return WorkbookToBytes(workbook);
     }
-
-    // ===================== PDF EXPORT =====================
 
     public async Task<byte[]> ExportAppraisalCyclesToPdfAsync()
     {
@@ -906,8 +896,6 @@ public class ExcelPdfService : IExcelPdfService
             }).ToList());
     }
 
-    // ===================== HELPERS =====================
-
     private static void StyleHeaderRow(IXLWorksheet ws, int columnCount)
     {
         var headerRange = ws.Range(1, 1, 1, columnCount);
@@ -957,14 +945,12 @@ public class ExcelPdfService : IExcelPdfService
                                 columns.RelativeColumn();
                         });
 
-                        // Header row
                         foreach (var h in headers)
                         {
                             table.Cell().Background(Colors.Blue.Medium).Padding(4)
                                 .Text(h).FontColor(Colors.White).Bold().FontSize(8);
                         }
 
-                        // Data rows
                         bool alternate = false;
                         foreach (var dataRow in rows)
                         {

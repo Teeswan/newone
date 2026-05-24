@@ -93,12 +93,12 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
         return entity;
     }
 
-    public async Task<Employee?> GetByUsernameAsync(string username)
+    public async Task<Employee?> GetByEmailAsync(string email)
     {
-        string key = GetUsernameCacheKey(username);
+        string key = GetEmailCacheKey(email);
         if (!_cache.TryGetValue(key, out Employee? entity))
         {
-            entity = await _innerRepository.GetByUsernameAsync(username);
+            entity = await _innerRepository.GetByEmailAsync(email);
             if (entity != null)
                 _cache.Set(key, entity, _cacheDuration);
         }
@@ -127,16 +127,16 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
             _cache.Remove(GetCodeCacheKey(employee.EmployeeCode));
         }
 
-        if (!string.IsNullOrWhiteSpace(employee.Username))
+        if (!string.IsNullOrWhiteSpace(employee.Email))
         {
-            _cache.Remove(GetUsernameCacheKey(employee.Username));
+            _cache.Remove(GetEmailCacheKey(employee.Email));
         }
     }
 
     private string GetDepartmentCacheKey(int departmentId) => $"{_cacheKeyPrefix}_Dept_{departmentId}";
     private string GetDirectReportsCacheKey(int managerId) => $"{_cacheKeyPrefix}_Reports_{managerId}";
     private string GetCodeCacheKey(string employeeCode) => $"{_cacheKeyPrefix}_Code_{employeeCode}";
-    private string GetUsernameCacheKey(string username) => $"{_cacheKeyPrefix}_Username_{username}";
+    private string GetEmailCacheKey(string email) => $"{_cacheKeyPrefix}_Email_{email}";
 }
 
 public class CachedLevelRepository : CachedBaseRepository<Level, string>, ILevelRepository

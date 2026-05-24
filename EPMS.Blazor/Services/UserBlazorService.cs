@@ -1,4 +1,4 @@
-﻿using EPMS.Shared.DTOs;
+using EPMS.Shared.DTOs;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -13,7 +13,7 @@ namespace EPMS.Blazor.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<UserRoleDto>> GetAllUsersAsync()
+        public async Task<List<UserDto>> GetAllUsersAsync()
         {
           
             var token = "your_actual_jwt_token_here";
@@ -24,8 +24,8 @@ namespace EPMS.Blazor.Services
             }
 
           
-            var response = await _httpClient.GetFromJsonAsync<List<UserRoleDto>>("api/users");
-            return response ?? new List<UserRoleDto>();
+            var response = await _httpClient.GetFromJsonAsync<List<UserDto>>("api/users");
+            return response ?? new List<UserDto>();
         }
     }
 }
