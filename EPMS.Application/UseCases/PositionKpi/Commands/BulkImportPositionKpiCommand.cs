@@ -12,17 +12,6 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record PositionKpiImportDto(
-    string KpiName,
-    string? Category,
-    string? Unit,
-    decimal WeightPercent,
-    decimal? TargetValue,
-    PriorityLevel PriorityLevel,
-    KpiDirection Direction,
-    int? PositionId
-);
-
 public record BulkImportPositionKpiCommand(
     List<PositionKpiImportDto> Kpis,
     int? EmployeeId
