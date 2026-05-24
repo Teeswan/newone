@@ -27,6 +27,27 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
         _cache = cache;
     }
 
+    public override async Task<Employee> CreateAsync(Employee entity)
+    {
+        var result = await base.CreateAsync(entity);
+        _cache.Remove(_cacheKey);
+        return result;
+    }
+
+    public override async Task<Employee?> UpdateAsync(Employee entity)
+    {
+        var result = await base.UpdateAsync(entity);
+        _cache.Remove(_cacheKey);
+        return result;
+    }
+
+    public override async Task<bool> DeleteAsync(int id)
+    {
+        var result = await base.DeleteAsync(id);
+        _cache.Remove(_cacheKey);
+        return result;
+    }
+
     public override async Task<IEnumerable<Employee>> GetAllAsync()
     {
 
@@ -134,31 +155,6 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
             .Include(e => e.ReportsToNavigation)
             .Include(e => e.TeamsNavigation)
             .FirstOrDefaultAsync(e => e.EmployeeId == id && !e.IsDeleted);
-    }
-
-    public override async Task<Employee> CreateAsync(Employee entity)
-    {
-        var result = await base.CreateAsync(entity);
-        _cache.Remove(_cacheKey);
-        return result;
-    }
-
-    public override async Task<Employee?> UpdateAsync(Employee entity)
-    {
-        var result = await base.UpdateAsync(entity);
-        _cache.Remove(_cacheKey);
-        return result;
-    }
-
-    public override async Task<bool> DeleteAsync(int id)
-    {
-        var result = await base.DeleteAsync(id);
-        if (result)
-        {
-            _cache.Remove(_cacheKey);
-
-        }
-        return result;
     }
 
 }

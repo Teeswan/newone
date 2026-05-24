@@ -20,12 +20,12 @@ public class AuditLogService : IAuditLogService
         var auditLog = new AuditLog
         {
             TableName = entityName,
-            ActionType = action.Length > 10 ? action.Substring(0, 10) : action,
-            RecordId = recordId ?? 0,
+            ActionType = action?.Length > 10 ? action.Substring(0, 10) : action,
+            RecordId = recordId,
             OldData = null,
             NewData = details,
-            ChangedByEmployeeId = employeeId ?? 0,
-            ChangedAt = DateTime.UtcNow
+            ChangedByEmployeeId = (employeeId == 0) ? null : employeeId,
+            ChangedAt = DateTimeOffset.UtcNow
         };
 
         _context.AuditLogs.Add(auditLog);

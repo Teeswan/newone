@@ -1,0 +1,62 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IKpiHierarchyBlazorService KpiService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudSelect T="int" Label="Master KPI" @bind-Value="_request.KpiMasterId" Required="true">
+                @foreach (var kpi in _masterKpis)
+                {
+                    <MudSelectItem Value="@kpi.KpiId">@kpi.KpiName (@kpi.Category)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudNumericField T="decimal" Label="Department Target" @bind-Value="_request.DepartmentTarget" Required="true" />
+            <MudNumericField T="decimal" Label="Weight %" @bind-Value="_request.Weight" Min="0" Max="100" Required="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Disabled="@(!_isValid)" OnClick="Submit">Assign</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int DepartmentId { get; set; }
+    [Parameter] public int CycleId { get; set; }
+
+    private DepartmentKpiRequest _request = new();
+    private IEnumerable<KpiDto> _masterKpis = new List<KpiDto>();
+    private MudForm _form = null!;
+    private bool _isValid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _request.DepartmentId = DepartmentId;
+        _request.CycleId = CycleId;
+        _masterKpis = await KpiService.GetAllMasterAsync();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_isValid)
+        {
+            try
+            {
+                await KpiService.CreateDeptAsync(_request);
+                Snackbar.Add("KPI assigned to department successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

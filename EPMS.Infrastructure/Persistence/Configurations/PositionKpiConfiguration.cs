@@ -8,43 +8,29 @@ public class PositionKpiConfiguration : IEntityTypeConfiguration<PositionKpi>
 {
     public void Configure(EntityTypeBuilder<PositionKpi> builder)
     {
-        builder.ToTable("KPIs");
+        builder.ToTable("PositionKPIs");
 
-        builder.HasKey(k => k.KpiId);
+        builder.HasKey(k => k.PositionKpiId);
+        builder.Property(k => k.PositionKpiId).HasColumnName("PositionKPIID");
 
-        builder.Property(k => k.KpiName)
-            .IsRequired()
-            .HasMaxLength(255);
+        builder.Property(k => k.PositionId).HasColumnName("PositionID");
+        builder.Property(k => k.KpiId).HasColumnName("KPI_ID");
 
-        builder.Property(k => k.Category)
-            .HasMaxLength(100);
-
-        builder.Property(k => k.Unit)
-            .HasMaxLength(50);
-
-        builder.Property(k => k.WeightPercent)
+        builder.Property(k => k.DefaultWeightPercent)
             .HasColumnType("decimal(5, 2)")
             .IsRequired();
 
-        builder.Property(k => k.TargetValue)
-            .HasColumnType("decimal(18, 2)");
-
-        builder.Property(k => k.PriorityLevel)
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
-        builder.Property(k => k.Direction)
-            .HasConversion<int>()
-            .IsRequired();
-
-        builder.Property(k => k.IsActive)
+        builder.Property(k => k.IsRequired)
             .HasDefaultValue(true);
-
-        builder.HasQueryFilter(k => k.IsActive);
 
         builder.HasOne(k => k.Position)
             .WithMany()
             .HasForeignKey(k => k.PositionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(k => k.Kpi)
+            .WithMany()
+            .HasForeignKey(k => k.KpiId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

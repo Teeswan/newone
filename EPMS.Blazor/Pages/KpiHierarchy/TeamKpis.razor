@@ -1,0 +1,89 @@
+@page "/kpi-hierarchy/team"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Shared.Constants
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IKpiHierarchyBlazorService KpiService
+@inject ITeamBlazorService TeamService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Team KPIs</MudText>
+    
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="6">
+            <MudSelect T="int" Label="Team" @bind-Value="_selectedTeamId" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var team in _teams)
+                {
+                    <MudSelectItem Value="@team.TeamId">@team.TeamName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadTeamKpis" Disabled="@(_selectedTeamId == 0)">Load KPIs</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Class="ml-2" OnClick="OpenAssignDialog" Disabled="@(_selectedTeamId == 0)">Assign KPI</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (_teamKpis != null && _teamKpis.Any())
+    {
+        <MudTable Items="@_teamKpis" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>KPI Name</MudTh>
+                <MudTh>Target</MudTh>
+                <MudTh>Weight</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Created At</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
+                <MudTd DataLabel="Target">@context.TeamTarget</MudTd>
+                <MudTd DataLabel="Weight">@context.Weight%</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">@(context.IsActive ? "Active" : "Inactive")</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToShortDateString()</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (_hasLoaded)
+    {
+        <MudAlert Severity="Severity.Info">No KPIs assigned to this team.</MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private IEnumerable<TeamDto> _teams = new List<TeamDto>();
+    private IEnumerable<TeamKpiDto> _teamKpis = new List<TeamKpiDto>();
+    private int _selectedTeamId;
+    private bool _hasLoaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _teams = await TeamService.GetAllTeamsAsync();
+    }
+
+    private async Task LoadTeamKpis()
+    {
+        _teamKpis = await KpiService.GetTeamByTeamAsync(_selectedTeamId);
+        _hasLoaded = true;
+    }
+
+    private async Task OpenAssignDialog()
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["TeamId"] = _selectedTeamId 
+        };
+        var dialog = DialogService.Show<AssignTeamKpiDialog>("Assign KPI to Team", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadTeamKpis();
+        }
+    }
+}

@@ -1,0 +1,146 @@
+@page "/kpi-hierarchy/master"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Domain.Enums
+@using EPMS.Shared.Constants
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IKpiHierarchyBlazorService KpiService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Master KPIs</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">Manage the master library of KPIs that can be assigned to departments.</MudText>
+
+    <MudPaper Elevation="4" Class="pa-4">
+        <MudToolBar>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog" StartIcon="@Icons.Material.Filled.Add">Add Master KPI</MudButton>
+        </MudToolBar>
+
+        <MudTable Items="@_kpis" Loading="@_loading" Hover="true" Breakpoint="Breakpoint.Sm" Filter="new Func<KpiDto,bool>(FilterFunc)">
+            <ToolBarContent>
+                <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Category</MudTh>
+                <MudTh>Unit</MudTh>
+                <MudTh>Weight %</MudTh>
+                <MudTh>Priority</MudTh>
+                <MudTh>Direction</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.KpiName</MudTd>
+                <MudTd DataLabel="Category">@context.Category</MudTd>
+                <MudTd DataLabel="Unit">@context.Unit</MudTd>
+                <MudTd DataLabel="Weight %">@context.WeightPercent%</MudTd>
+                <MudTd DataLabel="Priority">
+                    <MudChip T="string" Color="@GetPriorityColor(context.PriorityLevel)" Size="Size.Small">@context.PriorityLevel</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Direction">@context.Direction</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">@(context.IsActive ? "Active" : "Inactive")</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" OnClick="@(() => OpenEditDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteKpi(context.KpiId))" />
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private IEnumerable<KpiDto> _kpis = new List<KpiDto>();
+    private bool _loading = true;
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadKpis();
+    }
+
+    private async Task LoadKpis()
+    {
+        _loading = true;
+        try
+        {
+            _kpis = await KpiService.GetAllMasterAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading KPIs: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private bool FilterFunc(KpiDto kpi)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        if (kpi.KpiName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (kpi.Category?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) return true;
+        return false;
+    }
+
+    private Color GetPriorityColor(PriorityLevel priority) => priority switch
+    {
+        PriorityLevel.Critical => Color.Error,
+        PriorityLevel.High => Color.Warning,
+        PriorityLevel.Medium => Color.Info,
+        PriorityLevel.Lower => Color.Default,
+        _ => Color.Default
+    };
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters();
+        var dialog = DialogService.Show<KpiFormDialog>("Create Master KPI", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadKpis();
+        }
+    }
+
+    private async Task OpenEditDialog(KpiDto kpi)
+    {
+        var parameters = new DialogParameters { ["Kpi"] = kpi };
+        var dialog = DialogService.Show<KpiFormDialog>("Edit Master KPI", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadKpis();
+        }
+    }
+
+    private async Task DeleteKpi(int id)
+    {
+        var result = await DialogService.ShowMessageBox("Delete", "Are you sure you want to delete this KPI?", "Delete", "Cancel");
+        if (result == true)
+        {
+            var success = await KpiService.DeleteMasterAsync(id);
+            if (success)
+            {
+                Snackbar.Add("KPI deleted successfully", Severity.Success);
+                await LoadKpis();
+            }
+            else
+            {
+                Snackbar.Add("Error deleting KPI", Severity.Error);
+            }
+        }
+    }
+}

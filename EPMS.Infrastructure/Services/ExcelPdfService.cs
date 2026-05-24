@@ -726,92 +726,100 @@ public class ExcelPdfService : IExcelPdfService
             list.Add(dto);
         }
 
-        return await Task.FromResult(list);
+        return list;
     }
 
     public async Task<byte[]> ExportPositionKpiTemplateAsync()
     {
-        using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("Position_KPI_Import_Template");
+        return await Task.Run(() => {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Position_KPI_Import_Template");
 
-        ws.Cell(1, 1).Value = "KpiName";
-        ws.Cell(1, 2).Value = "Category";
-        ws.Cell(1, 3).Value = "Unit";
-        ws.Cell(1, 4).Value = "WeightPercent";
-        ws.Cell(1, 5).Value = "TargetValue";
-        ws.Cell(1, 6).Value = "PriorityLevel (Critical/High/Medium/Lower)";
-        ws.Cell(1, 7).Value = "Direction (HigherIsBetter/LowerIsBetter)";
-        ws.Cell(1, 8).Value = "PositionId (Optional)";
+            ws.Cell(1, 1).Value = "KpiName";
+            ws.Cell(1, 2).Value = "Category";
+            ws.Cell(1, 3).Value = "Unit";
+            ws.Cell(1, 4).Value = "WeightPercent";
+            ws.Cell(1, 5).Value = "TargetValue";
+            ws.Cell(1, 6).Value = "PriorityLevel (Critical/High/Medium/Lower)";
+            ws.Cell(1, 7).Value = "Direction (HigherIsBetter/LowerIsBetter)";
+            ws.Cell(1, 8).Value = "PositionId (Optional)";
 
-        StyleHeaderRow(ws, 8);
+            StyleHeaderRow(ws, 8);
 
-        ws.Cell(2, 1).Value = "Sample KPI";
-        ws.Cell(2, 2).Value = "Quality";
-        ws.Cell(2, 3).Value = "Percentage";
-        ws.Cell(2, 4).Value = 10;
-        ws.Cell(2, 5).Value = 100;
-        ws.Cell(2, 6).Value = "Medium";
-        ws.Cell(2, 7).Value = "HigherIsBetter";
-        ws.Cell(2, 8).Value = "";
+            // Add a sample row
+            ws.Cell(2, 1).Value = "Sample KPI";
+            ws.Cell(2, 2).Value = "Quality";
+            ws.Cell(2, 3).Value = "Percentage";
+            ws.Cell(2, 4).Value = 10;
+            ws.Cell(2, 5).Value = 100;
+            ws.Cell(2, 6).Value = "Medium";
+            ws.Cell(2, 7).Value = "HigherIsBetter";
+            ws.Cell(2, 8).Value = "";
 
-        ws.Columns().AdjustToContents();
-        return WorkbookToBytes(workbook);
+            ws.Columns().AdjustToContents();
+            return WorkbookToBytes(workbook);
+        });
     }
 
     public async Task<IEnumerable<EmployeeKpiImportDto>> ImportEmployeeKpiFromExcelAsync(Stream fileStream)
     {
-        using var workbook = new XLWorkbook(fileStream);
-        var ws = workbook.Worksheets.First();
-        var list = new List<EmployeeKpiImportDto>();
+        return await Task.Run(() => {
+            using var workbook = new XLWorkbook(fileStream);
+            var ws = workbook.Worksheets.First();
+            var list = new List<EmployeeKpiImportDto>();
 
-        foreach (var row in ws.RowsUsed().Skip(1))
-        {
-            var empIdStr = row.Cell(1).GetString();
-            if (string.IsNullOrWhiteSpace(empIdStr)) continue;
+            foreach (var row in ws.RowsUsed().Skip(1))
+            {
+                var empIdStr = row.Cell(1).GetString();
+                if (string.IsNullOrWhiteSpace(empIdStr)) continue;
 
-            var dto = new EmployeeKpiImportDto(
-                EmployeeId: ParseNullableInt(empIdStr) ?? 0,
-                CycleId: ParseNullableInt(row.Cell(2).GetString()) ?? 0,
-                KpiName: row.Cell(3).GetString(),
-                Category: row.Cell(4).GetString(),
-                Unit: row.Cell(5).GetString(),
-                WeightPercent: ParseNullableDecimal(row.Cell(6).GetString()) ?? 0,
-                TargetValue: ParseNullableDecimal(row.Cell(7).GetString()) ?? 0,
-                Direction: Enum.TryParse<KpiDirection>(row.Cell(8).GetString(), true, out var direction) ? direction : KpiDirection.HigherIsBetter
-            );
-            list.Add(dto);
-        }
+                var dto = new EmployeeKpiImportDto(
+                    EmployeeId: ParseNullableInt(empIdStr) ?? 0,
+                    CycleId: ParseNullableInt(row.Cell(2).GetString()) ?? 0,
+                    KpiName: row.Cell(3).GetString(),
+                    Category: row.Cell(4).GetString(),
+                    Unit: row.Cell(5).GetString(),
+                    WeightPercent: ParseNullableDecimal(row.Cell(6).GetString()) ?? 0,
+                    TargetValue: ParseNullableDecimal(row.Cell(7).GetString()) ?? 0,
+                    Direction: Enum.TryParse<KpiDirection>(row.Cell(8).GetString(), true, out var direction) ? direction : KpiDirection.HigherIsBetter
+                );
+                list.Add(dto);
+            }
 
-        return await Task.FromResult(list);
+            return (IEnumerable<EmployeeKpiImportDto>)list;
+        });
     }
 
     public async Task<byte[]> ExportEmployeeKpiTemplateAsync()
     {
-        using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("Employee_KPI_Import_Template");
+        return await Task.Run(() => {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Employee_KPI_Import_Template");
 
-        ws.Cell(1, 1).Value = "EmployeeId";
-        ws.Cell(1, 2).Value = "CycleId";
-        ws.Cell(1, 3).Value = "KpiName";
-        ws.Cell(1, 4).Value = "Category";
-        ws.Cell(1, 5).Value = "Unit";
-        ws.Cell(1, 6).Value = "WeightPercent";
-        ws.Cell(1, 7).Value = "TargetValue";
-        ws.Cell(1, 8).Value = "Direction (HigherIsBetter/LowerIsBetter)";
+            ws.Cell(1, 1).Value = "EmployeeId";
+            ws.Cell(1, 2).Value = "CycleId";
+            ws.Cell(1, 3).Value = "KpiName";
+            ws.Cell(1, 4).Value = "Category";
+            ws.Cell(1, 5).Value = "Unit";
+            ws.Cell(1, 6).Value = "WeightPercent";
+            ws.Cell(1, 7).Value = "TargetValue";
+            ws.Cell(1, 8).Value = "Direction (HigherIsBetter/LowerIsBetter)";
 
-        StyleHeaderRow(ws, 8);
+            StyleHeaderRow(ws, 8);
 
-        ws.Cell(2, 1).Value = 1;
-        ws.Cell(2, 2).Value = 1;
-        ws.Cell(2, 3).Value = "Individual Contribution";
-        ws.Cell(2, 4).Value = "Behavioral";
-        ws.Cell(2, 5).Value = "Rating";
-        ws.Cell(2, 6).Value = 10;
-        ws.Cell(2, 7).Value = 100;
-        ws.Cell(2, 8).Value = "HigherIsBetter";
+            // Add a sample row
+            ws.Cell(2, 1).Value = 1;
+            ws.Cell(2, 2).Value = 1;
+            ws.Cell(2, 3).Value = "Individual Contribution";
+            ws.Cell(2, 4).Value = "Behavioral";
+            ws.Cell(2, 5).Value = "Rating";
+            ws.Cell(2, 6).Value = 10;
+            ws.Cell(2, 7).Value = 100;
+            ws.Cell(2, 8).Value = "HigherIsBetter";
 
-        ws.Columns().AdjustToContents();
-        return WorkbookToBytes(workbook);
+            ws.Columns().AdjustToContents();
+            return WorkbookToBytes(workbook);
+        });
     }
 
     public async Task<byte[]> ExportAppraisalCyclesToPdfAsync()

@@ -33,16 +33,19 @@ public class GetPositionKpiByIdQueryHandler : IRequestHandler<GetPositionKpiById
 
         var dto = new PositionKpiDto
         {
+            PositionKpiId = kpi.PositionKpiId,
             KpiId = kpi.KpiId,
-            KpiName = kpi.KpiName,
-            Category = kpi.Category,
-            Unit = kpi.Unit,
-            WeightPercent = kpi.WeightPercent,
-            TargetValue = kpi.TargetValue,
-            PriorityLevel = kpi.PriorityLevel,
-            Direction = kpi.Direction,
+            KpiName = kpi.Kpi.KpiName,
+            Category = kpi.Kpi.Category,
+            Unit = kpi.Kpi.Unit,
+            WeightPercent = kpi.DefaultWeightPercent,
+            TargetValue = kpi.Kpi.TargetValue,
+            PriorityLevel = kpi.Kpi.PriorityLevel,
+            Direction = kpi.Kpi.Direction,
             PositionId = kpi.PositionId,
-            IsActive = kpi.IsActive
+            PositionName = kpi.Position?.PositionTitle,
+            IsRequired = kpi.IsRequired,
+            IsActive = kpi.Kpi.IsActive
         };
 
         await _cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(30));

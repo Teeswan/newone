@@ -51,12 +51,13 @@ public class KpiCacheService : IKpiCacheService
         await _cache.RemoveAsync(key);
     }
 
-    public async Task RemoveByPatternAsync(string pattern)
+    public Task RemoveByPatternAsync(string pattern)
     {
         // Redis pattern removal usually requires IConnectionMultiplexer
         // For IDistributedCache, we might need a more specialized implementation
         // or just skip it if it's too complex for this simplified version.
         // In a real scenario, we'd use StackExchange.Redis directly.
         _logger.LogWarning("RemoveByPatternAsync not fully implemented for IDistributedCache abstraction.");
+        return Task.CompletedTask;
     }
 }

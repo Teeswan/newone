@@ -1,31 +1,53 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using EPMS.Shared.DTOs;
 using EPMS.Application.Interfaces;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Enums;
 using EPMS.Domain.Interfaces;
 using EPMS.Shared.Common;
+using EPMS.Shared.DTOs;
 using MediatR;
-using System;
 
 namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record BulkImportPositionKpiCommand(List<PositionKpiImportDto> Kpis, int? EmployeeId) : IRequest<Result<BulkImportResultDto>>;
+public record PositionKpiImportDto(
+    string KpiName,
+    string? Category,
+    string? Unit,
+    decimal WeightPercent,
+    decimal? TargetValue,
+    PriorityLevel PriorityLevel,
+    KpiDirection Direction,
+    int? PositionId
+);
 
-public class BulkImportPositionKpiCommandHandler : IRequestHandler<BulkImportPositionKpiCommand, Result<BulkImportResultDto>>
+public record BulkImportPositionKpiCommand(
+    List<PositionKpiImportDto> Kpis,
+    int? EmployeeId
+) : IRequest<Result<BulkImportResultDto>>;
+
+public class BulkImportPositionKpiCommandHandler
+    : IRequestHandler<BulkImportPositionKpiCommand, Result<BulkImportResultDto>>
 {
-    private readonly IPositionKpiRepository _repository;
+    private readonly IKpiRepository _kpiRepository;
+    private readonly IPositionKpiRepository _positionKpiRepository;
     private readonly IAuditLogService _auditLogService;
 
-    public BulkImportPositionKpiCommandHandler(IPositionKpiRepository repository, IAuditLogService auditLogService)
+    public BulkImportPositionKpiCommandHandler(
+        IKpiRepository kpiRepository,
+        IPositionKpiRepository positionKpiRepository,
+        IAuditLogService auditLogService)
     {
-        _repository = repository;
+        _kpiRepository = kpiRepository;
+        _positionKpiRepository = positionKpiRepository;
         _auditLogService = auditLogService;
     }
 
-    public async Task<Result<BulkImportResultDto>> Handle(BulkImportPositionKpiCommand request, CancellationToken cancellationToken)
+    public async Task<Result<BulkImportResultDto>> Handle(
+        BulkImportPositionKpiCommand request,
+        CancellationToken cancellationToken)
     {
         var result = new BulkImportResultDto();
 
@@ -33,14 +55,21 @@ public class BulkImportPositionKpiCommandHandler : IRequestHandler<BulkImportPos
         {
             try
             {
-                if (await _repository.ExistsDuplicateAsync(importDto.KpiName, importDto.Category, importDto.PositionId))
+                // Check duplicate KPI for position
+                bool exists = await _positionKpiRepository.ExistsDuplicateAsync(
+                    importDto.KpiName,
+                    importDto.Category,
+                    importDto.PositionId);
+
+                if (exists)
                 {
                     result.Rejected++;
-                    result.Errors.Add($"Duplicate KPI found: {importDto.KpiName}");
+                    result.Errors.Add(
+                        $"Duplicate KPI found: {importDto.KpiName}");
                     continue;
                 }
 
-                var kpi = Domain.Entities.PositionKpi.Create(
+                var kpi = Domain.Entities.Kpi.Create(
                     importDto.KpiName,
                     importDto.Category,
                     importDto.Unit,
@@ -48,17 +77,33 @@ public class BulkImportPositionKpiCommandHandler : IRequestHandler<BulkImportPos
                     importDto.TargetValue,
                     importDto.PriorityLevel,
                     importDto.Direction,
-                    importDto.PositionId,
                     request.EmployeeId);
 
-                await _repository.AddAsync(kpi);
+                await _kpiRepository.CreateAsync(kpi);
+
+                var positionKpi = Domain.Entities.PositionKpi.Create(
+                    importDto.PositionId,
+                    kpi.KpiId,
+                    importDto.WeightPercent,
+                    true);
+
+                await _positionKpiRepository.AddAsync(positionKpi);
+
                 result.Imported++;
-                await _auditLogService.LogAsync("PositionKpi", "Import", kpi.KpiId, $"Imported KPI: {kpi.KpiName}", request.EmployeeId);
+
+                await _auditLogService.LogAsync(
+                    "PositionKpi",
+                    "Import",
+                    positionKpi.PositionKpiId,
+                    $"Imported KPI: {importDto.KpiName}",
+                    request.EmployeeId);
             }
             catch (Exception ex)
             {
                 result.Rejected++;
-                result.Errors.Add($"Error importing {importDto.KpiName}: {ex.Message}");
+
+                result.Errors.Add(
+                    $"Error importing {importDto.KpiName}: {ex.Message}");
             }
         }
 

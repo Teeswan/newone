@@ -45,6 +45,12 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IUserRoleService, UserRoleService>();
         services.AddScoped<INotificationService, NotificationService>();
 
+        // KPI Hierarchy Services
+        services.AddScoped<IKpiService, KpiService>();
+        services.AddScoped<IDepartmentKpiService, DepartmentKpiService>();
+        services.AddScoped<ITeamKpiService, TeamKpiService>();
+        services.AddScoped<IEmployeeKpiService, EmployeeKpiService>();
+
         // Domain Services
         services.AddScoped<IKpiScoreCalculator, KpiScoreCalculator>();
         services.AddScoped<KpiWeightValidator>();

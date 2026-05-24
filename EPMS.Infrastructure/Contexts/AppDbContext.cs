@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace EPMS.Infrastructure.Contexts;
 
@@ -70,6 +70,10 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<SystemSetting> SystemSettings { get; set; }
+    public virtual DbSet<Kpi> Kpis { get; set; }
+    public virtual DbSet<DepartmentKpi> DepartmentKpis { get; set; }
+    public virtual DbSet<TeamKpi> TeamKpis { get; set; }
+    public virtual DbSet<EmployeeKpi> EmployeeKpis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -78,6 +82,111 @@ public partial class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
+        {
+            entity.HasOne(e => e.TeamKpi)
+                  .WithMany() // Assuming TeamKpi doesn't need to track its employees
+                  .HasForeignKey(e => e.TeamKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 2. TeamKpi -> DepartmentKpi
+        modelBuilder.Entity<TeamKpi>(entity =>
+        {
+            entity.HasOne(t => t.DepartmentKpi)
+                  .WithMany()
+                  .HasForeignKey(t => t.DeptKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 3. DepartmentKpi -> Kpi (Master)
+        modelBuilder.Entity<Kpi>(entity =>
+        {
+            entity.ToTable("KPIs");
+            entity.HasKey(k => k.KpiId);
+            entity.Property(k => k.KpiId).HasColumnName("KPI_ID");
+            entity.Property(k => k.KpiName).HasColumnName("KPIName").IsRequired().HasMaxLength(255);
+            entity.Property(k => k.PriorityLevel).HasConversion<string>().HasMaxLength(20);
+            entity.Property(k => k.Direction).HasConversion<int>();
+        });
+                
+        modelBuilder.Entity<DepartmentKpi>(entity =>
+        {
+            entity.ToTable("DepartmentKpis");
+            entity.HasKey(d => d.DeptKpiId);
+            entity.Property(d => d.DeptKpiId).HasColumnName("DeptKpiID");
+            entity.Property(d => d.DepartmentId).HasColumnName("DepartmentID");
+            entity.Property(d => d.CycleId).HasColumnName("CycleID");
+            entity.Property(d => d.KpiMasterId).HasColumnName("KpiMasterID");
+            
+            // Ignore properties not in database
+            entity.Ignore(d => d.IsActive);
+            
+            entity.HasOne(d => d.KpiMaster)
+                  .WithMany()
+                  .HasForeignKey(d => d.KpiMasterId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Department)
+                  .WithMany()
+                  .HasForeignKey(d => d.DepartmentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Cycle)
+                  .WithMany()
+                  .HasForeignKey(d => d.CycleId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 4. TeamKpi
+        modelBuilder.Entity<TeamKpi>(entity =>
+        {
+            entity.ToTable("TeamKpis");
+            entity.HasKey(t => t.TeamKpiId);
+            entity.Property(t => t.TeamKpiId).HasColumnName("TeamKpiID");
+            entity.Property(t => t.TeamId).HasColumnName("TeamID");
+            entity.Property(t => t.DeptKpiId).HasColumnName("DeptKpiID");
+
+            // Ignore properties not in database
+            entity.Ignore(t => t.CreatedAt);
+
+            entity.HasOne(t => t.Team)
+                  .WithMany()
+                  .HasForeignKey(t => t.TeamId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(t => t.DepartmentKpi)
+                  .WithMany()
+                  .HasForeignKey(t => t.DeptKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<EmployeeKpi>(entity =>
+        {
+            entity.ToTable("EmployeeKpis");
+            entity.HasKey(e => e.EmployeeKpiId);
+            entity.Property(e => e.EmployeeKpiId).HasColumnName("EmployeeKpiID");
+            entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
+            entity.Property(e => e.TeamKpiId).HasColumnName("TeamKpiID");
+            
+            entity.Property(e => e.EmployeeTarget).HasColumnName("TargetValue");
+            entity.Property(e => e.Weight).HasColumnName("WeightPercent");
+
+            // Ignore properties not in database
+            entity.Ignore(e => e.IsActive);
+            entity.Ignore(e => e.CreatedAt);
+
+            entity.HasOne(e => e.Employee)
+                  .WithMany()
+                  .HasForeignKey(e => e.EmployeeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.TeamKpi)
+                  .WithMany()
+                  .HasForeignKey(e => e.TeamKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<ApplicationForm>(entity =>
         {
@@ -141,7 +250,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AuditId).HasColumnName("AuditID");
             entity.Property(e => e.ActionType).HasMaxLength(10);
             entity.Property(e => e.ChangedAt).HasDefaultValueSql("(sysdatetimeoffset())");
-            entity.Property(e => e.ChangedByEmployeeId).HasColumnName("ChangedByEmployeeID");
+            entity.Property(e => e.ChangedByEmployeeId).HasColumnName("ChangedByUserID");
             entity.Property(e => e.RecordId).HasColumnName("RecordID");
             entity.Property(e => e.TableName).HasMaxLength(100);
         });

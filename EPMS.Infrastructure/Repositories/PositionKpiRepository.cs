@@ -31,20 +31,27 @@ public class PositionKpiRepository : IPositionKpiRepository
 
         return await _context.PositionKpis
             .Include(k => k.Position)
-            .FirstOrDefaultAsync(k => k.KpiId == id);
+            .Include(k => k.Kpi)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(k => k.PositionKpiId == id);
     }
 
     public async Task<IEnumerable<PositionKpi>> GetListByPositionAsync(int? positionId, bool isActive = true)
     {
         return await _context.PositionKpis
-            .Where(k => k.PositionId == positionId && k.IsActive == isActive)
+            .Include(k => k.Kpi)
+            .Include(k => k.Position)
+            .Where(k => k.PositionId == positionId && k.Kpi.IsActive == isActive)
+            .AsNoTracking()
             .ToListAsync();
     }
 
     public async Task<IEnumerable<PositionKpi>> GetGlobalKpisAsync(bool isActive = true)
     {
         return await _context.PositionKpis
-            .Where(k => k.PositionId == null && k.IsActive == isActive)
+            .Include(k => k.Kpi)
+            .Where(k => k.PositionId == null && k.Kpi.IsActive == isActive)
+            .AsNoTracking()
             .ToListAsync();
     }
 
@@ -80,11 +87,12 @@ public class PositionKpiRepository : IPositionKpiRepository
         ArgumentNullException.ThrowIfNull(name);
 
         using var connection = _connectionFactory.CreateConnection();
-        const string sql = @"SELECT COUNT(1) FROM KPIs 
-                           WHERE KPIName = @Name 
-                           AND (Category = @Category OR (@Category IS NULL AND Category IS NULL)) 
-                           AND (PositionId = @PositionId OR (@PositionId IS NULL AND PositionId IS NULL))
-                           AND IsActive = 1";
+        const string sql = @"SELECT COUNT(1) FROM KPIs k
+                           JOIN PositionKPIs pk ON k.KPI_ID = pk.KPI_ID
+                           WHERE k.KPIName = @Name 
+                           AND (k.Category = @Category OR (@Category IS NULL AND k.Category IS NULL)) 
+                           AND (pk.PositionID = @PositionId OR (@PositionId IS NULL AND pk.PositionID IS NULL))
+                           AND k.IsActive = 1";
         var count = await connection.ExecuteScalarAsync<int>(sql, new { Name = name, Category = category, PositionId = positionId });
         return count > 0;
     }

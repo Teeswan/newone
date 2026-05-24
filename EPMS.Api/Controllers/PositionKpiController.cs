@@ -92,11 +92,26 @@ public class PositionKpiController : ControllerBase
 
     [HttpPost("bulk-import")]
     [HasPermission(Permissions.Kpis.Manage)]
-    public async Task<ActionResult<ApiResponse<BulkImportResultDto>>> BulkImport(BulkImportPositionKpiCommand command)
+    public async Task<ActionResult<ApiResponse<BulkImportResultDto>>> BulkImport(IFormFile file)
     {
+        if (file == null || file.Length == 0) return BadRequest(ApiResponse<BulkImportResultDto>.FailureResponse("No file uploaded"));
+
+        using var stream = file.OpenReadStream();
+        var kpis = await _excelPdfService.ImportPositionKpiFromExcelAsync(stream);
+        
+        var command = new BulkImportPositionKpiCommand(new List<PositionKpiImportDto>(kpis), null);
         var result = await _mediator.Send(command);
+        
         return result.IsSuccess 
             ? Ok(ApiResponse<BulkImportResultDto>.SuccessResponse(result.Value!))
             : BadRequest(ApiResponse<BulkImportResultDto>.FailureResponse(result.Message, result.Errors));
+    }
+
+    [HttpGet("import-template")]
+    [HasPermission(Permissions.Kpis.View)]
+    public async Task<IActionResult> DownloadTemplate()
+    {
+        var bytes = await _excelPdfService.ExportPositionKpiTemplateAsync();
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PositionKpiTemplate.xlsx");
     }
 }

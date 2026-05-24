@@ -95,6 +95,21 @@ public class MappingProfile : Profile
         CreateMap<CreatePositionRequest, Position>();
         CreateMap<UpdatePositionRequest, Position>();
 
+        // KPI Hierarchy Mappings
+        CreateMap<Kpi, KpiDto>();
+        CreateMap<DepartmentKpi, DepartmentKpiDto>()
+            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
+            .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.KpiMaster != null ? src.KpiMaster.KpiName : null));
+        CreateMap<TeamKpi, TeamKpiDto>()
+            .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.DepartmentKpi != null && src.DepartmentKpi.KpiMaster != null ? src.DepartmentKpi.KpiMaster.KpiName : null))
+            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.DepartmentKpi != null ? src.DepartmentKpi.DepartmentTarget : 0));
+        CreateMap<EmployeeKpi, EmployeeKpiDto>()
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.TeamKpi != null && src.TeamKpi.DepartmentKpi != null && src.TeamKpi.DepartmentKpi.KpiMaster != null ? src.TeamKpi.DepartmentKpi.KpiMaster.KpiName : null))
+            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.TeamKpi != null ? src.TeamKpi.TeamTarget : 0));
+
         CreateMap<OneOnOneMeeting, MeetingDto>()
             .ForMember(dest => dest.MeetingId, opt => opt.MapFrom(src => src.MeetingId))
             .ForMember(dest => dest.ManagerId, opt => opt.MapFrom(src => src.ManagerId))
@@ -184,13 +199,48 @@ public class MappingProfile : Profile
             .ForMember(d => d.Pipid, o => o.MapFrom(s => s.PipId))
             .ForMember(d => d.Pip, o => o.Ignore());
 
-        // Inside your MappingProfile constructor:
-
         CreateMap<PositionKpi, PositionKpiDto>()
-            .ForMember(dest => dest.KpiId, opt => opt.MapFrom(src => src.KpiId))
-            .ForMember(dest => dest.PriorityLevel, opt => opt.MapFrom(src => src.PriorityLevel.ToString()))
-            .ForMember(dest => dest.Direction, opt => opt.MapFrom(src => src.Direction.ToString()))
-            .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : "N/A"));
+       .ForMember(dest => dest.PositionKpiId,
+           opt => opt.MapFrom(src => src.PositionKpiId))
+
+       .ForMember(dest => dest.KpiId,
+           opt => opt.MapFrom(src => src.KpiId))
+
+       .ForMember(dest => dest.KpiName,
+           opt => opt.MapFrom(src => src.Kpi.KpiName))
+
+       .ForMember(dest => dest.Category,
+           opt => opt.MapFrom(src => src.Kpi.Category))
+
+       .ForMember(dest => dest.Unit,
+           opt => opt.MapFrom(src => src.Kpi.Unit))
+
+       .ForMember(dest => dest.WeightPercent,
+           opt => opt.MapFrom(src => src.DefaultWeightPercent))
+
+       .ForMember(dest => dest.TargetValue,
+           opt => opt.MapFrom(src => src.Kpi.TargetValue))
+
+       .ForMember(dest => dest.PriorityLevel,
+           opt => opt.MapFrom(src => src.Kpi.PriorityLevel))
+
+       .ForMember(dest => dest.Direction,
+           opt => opt.MapFrom(src => src.Kpi.Direction))
+
+       .ForMember(dest => dest.PositionId,
+           opt => opt.MapFrom(src => src.PositionId))
+
+       .ForMember(dest => dest.PositionName,
+           opt => opt.MapFrom(src =>
+               src.Position != null
+                   ? src.Position.PositionTitle
+                   : null))
+
+       .ForMember(dest => dest.IsRequired,
+           opt => opt.MapFrom(src => src.IsRequired))
+
+       .ForMember(dest => dest.IsActive,
+           opt => opt.MapFrom(src => src.Kpi.IsActive));
 
         //CreateMap<CreatePositionKpiRequest, PositionKpi>();
         //CreateMap<UpdatePositionKpiRequest, PositionKpi>();

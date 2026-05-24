@@ -118,7 +118,13 @@ public static class InfrastructureServiceRegistration
             new CachedPositionPermissionRepository(
                 inner, provider.GetRequiredService<IMemoryCache>(), defaultCacheDuration));
 
-        // ?? Employee & Personnel Repositories ?????????????????????????????????
+        // KPI Hierarchy Repositories
+        services.AddScoped<IKpiRepository, KpiRepository>();
+        services.AddScoped<IDepartmentKpiRepository, DepartmentKpiRepository>();
+        services.AddScoped<ITeamKpiRepository, TeamKpiRepository>();
+        services.AddScoped<IEmployeeKpiRepository, EmployeeKpiRepository>();
+
+        // Other Repositories ?????????????????????????????????
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.Decorate<IEmployeeRepository>((inner, provider) =>
             new CachedEmployeeRepository(
