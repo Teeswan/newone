@@ -230,6 +230,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.RespondentId).HasColumnName("RespondentID");
             entity.Property(e => e.RespondentEmployeeId).HasColumnName("RespondentEmployeeID");
 
+            entity.HasOne(d => d.Respondent) 
+                .WithMany() 
+          .     HasForeignKey(d => d.RespondentEmployeeId)
+                .HasConstraintName("FK_AppraisalResponses_RespondentEmployee");
+
             entity.HasOne(d => d.Eval).WithMany(p => p.AppraisalResponses)
                 .HasForeignKey(d => d.EvalId)
                 .HasConstraintName("FK__Appraisal__EvalI__2645B050");
