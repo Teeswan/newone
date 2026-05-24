@@ -75,7 +75,7 @@ namespace EPMS.Blazor.Services
             var fileContent = new StreamContent(fileStream);
             content.Add(fileContent, "file", fileName);
 
-            var response = await _httpClient.PostAsync($"{BaseUrl}/excel-bulk-import", content);
+            var response = await _httpClient.PostAsync($"{BaseUrl}/bulk-import", content);
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<BulkImportResultDto>>();
             return result?.Data;
         }

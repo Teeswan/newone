@@ -12,15 +12,15 @@ namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
 public record CreatePositionKpiCommand : IRequest<Result<int>>
 {
-    public string KpiName { get; init; } = null!;
-    public string? Category { get; init; }
-    public string? Unit { get; init; }
-    public decimal WeightPercent { get; init; }
-    public decimal? TargetValue { get; init; }
-    public PriorityLevel PriorityLevel { get; init; }
-    public KpiDirection Direction { get; init; }
-    public int? PositionId { get; init; }
-    public int? CreatedByEmployeeId { get; init; }
+    public string KpiName { get; set; } = null!;
+    public string? Category { get; set; }
+    public string? Unit { get; set; }
+    public decimal WeightPercent { get; set; }
+    public decimal? TargetValue { get; set; }
+    public PriorityLevel PriorityLevel { get; set; }
+    public KpiDirection Direction { get; set; }
+    public int? PositionId { get; set; }
+    public int? CreatedByEmployeeId { get; set; }
 
     public class Validator : AbstractValidator<CreatePositionKpiCommand>
     {

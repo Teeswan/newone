@@ -36,6 +36,7 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh>KPI Name</MudTh>
+        <MudTh>Position</MudTh>
         <MudTh>Category</MudTh>
         <MudTh>Weight (%)</MudTh>
         <MudTh>Priority</MudTh>
@@ -45,6 +46,7 @@
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
+        <MudTd DataLabel="Position">@(context.PositionName ?? "Global")</MudTd>
         <MudTd DataLabel="Category">@context.Category</MudTd>
         <MudTd DataLabel="Weight (%)">@context.WeightPercent%</MudTd>
         <MudTd DataLabel="Priority">
@@ -56,7 +58,7 @@
                      Color="@(context.IsActive ? Color.Success : Color.Error)" />
         </MudTd>
         <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/position-kpi/edit/{context.KpiId}")" />
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/position-kpi/edit/{context.PositionKpiId}")" />
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeactivateKpi(context))" Disabled="@(!context.IsActive)" />
         </MudTd>
     </RowTemplate>

@@ -1,0 +1,168 @@
+@page "/position-kpi/edit/{Id:int}"
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Application.UseCases.PositionKpi.Commands
+@using EPMS.Domain.Enums
+@inject IPositionKpiBlazorService KpiService
+@inject IPositionBlazorService PositionService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudText Typo="Typo.h4" Class="mb-6">Edit Position KPI Template</MudText>
+
+    <MudPaper Class="pa-6">
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <MudForm @ref="_form" @bind-IsValid="_isValid">
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_command.KpiName" Label="KPI Name" Required="true" RequiredError="KPI Name is required" Variant="Variant.Outlined" />
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_command.Category" Label="Category" Required="true" RequiredError="Category is required" Variant="Variant.Outlined" />
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_command.Unit" Label="Unit (e.g. %, USD, Count)" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" Label="Assign to Position (Optional)" @bind-Value="_command.PositionId" Variant="Variant.Outlined" Clearable="true">
+                            <MudSelectItem T="int?" Value="null">Global KPI (All Positions)</MudSelectItem>
+                            @foreach (var pos in _positions)
+                            {
+                                <MudSelectItem T="int?" Value="@pos.PositionId">@pos.PositionTitle</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="PriorityLevel" Label="Priority Level" @bind-Value="_command.PriorityLevel" Variant="Variant.Outlined">
+                            @foreach (PriorityLevel level in Enum.GetValues(typeof(PriorityLevel)))
+                            {
+                                <MudSelectItem Value="@level">@level</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="KpiDirection" Label="Measurement Direction" @bind-Value="_command.Direction" Variant="Variant.Outlined">
+                            <MudSelectItem Value="KpiDirection.HigherIsBetter">Higher is Better</MudSelectItem>
+                            <MudSelectItem Value="KpiDirection.LowerIsBetter">Lower is Better</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_command.WeightPercent" Label="Default Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_command.TargetValue" Label="Default Target Value" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_isValid || _processing)">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">Processing</MudText>
+                            }
+                            else
+                            {
+                                <MudText>Save Changes</MudText>
+                            }
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private UpdatePositionKpiCommand _command = new();
+    private IEnumerable<PositionDto> _positions = new List<PositionDto>();
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _positions = await PositionService.GetAllPositionsAsync();
+            var kpi = await KpiService.GetByIdAsync(Id);
+            if (kpi != null)
+            {
+                _command = new UpdatePositionKpiCommand
+                {
+                    KpiId = kpi.PositionKpiId,
+                    KpiName = kpi.KpiName,
+                    Category = kpi.Category,
+                    Unit = kpi.Unit,
+                    WeightPercent = kpi.WeightPercent,
+                    TargetValue = kpi.TargetValue,
+                    PriorityLevel = kpi.PriorityLevel,
+                    Direction = kpi.Direction,
+                    PositionId = kpi.PositionId
+                };
+            }
+            else
+            {
+                Snackbar.Add("KPI template not found", Severity.Error);
+                NavigationManager.NavigateTo("/position-kpi");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        try
+        {
+            var success = await KpiService.UpdateAsync(Id, _command);
+            if (success)
+            {
+                Snackbar.Add("Position KPI template updated successfully", Severity.Success);
+                NavigationManager.NavigateTo("/position-kpi");
+            }
+            else
+            {
+                Snackbar.Add("Failed to update KPI template", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private void Cancel() => NavigationManager.NavigateTo("/position-kpi");
+}
