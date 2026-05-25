@@ -26,7 +26,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddMemoryCache();
-builder.Services.AddDistributedMemoryCache();
 
 // Swagger Configuration with JWT Support
 builder.Services.AddSwaggerGen(c =>
@@ -62,12 +61,12 @@ builder.Services.AddSwaggerGen(c =>
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
-//// Redis Configuration
-//builder.Services.AddStackExchangeRedisCache(options =>
-//{
-//    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-//    options.InstanceName = "EPMS_";
-//});
+// Redis Configuration
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "EPMS_";
+});
 
 builder.Services.AddAuthentication(options =>
 {

@@ -47,7 +47,7 @@ public class BulkCreateAccountsCommandHandler : IRequestHandler<BulkCreateAccoun
                 continue;
             }
 
-            await _accountInitializationService.InitializeAccountAsync(employee);
+            await _accountInitializationService.InitializeAccountAsync(employee, cancellationToken);
             createdCount++;
         }
 

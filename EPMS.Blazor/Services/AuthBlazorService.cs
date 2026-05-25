@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using EPMS.Shared.Common;
 
 namespace EPMS.Blazor.Services;
 
@@ -59,5 +60,25 @@ public class AuthBlazorService : IAuthBlazorService
             return await response.Content.ReadFromJsonAsync<BulkCreateAccountsResponse>();
         }
         return null;
+    }
+
+    public async Task<Result?> ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/auth/forgot-password", request);
+        if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            return await response.Content.ReadFromJsonAsync<Result>();
+        }
+        return Result.Failure("Failed to request OTP. Please try again.");
+    }
+
+    public async Task<Result?> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/auth/reset-password", request);
+        if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            return await response.Content.ReadFromJsonAsync<Result>();
+        }
+        return Result.Failure("Failed to reset password. Please try again.");
     }
 }

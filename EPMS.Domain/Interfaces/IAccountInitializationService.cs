@@ -4,5 +4,5 @@ namespace EPMS.Domain.Interfaces;
 
 public interface IAccountInitializationService
 {
-    Task InitializeAccountAsync(Employee employee);
+    Task InitializeAccountAsync(Employee employee, CancellationToken cancellationToken = default);
 }

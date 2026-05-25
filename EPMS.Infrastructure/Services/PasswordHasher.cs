@@ -11,18 +11,18 @@ public class PasswordHasher : IPasswordHasher
 
     public string HashPassword(string password)
     {
-        byte[] salt = new byte[SaltSize];
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            rng.GetBytes(salt);
-        }
+        byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
 
-        using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
-        byte[] hash = pbkdf2.GetBytes(HashSize);
+        byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+            password,
+            salt,
+            Iterations,
+            HashAlgorithmName.SHA256,
+            HashSize);
 
         byte[] hashBytes = new byte[SaltSize + HashSize];
-        Array.Copy(salt, 0, hashBytes, 0, SaltSize);
-        Array.Copy(hash, 0, hashBytes, SaltSize, HashSize);
+        Buffer.BlockCopy(salt, 0, hashBytes, 0, SaltSize);
+        Buffer.BlockCopy(hash, 0, hashBytes, SaltSize, HashSize);
 
         return Convert.ToBase64String(hashBytes);
     }
@@ -33,16 +33,23 @@ public class PasswordHasher : IPasswordHasher
         {
             byte[] hashBytes = Convert.FromBase64String(hashedPassword);
 
+            if (hashBytes.Length != SaltSize + HashSize)
+                return false;
+
             byte[] salt = new byte[SaltSize];
-            Array.Copy(hashBytes, 0, salt, 0, SaltSize);
+            Buffer.BlockCopy(hashBytes, 0, salt, 0, SaltSize);
 
             byte[] storedHash = new byte[HashSize];
-            Array.Copy(hashBytes, SaltSize, storedHash, 0, HashSize);
+            Buffer.BlockCopy(hashBytes, SaltSize, storedHash, 0, HashSize);
 
-            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
-            byte[] computedHash = pbkdf2.GetBytes(HashSize);
+            byte[] computedHash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                Iterations,
+                HashAlgorithmName.SHA256,
+                HashSize);
 
-            return computedHash.SequenceEqual(storedHash);
+            return CryptographicOperations.FixedTimeEquals(computedHash, storedHash);
         }
         catch
         {

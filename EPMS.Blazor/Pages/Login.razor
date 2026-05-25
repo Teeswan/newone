@@ -62,6 +62,13 @@
                 Sign In
             </MudButton>
 
+            <div class="text-center mt-6">
+                <MudText Typo="Typo.body2" Class="text-secondary">
+                    Forgot your password? 
+                    <MudLink Href="/forgot-password" Color="Color.Primary">Reset it here</MudLink>
+                </MudText>
+            </div>
+
             @if (!string.IsNullOrEmpty(errorMessage))
             {
                 <MudAlert Severity="Severity.Error" Class="mt-6" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ErrorOutline" Closable="true">

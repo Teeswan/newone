@@ -76,15 +76,15 @@ public class AuthController : ControllerBase
         return BadRequest("Failed to change password");
     }
     
-    [AllowAnonymous]
+    [Authorize]
     [HttpPost("initialize-employee/{employeeId}")]
-    public async Task<IActionResult> InitializeEmployee(int employeeId)
+    public async Task<IActionResult> InitializeEmployee(int employeeId, CancellationToken cancellationToken)
     {
         var employee = await _employeeRepository.GetByIdAsync(employeeId);
         if (employee == null)
             return NotFound("Employee not found");
             
-        await _accountInitializationService.InitializeAccountAsync(employee);
+        await _accountInitializationService.InitializeAccountAsync(employee, cancellationToken);
         return Ok("Employee initialized successfully");
     }
 
@@ -125,5 +125,27 @@ public class AuthController : ControllerBase
         if (result)
             return Ok();
         return BadRequest("Failed to update system settings");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var command = new ForgotPasswordCommand(request.Email);
+        var result = await _mediator.Send(command);
+        if (result.IsSuccess)
+            return Ok(result);
+        return BadRequest(result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var command = new ResetPasswordCommand(request.Email, request.Otp, request.NewPassword);
+        var result = await _mediator.Send(command);
+        if (result.IsSuccess)
+            return Ok(result);
+        return BadRequest(result);
     }
 }

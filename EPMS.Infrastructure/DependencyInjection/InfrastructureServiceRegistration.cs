@@ -173,6 +173,8 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IExcelPdfService, ExcelPdfService>();
+        services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<IEmailService, EmailService>();
 
         // ?? PIP Module (EF Core CRUD + Dapper Reports) ????????????????????????
         services.AddScoped<IPipPlanRepository, PipPlanRepository>();

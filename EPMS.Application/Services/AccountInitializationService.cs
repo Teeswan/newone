@@ -1,6 +1,5 @@
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
-using Microsoft.Extensions.Configuration;
 
 namespace EPMS.Application.Services;
 
@@ -8,20 +7,19 @@ public class AccountInitializationService : IAccountInitializationService
 {
     private readonly IPasswordHasher _passwordHasher;
     private readonly IEmployeeRepository _employeeRepository;
-    private readonly string _defaultPassword;
+    private readonly ISystemSettingRepository _systemSettingRepository;
 
     public AccountInitializationService(
         IPasswordHasher passwordHasher,
         IEmployeeRepository employeeRepository,
-        IConfiguration configuration)
+        ISystemSettingRepository systemSettingRepository)
     {
         _passwordHasher = passwordHasher;
         _employeeRepository = employeeRepository;
-        _defaultPassword = configuration.GetValue<string>("SecuritySettings:DefaultPassword") 
-            ?? throw new InvalidOperationException("SecuritySettings:DefaultPassword is missing from configuration.");
+        _systemSettingRepository = systemSettingRepository;
     }
 
-    public async Task InitializeAccountAsync(Employee employee)
+    public async Task InitializeAccountAsync(Employee employee, CancellationToken cancellationToken = default)
     {
         if (employee == null)
             throw new ArgumentNullException(nameof(employee));
@@ -32,7 +30,11 @@ public class AccountInitializationService : IAccountInitializationService
         if (string.IsNullOrEmpty(employee.Email))
             return;
 
-        employee.PasswordHash = _passwordHasher.HashPassword(_defaultPassword);
+        var hashedDefaultPassword = await _systemSettingRepository.GetValueAsync("DefaultPassword", cancellationToken);
+        if (string.IsNullOrEmpty(hashedDefaultPassword))
+            throw new InvalidOperationException("DefaultPassword is not set in SystemSettings.");
+
+        employee.PasswordHash = hashedDefaultPassword;
         employee.IsFirstLogin = true;
 
         await _employeeRepository.UpdateAsync(employee);

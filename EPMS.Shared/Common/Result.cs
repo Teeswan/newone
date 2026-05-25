@@ -1,12 +1,18 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace EPMS.Shared.Common;
 
 public class Result
 {
-    public bool IsSuccess { get; }
-    public string Message { get; }
-    public List<string> Errors { get; }
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public List<string> Errors { get; set; } = new List<string>();
+
+    [JsonConstructor]
+    public Result()
+    {
+    }
 
     protected Result(bool isSuccess, string message, List<string>? errors = null)
     {
@@ -22,7 +28,12 @@ public class Result
 
 public class Result<T> : Result
 {
-    public T? Value { get; }
+    public T? Value { get; set; }
+
+    [JsonConstructor]
+    public Result()
+    {
+    }
 
     private Result(bool isSuccess, T? value, string message, List<string>? errors = null)
         : base(isSuccess, message, errors)

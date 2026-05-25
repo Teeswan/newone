@@ -17,6 +17,7 @@ public static class ApplicationServiceRegistration
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<MeetingSettings>(configuration.GetSection("MeetingSettings"));
+        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
 
         services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
@@ -64,6 +65,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IValidator<CreatePipObjectiveRequest>, CreatePipObjectiveValidator>();
         services.AddScoped<IValidator<CreatePipMeetingRequest>, CreatePipMeetingValidator>();
         services.AddScoped<IValidator<UpdatePipObjectiveRequest>, UpdatePipObjectiveValidator>();
+        services.AddScoped<IValidator<UpdateSystemSettingsRequest>, UpdateSystemSettingsRequestValidator>();
 
         // Services
         services.AddScoped<IPipService, PipService>();
