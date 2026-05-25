@@ -190,7 +190,7 @@ public static class DbInitializer
             }
         }
         
-        //await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         
         // 4. Initialize all existing employees with NULL PasswordHash
         var allEmployees = dbContext.Employees.ToList();

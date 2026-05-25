@@ -43,4 +43,6 @@ public interface IExcelPdfService
     Task<byte[]> ExportDepartmentsToPdfAsync();
     Task<byte[]> ExportTeamsToPdfAsync();
     Task<byte[]> ExportEmployeesToPdfAsync();
+    
+    Task<byte[]> GenerateEmployeePerformanceReportAsync(EmployeePerformanceReportDto reportData);
 }
