@@ -1,0 +1,172 @@
+@page "/reports/employee-performance"
+@using EPMS.Shared.DTOs
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Employee Performance Report</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-6" Color="Color.Primary">Generate Employee Performance Report</MudText>
+        
+        <MudAlert Severity="Severity.Info" Class="mb-6" Variant="Variant.Outlined" Dense="true">
+            This report is generated using QuestPDF (modern, cross-platform). RDLC is legacy and Windows-only.
+        </MudAlert>
+        
+        <MudButton 
+            Variant="Variant.Filled" 
+            Color="Color.Primary" 
+            Size="Size.Large" 
+            OnClick="DownloadSampleReport"
+            Class="mb-4"
+            FullWidth="true">
+            <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Download" />
+            Download Sample Report
+        </MudButton>
+        
+        <MudDivider Class="my-6" />
+        
+        <MudText Typo="Typo.h6" Class="mb-4">Custom Report</MudText>
+        
+        <MudForm Model="@reportData">
+            <MudTextField 
+                T="string"
+                Label="Employee Code"
+                @bind-Value="reportData.EmployeeCode"
+                Variant="Variant.Outlined"
+                Class="mb-4"
+                FullWidth="true" />
+            
+            <MudTextField 
+                T="string"
+                Label="Full Name"
+                @bind-Value="reportData.FullName"
+                Variant="Variant.Outlined"
+                Class="mb-4"
+                FullWidth="true" />
+            
+            <MudTextField 
+                T="string"
+                Label="Position"
+                @bind-Value="reportData.PositionTitle"
+                Variant="Variant.Outlined"
+                Class="mb-4"
+                FullWidth="true" />
+            
+            <MudTextField 
+                T="string"
+                Label="Department"
+                @bind-Value="reportData.DepartmentName"
+                Variant="Variant.Outlined"
+                Class="mb-4"
+                FullWidth="true" />
+            
+            <MudTextField 
+                T="string"
+                Label="Review Period"
+                @bind-Value="reportData.ReviewPeriod"
+                Variant="Variant.Outlined"
+                Class="mb-6"
+                FullWidth="true" />
+            
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Secondary" 
+                OnClick="GenerateCustomReport"
+                Disabled="isGenerating"
+                FullWidth="true">
+                @if (isGenerating)
+                {
+                    <MudProgressCircular Color="Color.Inherit" Size="Size.Small" Class="mr-2" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.PictureAsPdf" />
+                }
+                Generate Report
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private EmployeePerformanceReportDto reportData = new()
+    {
+        ReviewStartDate = DateTime.Now.AddMonths(-3),
+        ReviewEndDate = DateTime.Now,
+        TotalWeightedScore = 85,
+        AchievementPercentage = 85,
+        FinalRating = 4.0m,
+        PerformanceLevel = "Meets Expectations",
+        MeetingsCompletedCount = 6
+    };
+    private bool isGenerating;
+
+    private async Task DownloadSampleReport()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/reports/test-sample");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = "SamplePerformanceReport.pdf";
+                await DownloadFileAsync(fileBytes, fileName);
+                Snackbar.Add("Sample report downloaded!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to download sample report", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task GenerateCustomReport()
+    {
+        isGenerating = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/reports/employee-performance", reportData);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = $"PerformanceReport_{reportData.EmployeeCode}_{DateTime.Now:yyyyMMdd}.pdf";
+                await DownloadFileAsync(fileBytes, fileName);
+                Snackbar.Add("Report generated successfully!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to generate report", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isGenerating = false;
+        }
+    }
+
+    private async Task DownloadFileAsync(byte[] fileBytes, string fileName)
+    {
+        var base64Data = Convert.ToBase64String(fileBytes);
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            const link = document.createElement('a');
+            link.href = 'data:application/pdf;base64,{base64Data}';
+            link.download = '{fileName}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        ");
+    }
+}

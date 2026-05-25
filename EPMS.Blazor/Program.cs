@@ -83,6 +83,9 @@ builder.Services.AddHttpClient<IMeetingBlazorService, MeetingBlazorService>(clie
 builder.Services.AddHttpClient<IKpiHierarchyBlazorService, KpiHierarchyBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
+builder.Services.AddHttpClient<IReportBlazorService, ReportBlazorService>(client => client.BaseAddress = apiBaseUrl)
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+
 // AuthBlazorService should NOT use AuthenticationHeaderHandler (no token needed for login/change password)
 builder.Services.AddHttpClient<IAuthBlazorService, AuthBlazorService>(client => client.BaseAddress = apiBaseUrl);
 

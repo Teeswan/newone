@@ -1011,4 +1011,212 @@ public class ExcelPdfService : IExcelPdfService
         if (string.IsNullOrWhiteSpace(value)) return null;
         return DateOnly.TryParse(value, out var result) ? result : null;
     }
+
+    public async Task<byte[]> GenerateEmployeePerformanceReportAsync(EmployeePerformanceReportDto reportData)
+    {
+        return await Task.Run(() =>
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(25);
+                    page.DefaultTextStyle(x => x.FontSize(10));
+
+                    page.Header().Element(header =>
+                    {
+                        header.Column(col =>
+                        {
+                            col.Item().Text("Employee Performance Report").FontSize(18).Bold().FontColor(Colors.Blue.Darken2);
+                            col.Item().Text($"Review Period: {reportData.ReviewPeriod}").FontSize(11).SemiBold();
+                            col.Item().Text($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm}").FontSize(9).Italic().FontColor(Colors.Grey.Darken2);
+                            col.Item().PaddingBottom(15);
+                            col.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                        });
+                    });
+
+                    page.Content().Column(col =>
+                    {
+                        col.Item().PaddingBottom(12).Element(section =>
+                        {
+                            section.Column(colProfile =>
+                            {
+                                colProfile.Item().Text("Employee Profile").FontSize(13).Bold().FontColor(Colors.Blue.Medium);
+                                colProfile.Item().PaddingBottom(8).LineHorizontal(1).LineColor(Colors.Blue.Lighten3);
+                                
+                                colProfile.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.ConstantColumn(120);
+                                        columns.RelativeColumn();
+                                        columns.ConstantColumn(120);
+                                        columns.RelativeColumn();
+                                    });
+
+                                    AddProfileRow(table, "Employee Code:", reportData.EmployeeCode);
+                                    AddProfileRow(table, "Full Name:", reportData.FullName);
+                                    AddProfileRow(table, "Position:", reportData.PositionTitle);
+                                    AddProfileRow(table, "Level:", reportData.LevelName);
+                                    AddProfileRow(table, "Department:", reportData.DepartmentName);
+                                    AddProfileRow(table, "Review Dates:", $"{reportData.ReviewStartDate:yyyy-MM-dd} - {reportData.ReviewEndDate:yyyy-MM-dd}");
+                                });
+                            });
+                        });
+
+                        col.Item().PaddingBottom(12).Element(section =>
+                        {
+                            section.Column(colKpi =>
+                            {
+                                colKpi.Item().Text("KPI Summary").FontSize(13).Bold().FontColor(Colors.Blue.Medium);
+                                colKpi.Item().PaddingBottom(8).LineHorizontal(1).LineColor(Colors.Blue.Lighten3);
+
+                                colKpi.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn();
+                                        columns.ConstantColumn(80);
+                                        columns.ConstantColumn(80);
+                                        columns.ConstantColumn(100);
+                                    });
+
+                                    table.Cell().Background(Colors.Blue.Lighten4).Padding(5).Text("Category").Bold().FontSize(9);
+                                    table.Cell().Background(Colors.Blue.Lighten4).Padding(5).AlignRight().Text("Weight (%)").Bold().FontSize(9);
+                                    table.Cell().Background(Colors.Blue.Lighten4).Padding(5).AlignRight().Text("Score").Bold().FontSize(9);
+                                    table.Cell().Background(Colors.Blue.Lighten4).Padding(5).AlignRight().Text("Weighted Score").Bold().FontSize(9);
+
+                                    foreach (var category in reportData.KpiCategoryScores)
+                                    {
+                                        table.Cell().Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Text(category.CategoryName).FontSize(9);
+                                        table.Cell().Padding(4).AlignRight().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Text($"{category.TotalWeight:F1}").FontSize(9);
+                                        table.Cell().Padding(4).AlignRight().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Text($"{category.Score:F1}").FontSize(9);
+                                        table.Cell().Padding(4).AlignRight().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Text($"{category.WeightedScore:F1}").FontSize(9);
+                                    }
+
+                                    table.Cell().Background(Colors.Grey.Lighten4).Padding(5).Text("TOTAL").Bold().FontSize(9);
+                                    table.Cell().Background(Colors.Grey.Lighten4).Padding(5).AlignRight().Text($"{reportData.KpiCategoryScores.Sum(c => c.TotalWeight):F1}").Bold().FontSize(9);
+                                    table.Cell().Background(Colors.Grey.Lighten4).Padding(5).AlignRight().Text($"{reportData.TotalWeightedScore:F1}").Bold().FontSize(9);
+                                    table.Cell().Background(Colors.Grey.Lighten4).Padding(5).AlignRight().Text($"{reportData.AchievementPercentage:F0}%").Bold().FontSize(9);
+                                });
+                            });
+                        });
+
+                        col.Item().PaddingBottom(12).Element(section =>
+                        {
+                            section.Column(colRating =>
+                            {
+                                colRating.Item().Text("Appraisal Rating").FontSize(13).Bold().FontColor(Colors.Blue.Medium);
+                                colRating.Item().PaddingBottom(8).LineHorizontal(1).LineColor(Colors.Blue.Lighten3);
+
+                                colRating.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.ConstantColumn(150);
+                                        columns.RelativeColumn();
+                                    });
+
+                                    AddRatingRow(table, "Final Rating (1-5):", $"{reportData.FinalRating:F1}");
+                                    AddRatingRow(table, "Performance Level:", reportData.PerformanceLevel);
+                                    AddRatingRow(table, "Promotion Eligible:", reportData.PromotionEligibility ? "Yes" : "No");
+                                });
+                            });
+                        });
+
+                        col.Item().PaddingBottom(12).Element(section =>
+                        {
+                            section.Column(colDev =>
+                            {
+                                colDev.Item().Text("Development Tracking").FontSize(13).Bold().FontColor(Colors.Blue.Medium);
+                                colDev.Item().PaddingBottom(8).LineHorizontal(1).LineColor(Colors.Blue.Lighten3);
+
+                                colDev.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.ConstantColumn(150);
+                                        columns.RelativeColumn();
+                                    });
+
+                                    AddRatingRow(table, "Active PIP:", reportData.HasActivePip ? "Yes" : "No");
+                                    if (reportData.HasActivePip)
+                                    {
+                                        AddRatingRow(table, "PIP Status:", reportData.PipStatus ?? "N/A");
+                                        AddRatingRow(table, "Current Outcome:", reportData.CurrentOutcomeState ?? "N/A");
+                                    }
+                                    AddRatingRow(table, "1:1 Meetings Completed:", reportData.MeetingsCompletedCount.ToString());
+                                });
+                            });
+                        });
+
+                        col.Item().PaddingTop(20).Element(section =>
+                        {
+                            section.Column(colSign =>
+                            {
+                                colSign.Item().Text("Signatures").FontSize(13).Bold().FontColor(Colors.Blue.Medium);
+                                colSign.Item().PaddingBottom(8).LineHorizontal(1).LineColor(Colors.Blue.Lighten3);
+
+                                colSign.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                    });
+
+                                    AddSignatureBlock(table, reportData.AppraiseeSignature, "Appraisee");
+                                    AddSignatureBlock(table, reportData.AppraiserSignature, "Appraiser");
+                                    AddSignatureBlock(table, reportData.HrSignature, "HR Administrator");
+                                });
+                            });
+                        });
+                    });
+
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.Span("Page ").FontSize(8);
+                        text.CurrentPageNumber().FontSize(8);
+                        text.Span(" of ").FontSize(8);
+                        text.TotalPages().FontSize(8);
+                    });
+                });
+            });
+
+            using var stream = new MemoryStream();
+            document.GeneratePdf(stream);
+            return stream.ToArray();
+        });
+    }
+
+    private static void AddProfileRow(TableDescriptor table, string label, string value)
+    {
+        table.Cell().Padding(3).Text(label).SemiBold().FontSize(9);
+        table.Cell().Padding(3).Text(value).FontSize(9);
+    }
+
+    private static void AddRatingRow(TableDescriptor table, string label, string value)
+    {
+        table.Cell().Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Text(label).SemiBold().FontSize(9);
+        table.Cell().Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Text(value).FontSize(9);
+    }
+
+    private static void AddSignatureBlock(TableDescriptor table, SignatureBlockDto signature, string role)
+    {
+        table.Cell().Padding(8).Element(block =>
+        {
+            block.Column(col =>
+            {
+                col.Item().Text(role).SemiBold().FontSize(10).FontColor(Colors.Grey.Darken1);
+                col.Item().PaddingTop(30).LineHorizontal(1).LineColor(Colors.Black);
+                col.Item().PaddingTop(4).Text($"Name: {signature.SignatoryName}").FontSize(9);
+                col.Item().Text($"Role: {signature.SignatoryRole}").FontSize(9);
+                col.Item().Text($"Signed: {(signature.IsSigned ? signature.SignedAt?.ToString("yyyy-MM-dd") : "Not Signed")}").FontSize(9);
+            });
+        });
+    }
 }
