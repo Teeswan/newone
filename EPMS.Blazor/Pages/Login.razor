@@ -195,7 +195,7 @@
                             Variant="Variant.Outlined"
                             Style="width: 100%"
                             Immediate="true"
-                            Adornment="Adornment.Both"
+                            Adornment="Adornment.Start"
                             AdornmentIcon="@Icons.Material.Filled.Lock"
                             IconColor="Color.Info"
                             For="@(() => loginModel.Password)">
@@ -204,7 +204,7 @@
                                     Icon="@(showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
                                     Color="Color.Info"
                                     Size="Size.Medium"
-                                    OnClick="@(() => showPassword = !showPassword)"
+                                    OnClick="@TogglePasswordVisibility"
                                     Edge="Edge.End" />
                             </AdornmentEnd>
                         </MudTextField>
