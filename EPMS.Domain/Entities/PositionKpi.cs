@@ -16,6 +16,8 @@ public class PositionKpi
 
     public bool IsRequired { get; private set; }
 
+    public bool IsActive { get; private set; }
+
     public virtual Position? Position { get; private set; }
 
     public virtual Kpi Kpi { get; private set; } = null!;
@@ -34,7 +36,8 @@ public class PositionKpi
             PositionId = positionId,
             KpiId = kpiId,
             DefaultWeightPercent = defaultWeightPercent,
-            IsRequired = isRequired
+            IsRequired = isRequired,
+            IsActive = true
         };
     }
 
@@ -45,4 +48,8 @@ public class PositionKpi
         DefaultWeightPercent = defaultWeightPercent;
         IsRequired = isRequired;
     }
+
+    public void Activate() => IsActive = true;
+
+    public void Deactivate() => IsActive = false;
 }

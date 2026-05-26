@@ -16,8 +16,6 @@ public record CreatePositionKpiCommand : IRequest<Result<int>>
     public string? Category { get; set; }
     public string? Unit { get; set; }
     public decimal WeightPercent { get; set; }
-    public decimal? TargetValue { get; set; }
-    public PriorityLevel PriorityLevel { get; set; }
     public KpiDirection Direction { get; set; }
     public int? PositionId { get; set; }
     public int? CreatedByEmployeeId { get; set; }
@@ -29,7 +27,6 @@ public record CreatePositionKpiCommand : IRequest<Result<int>>
             RuleFor(x => x.KpiName).NotEmpty().MaximumLength(255);
             RuleFor(x => x.Category).NotEmpty();
             RuleFor(x => x.WeightPercent).InclusiveBetween(0, 100);
-            RuleFor(x => x.PriorityLevel).IsInEnum();
         }
     }
 }
@@ -64,9 +61,6 @@ public class CreatePositionKpiCommandHandler : IRequestHandler<CreatePositionKpi
             request.KpiName,
             request.Category,
             request.Unit,
-            request.WeightPercent,
-            request.TargetValue,
-            request.PriorityLevel,
             request.Direction,
             request.CreatedByEmployeeId);
 

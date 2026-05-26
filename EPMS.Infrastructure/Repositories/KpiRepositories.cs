@@ -24,7 +24,7 @@ namespace EPMS.Infrastructure.Repositories
         public override async Task<IEnumerable<DepartmentKpi>> GetAllAsync()
         {
             return await _dbSet
-                .Include(d => d.KpiMaster)
+                .Include(d => d.Kpi)
                 .Include(d => d.Department)
                 .Include(d => d.Cycle)
                 .AsNoTracking()
@@ -34,7 +34,7 @@ namespace EPMS.Infrastructure.Repositories
         public async Task<IEnumerable<DepartmentKpi>> GetByDepartmentIdAsync(int departmentId, int cycleId)
         {
             return await _dbSet
-                .Include(d => d.KpiMaster)
+                .Include(d => d.Kpi)
                 .Include(d => d.Department)
                 .Include(d => d.Cycle)
                 .Where(d => d.DepartmentId == departmentId && d.CycleId == cycleId)
@@ -45,7 +45,7 @@ namespace EPMS.Infrastructure.Repositories
         public override async Task<DepartmentKpi?> GetByIdAsync(int id)
         {
             return await _dbSet
-                .Include(d => d.KpiMaster)
+                .Include(d => d.Kpi)
                 .Include(d => d.Department)
                 .Include(d => d.Cycle)
                 .FirstOrDefaultAsync(d => d.DeptKpiId == id);
@@ -62,7 +62,7 @@ namespace EPMS.Infrastructure.Repositories
         {
             return await _dbSet
                 .Include(t => t.DepartmentKpi)
-                .ThenInclude(d => d.KpiMaster)
+                .ThenInclude(d => d.Kpi)
                 .Include(t => t.Team)
                 .AsNoTracking()
                 .ToListAsync();
@@ -72,7 +72,7 @@ namespace EPMS.Infrastructure.Repositories
         {
             return await _dbSet
                 .Include(t => t.DepartmentKpi)
-                .ThenInclude(d => d.KpiMaster)
+                .ThenInclude(d => d.Kpi)
                 .Include(t => t.Team)
                 .Where(t => t.TeamId == teamId)
                 .AsNoTracking()
@@ -83,7 +83,7 @@ namespace EPMS.Infrastructure.Repositories
         {
             return await _dbSet
                 .Include(t => t.DepartmentKpi)
-                .ThenInclude(d => d.KpiMaster)
+                .ThenInclude(d => d.Kpi)
                 .Include(t => t.Team)
                 .FirstOrDefaultAsync(t => t.TeamKpiId == id);
         }
@@ -100,7 +100,7 @@ namespace EPMS.Infrastructure.Repositories
             return await _dbSet
                 .Include(e => e.TeamKpi)
                 .ThenInclude(t => t.DepartmentKpi)
-                .ThenInclude(d => d.KpiMaster)
+                .ThenInclude(d => d.Kpi)
                 .Include(e => e.Employee)
                 .AsNoTracking()
                 .ToListAsync();
@@ -111,7 +111,7 @@ namespace EPMS.Infrastructure.Repositories
             return await _dbSet
                 .Include(e => e.TeamKpi)
                 .ThenInclude(t => t.DepartmentKpi)
-                .ThenInclude(d => d.KpiMaster)
+                .ThenInclude(d => d.Kpi)
                 .Include(e => e.Employee)
                 .Where(e => e.EmployeeId == employeeId)
                 .AsNoTracking()
@@ -123,7 +123,7 @@ namespace EPMS.Infrastructure.Repositories
             return await _dbSet
                 .Include(e => e.TeamKpi)
                 .ThenInclude(t => t.DepartmentKpi)
-                .ThenInclude(d => d.KpiMaster)
+                .ThenInclude(d => d.Kpi)
                 .Include(e => e.Employee)
                 .FirstOrDefaultAsync(e => e.EmployeeKpiId == id);
         }

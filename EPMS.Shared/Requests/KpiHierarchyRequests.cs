@@ -7,9 +7,6 @@ namespace EPMS.Shared.Requests
         public string KpiName { get; set; } = null!;
         public string? Category { get; set; }
         public string? Unit { get; set; }
-        public decimal WeightPercent { get; set; }
-        public decimal? TargetValue { get; set; }
-        public PriorityLevel PriorityLevel { get; set; }
         public KpiDirection Direction { get; set; }
     }
 
@@ -17,7 +14,7 @@ namespace EPMS.Shared.Requests
     {
         public int DepartmentId { get; set; }
         public int CycleId { get; set; }
-        public int KpiMasterId { get; set; }
+        public int KpiId { get; set; }
         public decimal DepartmentTarget { get; set; }
         public decimal Weight { get; set; }
     }

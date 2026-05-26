@@ -7,7 +7,7 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_isValid">
-            <MudSelect T="int" Label="Master KPI" @bind-Value="_request.KpiMasterId" Required="true">
+            <MudSelect T="int" Label="Master KPI" @bind-Value="_request.KpiId" Required="true">
                 @foreach (var kpi in _masterKpis)
                 {
                     <MudSelectItem Value="@kpi.KpiId">@kpi.KpiName (@kpi.Category)</MudSelectItem>

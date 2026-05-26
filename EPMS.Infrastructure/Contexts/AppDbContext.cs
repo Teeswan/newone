@@ -105,10 +105,13 @@ public partial class AppDbContext : DbContext
         {
             entity.ToTable("KPIs");
             entity.HasKey(k => k.KpiId);
-            entity.Property(k => k.KpiId).HasColumnName("KPI_ID");
+            entity.Property(k => k.KpiId).HasColumnName("KpiID");
             entity.Property(k => k.KpiName).HasColumnName("KPIName").IsRequired().HasMaxLength(255);
-            entity.Property(k => k.PriorityLevel).HasConversion<string>().HasMaxLength(20);
             entity.Property(k => k.Direction).HasConversion<int>();
+            
+            // Ignore properties not in database
+            entity.Ignore(k => k.CreatedAt);
+            entity.Ignore(k => k.CreatedByEmployeeId);
         });
                 
         modelBuilder.Entity<DepartmentKpi>(entity =>
@@ -118,14 +121,22 @@ public partial class AppDbContext : DbContext
             entity.Property(d => d.DeptKpiId).HasColumnName("DeptKpiID");
             entity.Property(d => d.DepartmentId).HasColumnName("DepartmentID");
             entity.Property(d => d.CycleId).HasColumnName("CycleID");
-            entity.Property(d => d.KpiMasterId).HasColumnName("KpiMasterID");
+            
+            entity.Property(d => d.DepartmentTarget)
+                .HasColumnType("decimal(18, 4)")
+                .IsRequired();
+            
+            entity.Property(d => d.Weight)
+                .HasColumnType("decimal(5, 2)")
+                .IsRequired();
             
             // Ignore properties not in database
             entity.Ignore(d => d.IsActive);
+            entity.Ignore(d => d.CreatedAt);
             
-            entity.HasOne(d => d.KpiMaster)
+            entity.HasOne(d => d.Kpi)
                   .WithMany()
-                  .HasForeignKey(d => d.KpiMasterId)
+                  .HasForeignKey(d => d.KpiId)
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(d => d.Department)
@@ -137,6 +148,8 @@ public partial class AppDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(d => d.CycleId)
                   .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.Property(d => d.KpiId).HasColumnName("KpiID");
         });
 
         // 4. TeamKpi
@@ -147,6 +160,14 @@ public partial class AppDbContext : DbContext
             entity.Property(t => t.TeamKpiId).HasColumnName("TeamKpiID");
             entity.Property(t => t.TeamId).HasColumnName("TeamID");
             entity.Property(t => t.DeptKpiId).HasColumnName("DeptKpiID");
+            
+            entity.Property(t => t.TeamTarget)
+                .HasColumnType("decimal(18, 4)")
+                .IsRequired();
+            
+            entity.Property(t => t.Weight)
+                .HasColumnType("decimal(5, 2)")
+                .IsRequired();
 
             // Ignore properties not in database
             entity.Ignore(t => t.CreatedAt);
@@ -170,8 +191,15 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
             entity.Property(e => e.TeamKpiId).HasColumnName("TeamKpiID");
             
-            entity.Property(e => e.EmployeeTarget).HasColumnName("TargetValue");
-            entity.Property(e => e.Weight).HasColumnName("WeightPercent");
+            entity.Property(e => e.EmployeeTarget)
+                .HasColumnName("TargetValue")
+                .HasColumnType("decimal(18, 4)")
+                .IsRequired();
+            
+            entity.Property(e => e.Weight)
+                .HasColumnName("WeightPercent")
+                .HasColumnType("decimal(5, 2)")
+                .IsRequired();
 
             // Ignore properties not in database
             entity.Ignore(e => e.IsActive);
@@ -255,7 +283,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AuditId).HasColumnName("AuditID");
             entity.Property(e => e.ActionType).HasMaxLength(10);
             entity.Property(e => e.ChangedAt).HasDefaultValueSql("(sysdatetimeoffset())");
-            entity.Property(e => e.ChangedByEmployeeId).HasColumnName("ChangedByUserID");
+            entity.Property(e => e.ChangedByEmployeeId).HasColumnName("ChangedByEmployeeID");
             entity.Property(e => e.RecordId).HasColumnName("RecordID");
             entity.Property(e => e.TableName).HasMaxLength(100);
         });

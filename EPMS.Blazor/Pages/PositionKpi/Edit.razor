@@ -45,15 +45,6 @@
                     </MudItem>
 
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="PriorityLevel" Label="Priority Level" @bind-Value="_command.PriorityLevel" Variant="Variant.Outlined">
-                            @foreach (PriorityLevel level in Enum.GetValues(typeof(PriorityLevel)))
-                            {
-                                <MudSelectItem Value="@level">@level</MudSelectItem>
-                            }
-                        </MudSelect>
-                    </MudItem>
-
-                    <MudItem xs="12" sm="6">
                         <MudSelect T="KpiDirection" Label="Measurement Direction" @bind-Value="_command.Direction" Variant="Variant.Outlined">
                             <MudSelectItem Value="KpiDirection.HigherIsBetter">Higher is Better</MudSelectItem>
                             <MudSelectItem Value="KpiDirection.LowerIsBetter">Lower is Better</MudSelectItem>
@@ -62,10 +53,6 @@
 
                     <MudItem xs="12" sm="6">
                         <MudNumericField @bind-Value="_command.WeightPercent" Label="Default Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" />
-                    </MudItem>
-
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_command.TargetValue" Label="Default Target Value" Variant="Variant.Outlined" />
                     </MudItem>
 
                     <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
@@ -107,17 +94,15 @@
             if (kpi != null)
             {
                 _command = new UpdatePositionKpiCommand
-                {
-                    KpiId = kpi.PositionKpiId,
-                    KpiName = kpi.KpiName,
-                    Category = kpi.Category,
-                    Unit = kpi.Unit,
-                    WeightPercent = kpi.WeightPercent,
-                    TargetValue = kpi.TargetValue,
-                    PriorityLevel = kpi.PriorityLevel,
-                    Direction = kpi.Direction,
-                    PositionId = kpi.PositionId
-                };
+            {
+                PositionKpiId = kpi.PositionKpiId,
+                KpiName = kpi.KpiName,
+                Category = kpi.Category,
+                Unit = kpi.Unit,
+                WeightPercent = kpi.WeightPercent,
+                Direction = kpi.Direction,
+                PositionId = kpi.PositionId
+            };
             }
             else
             {

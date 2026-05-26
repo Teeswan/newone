@@ -11,13 +11,11 @@ namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
 public record UpdatePositionKpiCommand : IRequest<Result>
 {
-    public int KpiId { get; set; }
+    public int PositionKpiId { get; set; }
     public string KpiName { get; set; } = null!;
     public string? Category { get; set; }
     public string? Unit { get; set; }
     public decimal WeightPercent { get; set; }
-    public decimal? TargetValue { get; set; }
-    public PriorityLevel PriorityLevel { get; set; }
     public KpiDirection Direction { get; set; }
     public int? PositionId { get; set; }
     public int? UpdatedByEmployeeId { get; set; }
@@ -26,11 +24,10 @@ public record UpdatePositionKpiCommand : IRequest<Result>
     {
         public Validator()
         {
-            RuleFor(x => x.KpiId).GreaterThan(0);
+            RuleFor(x => x.PositionKpiId).GreaterThan(0);
             RuleFor(x => x.KpiName).NotEmpty().MaximumLength(255);
             RuleFor(x => x.Category).NotEmpty();
             RuleFor(x => x.WeightPercent).InclusiveBetween(0, 100);
-            RuleFor(x => x.PriorityLevel).IsInEnum();
         }
     }
 }
@@ -56,12 +53,12 @@ public class UpdatePositionKpiCommandHandler : IRequestHandler<UpdatePositionKpi
 
     public async Task<Result> Handle(UpdatePositionKpiCommand request, CancellationToken cancellationToken)
     {
-        var positionKpi = await _repository.GetByIdAsync(request.KpiId);
+        var positionKpi = await _repository.GetByIdAsync(request.PositionKpiId);
         if (positionKpi == null) return Result.Failure("KPI not found.");
 
         if (!positionKpi.Kpi.IsActive) return Result.Failure("Cannot update an inactive KPI.");
 
-        if (await _repository.IsKpiReferencedByActiveCycleAsync(request.KpiId))
+        if (await _repository.IsKpiReferencedByActiveCycleAsync(positionKpi.KpiId))
         {
             return Result.Failure("Cannot update KPI as it is currently referenced in an active appraisal cycle.");
         }
@@ -70,9 +67,6 @@ public class UpdatePositionKpiCommandHandler : IRequestHandler<UpdatePositionKpi
             request.KpiName,
             request.Category,
             request.Unit,
-            request.WeightPercent,
-            request.TargetValue,
-            request.PriorityLevel,
             request.Direction);
 
         positionKpi.Update(

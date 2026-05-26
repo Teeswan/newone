@@ -25,12 +25,12 @@ public class KpiScoreCalculator : IKpiScoreCalculator
             if (score > 100) score = 100; // Capped at 100% for LowerIsBetter as per rules
         }
 
-        return Math.Round(score, 2);
+        return Math.Round(score, 4);
     }
 
     public decimal CalculateWeightedScore(decimal kpiScore, decimal weightPercent)
     {
-        return Math.Round(kpiScore * (weightPercent / 100), 2);
+        return Math.Round(kpiScore * (weightPercent / 100), 4);
     }
 
     public decimal CalculateTotalScore(IEnumerable<EmployeeKpiAssignment> assignments)

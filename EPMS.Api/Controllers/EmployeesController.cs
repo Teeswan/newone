@@ -22,7 +22,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("export/excel")]
-    // [HasPermission(Permissions.Employees.View)]
+    [HasPermission(Permissions.Employees.View)]
     public async Task<IActionResult> ExportToExcel()
     {
         var fileBytes = await _excelPdfService.ExportEmployeesToExcelAsync();
@@ -30,7 +30,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("export/pdf")]
-    // [HasPermission(Permissions.Employees.View)]
+    [HasPermission(Permissions.Employees.View)]
     public async Task<IActionResult> ExportToPdf()
     {
         var fileBytes = await _excelPdfService.ExportEmployeesToPdfAsync();
@@ -38,7 +38,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost("import/excel")]
-    // [HasPermission(Permissions.Employees.Manage)]
+    [HasPermission(Permissions.Employees.Manage)]
     public async Task<ActionResult<int>> ImportFromExcel(IFormFile file, [FromQuery] bool skipFirstRow = true, [FromQuery] string sheetName = "", [FromQuery] bool skipExisting = false)
     {
         if (file == null || file.Length == 0)

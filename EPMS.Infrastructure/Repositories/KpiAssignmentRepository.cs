@@ -37,7 +37,7 @@ public class KpiAssignmentRepository : BaseRepository<EmployeeKpiAssignment, int
     {
         using var connection = _connectionFactory.CreateConnection();
         const string sql = @"SELECT * FROM EmployeeKpiAssignment 
-                           WHERE EmployeeID = @EmployeeId AND CycleID = @CycleId AND KPI_ID = @KpiId";
+                           WHERE EmployeeID = @EmployeeId AND CycleID = @CycleId AND KpiID = @KpiId";
         return await connection.QueryFirstOrDefaultAsync<EmployeeKpiAssignment>(sql, new { EmployeeId = employeeId, CycleId = cycleId, KpiId = kpiId });
     }
 
