@@ -170,52 +170,44 @@
                     <DataAnnotationsValidator />
                     
                     <div class="mb-4">
-                        <div class="pill-input">
-                            <MudTextField 
-                                T="string"
-                                Label="E-mail"
-                                @bind-Value="loginModel.Email"
-                                Placeholder="Enter your email"
-                                Variant="Variant.Text"
-                                Underline="false"
-                                Style="width: 100%"
-                                Immediate="true"
-                                Adornment="Adornment.Start"
-                                AdornmentIcon="@Icons.Material.Filled.Email"
-                                IconColor="Color.Info"
-                                For="@(() => loginModel.Email)" />
-                        </div>
+                        <MudTextField 
+                            T="string"
+                            Label="E-mail"
+                            @bind-Value="loginModel.Email"
+                            Placeholder="Enter your email"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Email"
+                            IconColor="Color.Info"
+                            For="@(() => loginModel.Email)" />
                         <ValidationMessage For="@(() => loginModel.Email)" class="text-danger mt-1 ms-2" />
                     </div>
 
                     <div class="mb-6">
-                        <div class="pill-input">
-                            <MudTextField 
-                                T="string"
-                                Label="Password"
-                                @bind-Value="loginModel.Password"
-                                InputType="@(showPassword ? InputType.Text : InputType.Password)"
-                                Placeholder="Enter your password"
-                                Variant="Variant.Text"
-                                Underline="false"
-                                Style="width: 100%"
-                                Immediate="true"
-                                Adornment="Adornment.Start"
-                                AdornmentIcon="@Icons.Material.Filled.Lock"
-                                IconColor="Color.Info"
-                                For="@(() => loginModel.Password)">
-                                <AdornmentEnd>
-                                    <MudIconButton 
-                                        Icon="@(showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
-                                        Color="Color.Info"
-                                        Size="Size.Medium"
-                                        ButtonType="ButtonType.Button"
-                                        OnClick="@TogglePasswordVisibility"
-                                        Edge="Edge.End"
-                                        Style="z-index: 10;" />
-                                </AdornmentEnd>
-                            </MudTextField>
-                        </div>
+                        <MudTextField 
+                            T="string"
+                            Label="Password"
+                            @bind-Value="loginModel.Password"
+                            InputType="@(showPassword ? InputType.Text : InputType.Password)"
+                            Placeholder="Enter your password"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Immediate="true"
+                            Adornment="Adornment.Both"
+                            AdornmentIcon="@Icons.Material.Filled.Lock"
+                            IconColor="Color.Info"
+                            For="@(() => loginModel.Password)">
+                            <AdornmentEnd>
+                                <MudIconButton 
+                                    Icon="@(showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                    Color="Color.Info"
+                                    Size="Size.Medium"
+                                    OnClick="@(() => showPassword = !showPassword)"
+                                    Edge="Edge.End" />
+                            </AdornmentEnd>
+                        </MudTextField>
                         <ValidationMessage For="@(() => loginModel.Password)" class="text-danger mt-1 ms-2" />
                     </div>
 
