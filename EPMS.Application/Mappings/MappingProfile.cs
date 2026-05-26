@@ -53,7 +53,8 @@ public class MappingProfile : Profile
         CreateMap<CreateAppraisalCycleRequest, AppraisalCycle>();
         CreateMap<UpdateAppraisalCycleRequest, AppraisalCycle>();
 
-        CreateMap<FormQuestion, FormQuestionDto>();
+        CreateMap<FormQuestion, FormQuestionDto>()
+            .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Question != null ? src.Question.QuestionText : null));
         CreateMap<CreateFormQuestionRequest, FormQuestion>();
         CreateMap<UpdateFormQuestionRequest, FormQuestion>();
 

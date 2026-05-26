@@ -191,6 +191,7 @@
                 AddEvaluatorFeedback(emp.EmployeeId, "Self");
             }
         }
+        StateHasChanged();
     }
 
     private async Task OnFormChanged(int formId)
@@ -210,9 +211,9 @@
 
             foreach (var eval in evaluators)
             {
-                // Remove the empty row
-                var emptyRow = createRequest.Responses.FirstOrDefault(r => r.RespondentEmployeeId == eval.RespondentEmployeeId && !r.QuestionId.HasValue);
-                if (emptyRow != null) createRequest.Responses.Remove(emptyRow);
+                // Remove the empty rows for this evaluator
+                var emptyRows = createRequest.Responses.Where(r => r.RespondentEmployeeId == eval.RespondentEmployeeId && !r.QuestionId.HasValue).ToList();
+                foreach(var row in emptyRows) createRequest.Responses.Remove(row);
 
                 // Add questions for this evaluator
                 foreach (var q in formQuestions)
@@ -225,6 +226,7 @@
                     });
                 }
             }
+            StateHasChanged();
         }
         catch (Exception ex)
         {
