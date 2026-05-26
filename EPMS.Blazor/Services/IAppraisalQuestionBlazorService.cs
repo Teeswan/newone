@@ -6,6 +6,7 @@ namespace EPMS.Blazor.Services
     public interface IAppraisalQuestionBlazorService
     {
         Task<IEnumerable<AppraisalQuestionDto>> GetAllAppraisalQuestionsAsync();
+        Task<IEnumerable<AppraisalQuestionDto>> GetAllAsync();
         Task<AppraisalQuestionDto?> GetAppraisalQuestionByIdAsync(int id);
         Task<AppraisalQuestionDto> CreateAppraisalQuestionAsync(CreateAppraisalQuestionRequest request);
         Task<AppraisalQuestionDto?> UpdateAppraisalQuestionAsync(int id, UpdateAppraisalQuestionRequest request);

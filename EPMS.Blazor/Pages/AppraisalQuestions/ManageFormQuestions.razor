@@ -1,0 +1,70 @@
+@page "/appraisalforms/{FormId:int}/manage-questions"
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@inject EPMS.Blazor.Services.IAppraisalQuestionBlazorService QuestionService
+@inject EPMS.Blazor.Services.IFormQuestionBlazorService FormQuestionService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Manage Questions for Form ID: @FormId</MudText>
+
+    <MudTable T="AppraisalQuestionDto" Items="@allQuestions" MultiSelection="true" @bind-SelectedItems="selectedQuestions" Hover="true">
+        <HeaderContent>
+            <MudTh>Question Text</MudTh>
+            <MudTh>Category</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.QuestionText</MudTd>
+            <MudTd>@context.Category</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="SaveQuestions">
+        Save Selection
+    </MudButton>
+</MudContainer>
+
+@code {
+    [Parameter] public int FormId { get; set; }
+    private IEnumerable<AppraisalQuestionDto>? allQuestions;
+    private HashSet<AppraisalQuestionDto> selectedQuestions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Fetch all available questions from the database
+        allQuestions = await QuestionService.GetAllAppraisalQuestionsAsync();
+
+        // 2. (Optional) Fetch existing mappings for this form to pre-select them
+        var existing = await FormQuestionService.GetByFormIdAsync(FormId);
+        
+        if (allQuestions != null && existing != null)
+        {
+            var existingQuestionIds = existing.Select(e => e.QuestionId).ToHashSet();
+            selectedQuestions = allQuestions.Where(q => existingQuestionIds.Contains(q.QuestionId)).ToHashSet();
+        }
+    }
+
+    private async Task SaveQuestions()
+    {
+        try
+        {
+            // 3. Send the list of selected IDs to your API
+            foreach (var q in selectedQuestions)
+            {
+                await FormQuestionService.CreateAsync(new CreateFormQuestionRequest
+                {
+                    FormId = FormId,
+                    QuestionId = q.QuestionId,
+                    SortOrder = 0 // Default order
+                });
+            }
+            Snackbar.Add("Questions updated successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/appraisalforms");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}

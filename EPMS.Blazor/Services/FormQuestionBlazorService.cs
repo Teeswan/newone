@@ -21,6 +21,13 @@ namespace EPMS.Blazor.Services
             return await response.Content.ReadFromJsonAsync<IEnumerable<FormQuestionDto>>() ?? new List<FormQuestionDto>();
         }
 
+        public async Task<IEnumerable<FormQuestionDto>> GetByFormIdAsync(int formId)
+        {
+            var response = await _httpClient.GetAsync($"{BaseUrl}/by-form/{formId}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<FormQuestionDto>>() ?? new List<FormQuestionDto>();
+        }
+
         public async Task<FormQuestionDto?> GetFormQuestionByIdsAsync(int formId, int questionId)
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}/{formId}/{questionId}");
@@ -33,6 +40,11 @@ namespace EPMS.Blazor.Services
             var response = await _httpClient.PostAsJsonAsync(BaseUrl, request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<FormQuestionDto>() ?? throw new InvalidOperationException("Could not create form question.");
+        }
+
+        public async Task<FormQuestionDto> CreateAsync(CreateFormQuestionRequest request)
+        {
+            return await CreateFormQuestionAsync(request);
         }
 
         public async Task<bool> DeleteFormQuestionAsync(int formId, int questionId)

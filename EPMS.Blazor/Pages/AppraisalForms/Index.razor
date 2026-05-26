@@ -41,11 +41,16 @@
                     <MudTh>Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Form Name">@context.FormName</MudTd>
-                    <MudTd DataLabel="Status">
-                        <MudChip T="string" Color="@(context.IsActive == true ? Color.Success : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
-                            @(context.IsActive == true ? "Active" : "Inactive")
-                        </MudChip>
+                    <MudTd>@context.FormName</MudTd>
+                    <MudTd>@context.IsActive</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Href="@($"/appraisalforms/edit/{context.FormId}")" />
+
+                        <MudIconButton Icon="@Icons.Material.Filled.List"
+                                       Color="Color.Primary"
+                                       Title="Manage Questions"
+                                       Href="@($"/appraisalforms/{context.FormId}/manage-questions")" />
                     </MudTd>
                     <MudTd DataLabel="Actions">
                         <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">

@@ -62,6 +62,8 @@ BEGIN
     SET SortOrder = @SortOrder
     WHERE FormID = @FormID AND QuestionID = @QuestionID;
 
+    IF @@ROWCOUNT > 0
+    BEGIN
     SELECT FormID, QuestionID, SortOrder
     FROM FormQuestions
     WHERE FormID = @FormID AND QuestionID = @QuestionID;

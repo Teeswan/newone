@@ -10,4 +10,5 @@ public class UpdateAppraisalFormRequest
 {
     public string? FormName { get; set; }
     public bool? IsActive { get; set; }
+    public List<CreateFormQuestionRequest> Questions { get; set; } = new();
 }

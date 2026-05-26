@@ -21,6 +21,11 @@ namespace EPMS.Blazor.Services
             return await response.Content.ReadFromJsonAsync<IEnumerable<AppraisalQuestionDto>>() ?? new List<AppraisalQuestionDto>();
         }
 
+        public async Task<IEnumerable<AppraisalQuestionDto>> GetAllAsync()
+        {
+            return await GetAllAppraisalQuestionsAsync();
+        }
+
         public async Task<AppraisalQuestionDto?> GetAppraisalQuestionByIdAsync(int id)
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
