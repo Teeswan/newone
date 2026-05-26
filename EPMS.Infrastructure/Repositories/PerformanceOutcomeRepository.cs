@@ -22,12 +22,19 @@ public class PerformanceOutcomeRepository : BaseRepository<PerformanceOutcome, i
 
     public override async Task<IEnumerable<PerformanceOutcome>> GetAllAsync()
     {
-        return await _sqlRepository.FromSqlAsync(PerformanceOutcomes_GetAll);
+        return await _dbSet
+            .Include(po => po.Employee)
+            .Include(po => po.Cycle)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public override async Task<PerformanceOutcome?> GetByIdAsync(int outcomeId)
     {
-        return await _sqlRepository.FromSqlFirstOrDefaultAsync(PerformanceOutcomes_GetById, new SqlParameter("@OutcomeID", outcomeId));
+        return await _dbSet
+            .Include(po => po.Employee)
+            .Include(po => po.Cycle)
+            .FirstOrDefaultAsync(po => po.OutcomeId == outcomeId);
     }
 
     public override async Task<PerformanceOutcome> CreateAsync(PerformanceOutcome entity)
@@ -82,11 +89,21 @@ public class PerformanceOutcomeRepository : BaseRepository<PerformanceOutcome, i
 
     public async Task<IEnumerable<PerformanceOutcome>> GetByEmployeeIdAsync(int employeeId)
     {
-        return await _sqlRepository.FromSqlAsync(PerformanceOutcomes_GetByEmployeeId, new SqlParameter("@EmployeeID", employeeId));
+        return await _dbSet
+            .Include(po => po.Employee)
+            .Include(po => po.Cycle)
+            .Where(po => po.EmployeeId == employeeId)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<PerformanceOutcome>> GetByCycleIdAsync(int cycleId)
     {
-        return await _sqlRepository.FromSqlAsync(PerformanceOutcomes_GetByCycleId, new SqlParameter("@CycleID", cycleId));
+        return await _dbSet
+            .Include(po => po.Employee)
+            .Include(po => po.Cycle)
+            .Where(po => po.CycleId == cycleId)
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

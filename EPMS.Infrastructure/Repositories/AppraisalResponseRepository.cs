@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
 using EPMS.Infrastructure.Contexts;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
 using static EPMS.Infrastructure.StoredProcedures;
 
@@ -21,11 +22,26 @@ public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, lon
         _sqlRepository = sqlRepository ?? throw new ArgumentNullException(nameof(sqlRepository));
     }
 
-    public override Task<IEnumerable<AppraisalResponse>> GetAllAsync()
-        => _sqlRepository.FromSqlAsync(AppraisalResponses_GetAll);
+    public override async Task<IEnumerable<AppraisalResponse>> GetAllAsync()
+    {
+        return await _dbSet
+            .Include(ar => ar.Question)
+                .ThenInclude(q => q.FormQuestions)
+            .Include(ar => ar.Respondent)
+            .Include(ar => ar.Eval)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 
-    public override Task<AppraisalResponse?> GetByIdAsync(long responseId)
-        => _sqlRepository.FromSqlFirstOrDefaultAsync(AppraisalResponses_GetById, new SqlParameter("@ResponseID", responseId));
+    public override async Task<AppraisalResponse?> GetByIdAsync(long responseId)
+    {
+        return await _dbSet
+            .Include(ar => ar.Question)
+                .ThenInclude(q => q.FormQuestions)
+            .Include(ar => ar.Respondent)
+            .Include(ar => ar.Eval)
+            .FirstOrDefaultAsync(ar => ar.ResponseId == responseId);
+    }
 
     public override async Task<AppraisalResponse> CreateAsync(AppraisalResponse entity)
     {
@@ -73,14 +89,21 @@ public class AppraisalResponseRepository : BaseRepository<AppraisalResponse, lon
         return rowsAffected > 0;
     }
 
-    public Task<IEnumerable<AppraisalResponse>> GetByEvalIdAsync(int evalId)
+    public async Task<IEnumerable<AppraisalResponse>> GetByEvalIdAsync(int evalId)
     {
         if (evalId <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(evalId));
         }
 
-        return _sqlRepository.FromSqlAsync(AppraisalResponses_GetByEvalId, new SqlParameter("@EvalID", evalId));
+        return await _dbSet
+            .Include(ar => ar.Question)
+                .ThenInclude(q => q.FormQuestions)
+            .Include(ar => ar.Respondent)
+            .Include(ar => ar.Eval)
+            .Where(ar => ar.EvalId == evalId)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     private static object ToDbValue<T>(T? value)

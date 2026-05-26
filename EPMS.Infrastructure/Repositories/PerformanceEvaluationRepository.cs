@@ -22,12 +22,25 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
 
     public override async Task<IEnumerable<PerformanceEvaluation>> GetAllAsync()
     {
-        return await _sqlRepository.FromSqlAsync(PerformanceEvaluations_GetAll);
+        return await _dbSet
+            .Include(pe => pe.Employee)
+            .Include(pe => pe.Cycle)
+            .Include(pe => pe.Form)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public override async Task<PerformanceEvaluation?> GetByIdAsync(int evalId)
     {
-        return await _sqlRepository.FromSqlFirstOrDefaultAsync(PerformanceEvaluations_GetById, new SqlParameter("@EvalID", evalId));
+        return await _dbSet
+            .Include(pe => pe.Employee)
+            .Include(pe => pe.Cycle)
+            .Include(pe => pe.Form)
+            .Include(pe => pe.AppraisalResponses)
+                .ThenInclude(ar => ar.Question)
+            .Include(pe => pe.AppraisalResponses)
+                .ThenInclude(ar => ar.Respondent)
+            .FirstOrDefaultAsync(pe => pe.EvalId == evalId);
     }
 
     public override async Task<PerformanceEvaluation> CreateAsync(PerformanceEvaluation entity)
@@ -84,12 +97,24 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
 
     public async Task<IEnumerable<PerformanceEvaluation>> GetByEmployeeIdAsync(int employeeId)
     {
-        return await _sqlRepository.FromSqlAsync(PerformanceEvaluations_GetByEmployeeId, new SqlParameter("@EmployeeID", employeeId));
+        return await _dbSet
+            .Include(pe => pe.Employee)
+            .Include(pe => pe.Cycle)
+            .Include(pe => pe.Form)
+            .Where(pe => pe.EmployeeId == employeeId)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<PerformanceEvaluation>> GetByCycleIdAsync(int cycleId)
     {
-        return await _sqlRepository.FromSqlAsync(PerformanceEvaluations_GetByCycleId, new SqlParameter("@CycleID", cycleId));
+        return await _dbSet
+            .Include(pe => pe.Employee)
+            .Include(pe => pe.Cycle)
+            .Include(pe => pe.Form)
+            .Where(pe => pe.CycleId == cycleId)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     private static object ToDbValue<T>(T? value)

@@ -18,28 +18,49 @@ public class ReportBlazorService : IReportBlazorService
 
     public async Task<byte[]> GenerateEmployeePerformanceSummaryReportAsync(EmployeePerformanceSummaryReportDto reportData)
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/reports/employee-performance-summary", reportData);
+        var response = await _httpClient.PostAsJsonAsync("api/reports/employee-performance-summary", reportData);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
     public async Task<byte[]> GenerateDepartmentPerformanceComparisonReportAsync()
     {
-        var response = await _httpClient.GetAsync("/api/reports/department-performance-comparison");
+        var response = await _httpClient.GetAsync("api/reports/department-performance-comparison");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
     public async Task<byte[]> GenerateHighLowPerformerReportAsync()
     {
-        var response = await _httpClient.GetAsync("/api/reports/high-low-performers");
+        var response = await _httpClient.GetAsync("api/reports/high-low-performers");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
     public async Task<byte[]> GeneratePromotionIncrementRecommendationReportAsync()
     {
-        var response = await _httpClient.GetAsync("/api/reports/promotion-increment-recommendations");
+        var response = await _httpClient.GetAsync("api/reports/promotion-increment-recommendations");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
+
+    public async Task<byte[]> Generate360FeedbackRdlcAsync(int evalId)
+    {
+        var response = await _httpClient.GetAsync($"api/PerformanceEvaluations/{evalId}/report/rdlc/360");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
+
+    public async Task<byte[]> GeneratePerformanceAppraisalRdlcAsync(int evalId)
+    {
+        var response = await _httpClient.GetAsync($"api/PerformanceEvaluations/{evalId}/report/rdlc/appraisal");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
+
+    public async Task<byte[]> GenerateSelfAssessmentRdlcAsync(int evalId)
+    {
+        var response = await _httpClient.GetAsync($"api/PerformanceEvaluations/{evalId}/report/rdlc/self-assessment");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }

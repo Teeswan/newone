@@ -44,4 +44,8 @@ public interface IExcelPdfService
     Task<byte[]> ExportTeamsToPdfAsync();
     Task<byte[]> ExportEmployeesToPdfAsync();
     
+    // Specialized Reports
+    Task<byte[]> Export360FeedbackReportAsync(int evalId, string? respondentRole = null);
+    Task<byte[]> ExportPerformanceAppraisalReportAsync(int evalId);
+    Task<byte[]> ExportSelfAssessmentReportAsync(int evalId, int employeeId);
 }

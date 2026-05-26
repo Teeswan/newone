@@ -15,6 +15,8 @@ public class CreatePerformanceEvaluationRequest
     public decimal? FinalRatingScore { get; set; }
     public bool? IsFinalized { get; set; }
     public DateTime? FinalizedAt { get; set; }
+
+    public List<CreateAppraisalResponseRequest> Responses { get; set; } = new();
 }
 
 public class UpdatePerformanceEvaluationRequest

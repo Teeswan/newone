@@ -2,7 +2,11 @@
 @using EPMS.Shared.Requests
 @using EPMS.Domain.Enums
 @using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
 @inject IPerformanceEvaluationBlazorService PerformanceEvaluationService
+@inject IEmployeeBlazorService EmployeeService
+@inject IAppraisalCycleBlazorService CycleService
+@inject IAppraisalFormBlazorService FormService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
@@ -20,13 +24,37 @@
             <MudForm Model="@updateRequest" @ref="@form" ValidationDelay="0">
                 <MudGrid>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField Label="Employee ID" @bind-Value="updateRequest.EmployeeId" Required="true" Variant="Variant.Outlined" />
+                        <MudSelect T="int?" Label="Employee" @bind-Value="updateRequest.EmployeeId" Required="true" Variant="Variant.Outlined">
+                            @if (employees != null)
+                            {
+                                @foreach (var emp in employees)
+                                {
+                                    <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName (@emp.EmployeeCode)</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField Label="Cycle ID" @bind-Value="updateRequest.CycleId" Required="true" Variant="Variant.Outlined" />
+                        <MudSelect T="int?" Label="Appraisal Cycle" @bind-Value="updateRequest.CycleId" Required="true" Variant="Variant.Outlined">
+                            @if (cycles != null)
+                            {
+                                @foreach (var cycle in cycles)
+                                {
+                                    <MudSelectItem T="int?" Value="@cycle.CycleId">@cycle.CycleName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField Label="Form ID" @bind-Value="updateRequest.FormId" Required="true" Variant="Variant.Outlined" />
+                        <MudSelect T="int" Label="Appraisal Form" @bind-Value="updateRequest.FormId" Required="true" Variant="Variant.Outlined">
+                            @if (forms != null)
+                            {
+                                @foreach (var formItem in forms)
+                                {
+                                    <MudSelectItem T="int" Value="@formItem.FormId">@formItem.FormName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudSelect T="PerformanceEvaluationStatus?" Label="Status" @bind-Value="updateRequest.Status" Variant="Variant.Outlined">
@@ -55,6 +83,35 @@
                         <MudCheckBox T="bool" @bind-Value="isFinalizedValue" Label="Is Finalized" Color="Color.Primary" />
                     </MudItem>
 
+                    <MudItem xs="12" Class="mt-6">
+                        <MudText Typo="Typo.h5" Class="mb-4">Evaluation Feedback (360 Feedback)</MudText>
+                        @if (evalResponses != null && evalResponses.Any())
+                        {
+                            <MudTable Items="@evalResponses" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Class="border">
+                                <HeaderContent>
+                                    <MudTh>Evaluator</MudTh>
+                                    <MudTh>Role</MudTh>
+                                    <MudTh>Question</MudTh>
+                                    <MudTh>Rating</MudTh>
+                                    <MudTh>Comments</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="response">
+                                    <MudTd DataLabel="Evaluator">@response.RespondentName</MudTd>
+                                    <MudTd DataLabel="Role">@response.RespondentRole</MudTd>
+                                    <MudTd DataLabel="Question">@response.QuestionText</MudTd>
+                                    <MudTd DataLabel="Rating">
+                                        <MudRating SelectedValue="@(response.RatingValue ?? 0)" ReadOnly="true" MaxValue="5" />
+                                    </MudTd>
+                                    <MudTd DataLabel="Comments">@response.AnswerText</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">No feedback responses recorded for this evaluation.</MudAlert>
+                        }
+                    </MudItem>
+
                     <MudItem xs="12" Class="d-flex justify-end mt-4">
                         <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Save Changes</MudButton>
@@ -72,11 +129,22 @@
     private MudForm? form;
     private UpdatePerformanceEvaluationRequest? updateRequest;
     private bool isFinalizedValue { get; set; }
+    private List<AppraisalResponseDto>? evalResponses;
+
+    private List<EmployeeDto>? employees;
+    private List<AppraisalCycleDto>? cycles;
+    private List<AppraisalFormDto>? forms;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            employees = await EmployeeService.GetEmployeesAsync();
+            var cyclesEnumerable = await CycleService.GetAllAppraisalCyclesAsync();
+            cycles = cyclesEnumerable.ToList();
+            var formsEnumerable = await FormService.GetAllAppraisalFormsAsync();
+            forms = formsEnumerable.ToList();
+
             var eval = await PerformanceEvaluationService.GetPerformanceEvaluationByIdAsync(Id);
             if (eval != null)
             {
@@ -95,6 +163,7 @@
                     FinalizedAt = eval.FinalizedAt
                 };
                 isFinalizedValue = eval.IsFinalized ?? false;
+                evalResponses = eval.Responses;
             }
             else
             {

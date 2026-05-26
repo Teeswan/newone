@@ -25,16 +25,16 @@
                     <MudText Typo="Typo.body1">@eval.EvalId</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Employee ID</MudText>
-                    <MudText Typo="Typo.body1">@eval.EmployeeId</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Employee</MudText>
+                    <MudText Typo="Typo.body1">@eval.EmployeeName</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Cycle ID</MudText>
-                    <MudText Typo="Typo.body1">@eval.CycleId</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Appraisal Cycle</MudText>
+                    <MudText Typo="Typo.body1">@eval.CycleName</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Form ID</MudText>
-                    <MudText Typo="Typo.body1">@eval.FormId</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Appraisal Form</MudText>
+                    <MudText Typo="Typo.body1">@eval.FormName</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Self Rating</MudText>
@@ -70,6 +70,35 @@
                             <span>Pending Finalization</span>
                         }
                     </MudText>
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-6">
+                    <MudText Typo="Typo.h5" Class="mb-4">Evaluation Feedback (360 Feedback)</MudText>
+                    @if (eval.Responses != null && eval.Responses.Any())
+                    {
+                        <MudTable Items="@eval.Responses" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Class="border">
+                            <HeaderContent>
+                                <MudTh>Evaluator</MudTh>
+                                <MudTh>Role</MudTh>
+                                <MudTh>Question</MudTh>
+                                <MudTh>Rating</MudTh>
+                                <MudTh>Comments</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="response">
+                                <MudTd DataLabel="Evaluator">@response.RespondentName</MudTd>
+                                <MudTd DataLabel="Role">@response.RespondentRole</MudTd>
+                                <MudTd DataLabel="Question">@response.QuestionText</MudTd>
+                                <MudTd DataLabel="Rating">
+                                    <MudRating SelectedValue="@(response.RatingValue ?? 0)" ReadOnly="true" MaxValue="5" />
+                                </MudTd>
+                                <MudTd DataLabel="Comments">@response.AnswerText</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info">No feedback responses recorded for this evaluation.</MudAlert>
+                    }
                 </MudItem>
 
                 <MudItem xs="12" Class="d-flex justify-end mt-6">

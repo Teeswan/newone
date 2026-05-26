@@ -13,4 +13,5 @@ public interface IPerformanceEvaluationService
     Task<PerformanceEvaluationDto?> UpdateAsync(int evalId, UpdatePerformanceEvaluationRequest request);
     Task<bool> SubmitSelfAssessmentAsync(int evalId);
     Task<bool> DeleteAsync(int evalId);
+    Task<AppraisalReportDto?> GetAppraisalReportDataAsync(int evalId);
 }

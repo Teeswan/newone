@@ -17,8 +17,8 @@
     <MudTable Items="@performanceOutcomes" Hover="true" Bordered="true" Striped="true" Loading="@loading" Class="mb-4">
         <HeaderContent>
             <MudTh>Outcome ID</MudTh>
-            <MudTh>Employee ID</MudTh>
-            <MudTh>Cycle ID</MudTh>
+            <MudTh>Employee</MudTh>
+            <MudTh>Cycle</MudTh>
             <MudTh>Recommendation</MudTh>
             <MudTh>Status</MudTh>
             <MudTh>Effective Date</MudTh>
@@ -26,8 +26,8 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Outcome ID">@context.OutcomeId</MudTd>
-            <MudTd DataLabel="Employee ID">@context.EmployeeId</MudTd>
-            <MudTd DataLabel="Cycle ID">@context.CycleId</MudTd>
+            <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+            <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
             <MudTd DataLabel="Recommendation">@context.RecommendationType</MudTd>
             <MudTd DataLabel="Status">
                 <MudChip T="string" Color="@GetStatusColor(context.ApprovalStatus)" Size="Size.Small">@context.ApprovalStatus</MudChip>

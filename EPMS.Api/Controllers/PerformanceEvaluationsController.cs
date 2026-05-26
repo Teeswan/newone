@@ -15,11 +15,13 @@ public class PerformanceEvaluationsController : ControllerBase
 {
     private readonly IPerformanceEvaluationService _service;
     private readonly IExcelPdfService _excelPdfService;
+    private readonly IRdlcReportService _rdlcReportService;
 
-    public PerformanceEvaluationsController(IPerformanceEvaluationService service, IExcelPdfService excelPdfService)
+    public PerformanceEvaluationsController(IPerformanceEvaluationService service, IExcelPdfService excelPdfService, IRdlcReportService rdlcReportService)
     {
         _service = service;
         _excelPdfService = excelPdfService;
+        _rdlcReportService = rdlcReportService;
     }
 
     [HttpGet]
@@ -113,5 +115,59 @@ public class PerformanceEvaluationsController : ControllerBase
     {
         var bytes = await _excelPdfService.ExportPerformanceEvaluationsToPdfAsync();
         return File(bytes, "application/pdf", "PerformanceEvaluations.pdf");
+    }
+
+    [HttpGet("{id}/report/360")]
+    [HasPermission(Permissions.PerformanceEvaluations.View)]
+    public async Task<IActionResult> Export360FeedbackReport(int id, [FromQuery] string? role)
+    {
+        var bytes = await _excelPdfService.Export360FeedbackReportAsync(id, role);
+        return File(bytes, "application/pdf", $"360Feedback_{id}.pdf");
+    }
+
+    [HttpGet("{id}/report/appraisal")]
+    [HasPermission(Permissions.PerformanceEvaluations.View)]
+    public async Task<IActionResult> ExportPerformanceAppraisalReport(int id)
+    {
+        var bytes = await _excelPdfService.ExportPerformanceAppraisalReportAsync(id);
+        return File(bytes, "application/pdf", $"PerformanceAppraisal_{id}.pdf");
+    }
+
+    [HttpGet("{id}/report/self-assessment")]
+    [HasPermission(Permissions.PerformanceEvaluations.View)]
+    public async Task<IActionResult> ExportSelfAssessmentReport(int id, [FromQuery] int employeeId)
+    {
+        var bytes = await _excelPdfService.ExportSelfAssessmentReportAsync(id, employeeId);
+        return File(bytes, "application/pdf", $"SelfAssessment_{id}.pdf");
+    }
+
+    [HttpGet("{id}/report/rdlc/360")]
+    [HasPermission(Permissions.PerformanceEvaluations.View)]
+    public async Task<IActionResult> Export360FeedbackRdlc(int id)
+    {
+        var reportData = await _service.GetAppraisalReportDataAsync(id);
+        if (reportData == null) return NotFound();
+        var bytes = await _rdlcReportService.Generate360FeedbackReportAsync(reportData);
+        return File(bytes, "application/pdf", $"360Feedback_RDLC_{id}.pdf");
+    }
+
+    [HttpGet("{id}/report/rdlc/appraisal")]
+    [HasPermission(Permissions.PerformanceEvaluations.View)]
+    public async Task<IActionResult> ExportPerformanceAppraisalRdlc(int id)
+    {
+        var reportData = await _service.GetAppraisalReportDataAsync(id);
+        if (reportData == null) return NotFound();
+        var bytes = await _rdlcReportService.GeneratePerformanceAppraisalReportAsync(reportData);
+        return File(bytes, "application/pdf", $"PerformanceAppraisal_RDLC_{id}.pdf");
+    }
+
+    [HttpGet("{id}/report/rdlc/self-assessment")]
+    [HasPermission(Permissions.PerformanceEvaluations.View)]
+    public async Task<IActionResult> ExportSelfAssessmentRdlc(int id)
+    {
+        var reportData = await _service.GetAppraisalReportDataAsync(id);
+        if (reportData == null) return NotFound();
+        var bytes = await _rdlcReportService.GenerateSelfAssessmentReportAsync(reportData);
+        return File(bytes, "application/pdf", $"SelfAssessment_RDLC_{id}.pdf");
     }
 }

@@ -10,6 +10,9 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Register CodePages for RDLC reporting
+System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
 // 1. Define the CORS Policy
 builder.Services.AddCors(options =>
 {

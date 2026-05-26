@@ -2,6 +2,7 @@
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
 @inject IPerformanceEvaluationBlazorService PerformanceEvaluationService
+@inject IReportBlazorService ReportService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -17,9 +18,9 @@
     <MudTable Items="@performanceEvaluations" Hover="true" Bordered="true" Striped="true" Loading="@loading" Class="mb-4">
         <HeaderContent>
             <MudTh>Eval ID</MudTh>
-            <MudTh>Employee ID</MudTh>
-            <MudTh>Cycle ID</MudTh>
-            <MudTh>Form ID</MudTh>
+            <MudTh>Employee</MudTh>
+            <MudTh>Cycle</MudTh>
+            <MudTh>Form</MudTh>
             <MudTh>Self Rating</MudTh>
             <MudTh>Manager Rating</MudTh>
             <MudTh>Final Score</MudTh>
@@ -28,9 +29,9 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Eval ID">@context.EvalId</MudTd>
-            <MudTd DataLabel="Employee ID">@context.EmployeeId</MudTd>
-            <MudTd DataLabel="Cycle ID">@context.CycleId</MudTd>
-            <MudTd DataLabel="Form ID">@context.FormId</MudTd>
+            <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+            <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
+            <MudTd DataLabel="Form">@context.FormName</MudTd>
             <MudTd DataLabel="Self Rating">@context.SelfRating</MudTd>
             <MudTd DataLabel="Manager Rating">@context.ManagerRating</MudTd>
             <MudTd DataLabel="Final Score">@context.FinalRatingScore</MudTd>
@@ -38,9 +39,15 @@
                 <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status</MudChip>
             </MudTd>
             <MudTd DataLabel="Actions" Style="text-align:right">
-                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" OnClick="@(() => NavigateToDetails(context.EvalId))" Title="Details" />
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" OnClick="@(() => NavigateToEdit(context.EvalId))" Title="Edit" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeletePerformanceEvaluation(context.EvalId))" Title="Delete" />
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopRight">
+                    <MudMenuItem Icon="@Icons.Material.Filled.Visibility" OnClick="@(() => NavigateToDetails(context.EvalId))">Details</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => NavigateToEdit(context.EvalId))">Edit</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeletePerformanceEvaluation(context.EvalId))">Delete</MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.PictureAsPdf" OnClick="@(() => Download360Report(context.EvalId))">360° Feedback Report (RDLC)</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.PictureAsPdf" OnClick="@(() => DownloadAppraisalReport(context.EvalId))">Appraisal Report (RDLC)</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.PictureAsPdf" OnClick="@(() => DownloadSelfAssessmentReport(context.EvalId))">Self-Assessment Report (RDLC)</MudMenuItem>
+                </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -105,6 +112,48 @@
             {
                 Snackbar.Add("Error deleting performance evaluation.", Severity.Error);
             }
+        }
+    }
+
+    private async Task Download360Report(int evalId)
+    {
+        try
+        {
+            var pdfBytes = await ReportService.Generate360FeedbackRdlcAsync(evalId);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"360Feedback_RDLC_{evalId}.pdf");
+            Snackbar.Add("360° Feedback report downloaded successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DownloadAppraisalReport(int evalId)
+    {
+        try
+        {
+            var pdfBytes = await ReportService.GeneratePerformanceAppraisalRdlcAsync(evalId);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"PerformanceAppraisal_RDLC_{evalId}.pdf");
+            Snackbar.Add("Performance Appraisal report downloaded successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DownloadSelfAssessmentReport(int evalId)
+    {
+        try
+        {
+            var pdfBytes = await ReportService.GenerateSelfAssessmentRdlcAsync(evalId);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"SelfAssessment_RDLC_{evalId}.pdf");
+            Snackbar.Add("Self-Assessment report downloaded successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
         }
     }
 

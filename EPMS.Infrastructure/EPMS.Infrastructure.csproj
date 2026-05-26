@@ -38,6 +38,9 @@
     <EmbeddedResource Include="Reports\DepartmentPerformanceComparison.rdlc" />
     <EmbeddedResource Include="Reports\HighLowPerformerReport.rdlc" />
     <EmbeddedResource Include="Reports\PromotionIncrementRecommendation.rdlc" />
+    <EmbeddedResource Include="Reports\Feedback360.rdlc" />
+    <EmbeddedResource Include="Reports\PerformanceAppraisal.rdlc" />
+    <EmbeddedResource Include="Reports\SelfAssessment.rdlc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EPMS.Domain\EPMS.Domain.csproj" />

@@ -55,6 +55,46 @@ public class RdlcReportService : IRdlcReportService
         });
     }
 
+    public async Task<byte[]> Generate360FeedbackReportAsync(AppraisalReportDto reportData)
+    {
+        return await GenerateReportAsync("Feedback360.rdlc", reportData);
+    }
+
+    public async Task<byte[]> GeneratePerformanceAppraisalReportAsync(AppraisalReportDto reportData)
+    {
+        return await GenerateReportAsync("PerformanceAppraisal.rdlc", reportData);
+    }
+
+    public async Task<byte[]> GenerateSelfAssessmentReportAsync(AppraisalReportDto reportData)
+    {
+        return await GenerateReportAsync("SelfAssessment.rdlc", reportData);
+    }
+
+    private async Task<byte[]> GenerateReportAsync(string reportName, AppraisalReportDto reportData)
+    {
+        return await Task.Run(() =>
+        {
+            var report = new LocalReport();
+            using var reportStream = GetReportStream(reportName);
+            report.LoadReportDefinition(reportStream);
+            report.DataSources.Add(new ReportDataSource("Responses", reportData.Responses));
+            report.SetParameters(new[]
+            {
+                new ReportParameter("EmployeeName", reportData.EmployeeName),
+                new ReportParameter("EmployeeCode", reportData.EmployeeCode),
+                new ReportParameter("DepartmentName", reportData.DepartmentName),
+                new ReportParameter("PositionTitle", reportData.PositionTitle),
+                new ReportParameter("CycleName", reportData.CycleName),
+                new ReportParameter("AssessmentDate", reportData.AssessmentDate?.ToString("yyyy-MM-dd") ?? "N/A"),
+                new ReportParameter("EffectiveDate", reportData.EffectiveDate?.ToString("yyyy-MM-dd") ?? "N/A"),
+                new ReportParameter("FinalScore", reportData.FinalScore?.ToString("N2") ?? "0.00"),
+                new ReportParameter("PerformanceBand", reportData.PerformanceBand)
+            });
+
+            return report.Render("PDF");
+        });
+    }
+
     private Stream GetReportStream(string reportFileName)
     {
         var assembly = Assembly.GetExecutingAssembly();

@@ -8,4 +8,7 @@ public interface IRdlcReportService
     Task<byte[]> GenerateDepartmentPerformanceComparisonReportAsync();
     Task<byte[]> GenerateHighLowPerformerReportAsync();
     Task<byte[]> GeneratePromotionIncrementRecommendationReportAsync();
+    Task<byte[]> Generate360FeedbackReportAsync(AppraisalReportDto reportData);
+    Task<byte[]> GeneratePerformanceAppraisalReportAsync(AppraisalReportDto reportData);
+    Task<byte[]> GenerateSelfAssessmentReportAsync(AppraisalReportDto reportData);
 }

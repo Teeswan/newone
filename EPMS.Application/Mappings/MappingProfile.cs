@@ -22,17 +22,30 @@ public class MappingProfile : Profile
         CreateMap<UpdateAppraisalQuestionRequest, AppraisalQuestion>();
 
         // Appraisal Response Mappings
-        CreateMap<AppraisalResponse, AppraisalResponseDto>();
+        CreateMap<AppraisalResponse, AppraisalResponseDto>()
+            .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Question != null ? src.Question.QuestionText : null))
+            .ForMember(dest => dest.QuestionCategory, opt => opt.MapFrom(src => src.Question != null ? src.Question.Category : null))
+            .ForMember(dest => dest.RespondentName, opt => opt.MapFrom(src => src.Respondent != null ? src.Respondent.FullName : null))
+            .ForMember(dest => dest.RespondentPosition, opt => opt.MapFrom(src => src.Respondent != null && src.Respondent.Position != null ? src.Respondent.Position.PositionTitle : null))
+            .ForMember(dest => dest.RespondentDepartment, opt => opt.MapFrom(src => src.Respondent != null && src.Respondent.Department != null ? src.Respondent.Department.DepartmentName : null))
+            .ForMember(dest => dest.SortOrder, opt => opt.MapFrom(src => (src.Question != null && src.Eval != null && src.Question.FormQuestions != null) 
+                ? src.Question.FormQuestions.Where(fq => fq.FormId == src.Eval.FormId).Select(fq => (int?)fq.SortOrder).FirstOrDefault() ?? 0 : 0));
         CreateMap<CreateAppraisalResponseRequest, AppraisalResponse>();
         CreateMap<UpdateAppraisalResponseRequest, AppraisalResponse>();
 
         // Performance Evaluation Mappings
-        CreateMap<PerformanceEvaluation, PerformanceEvaluationDto>();
+        CreateMap<PerformanceEvaluation, PerformanceEvaluationDto>()
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
+            .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null))
+            .ForMember(dest => dest.FormName, opt => opt.MapFrom(src => src.Form != null ? src.Form.FormName : null))
+            .ForMember(dest => dest.Responses, opt => opt.MapFrom(src => src.AppraisalResponses));
         CreateMap<CreatePerformanceEvaluationRequest, PerformanceEvaluation>();
         CreateMap<UpdatePerformanceEvaluationRequest, PerformanceEvaluation>();
 
         // Performance Outcome Mappings
-        CreateMap<PerformanceOutcome, PerformanceOutcomeDto>();
+        CreateMap<PerformanceOutcome, PerformanceOutcomeDto>()
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
+            .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null));
         CreateMap<CreatePerformanceOutcomeRequest, PerformanceOutcome>();
         CreateMap<UpdatePerformanceOutcomeRequest, PerformanceOutcome>();
 

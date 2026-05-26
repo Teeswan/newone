@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using EPMS.Infrastructure.Contexts;
 
 namespace EPMS.Infrastructure.Services;
 
@@ -26,6 +27,7 @@ public class ExcelPdfService : IExcelPdfService
     private readonly IDepartmentService _departmentService;
     private readonly ITeamService _teamService;
     private readonly IEmployeeService _employeeService;
+    private readonly AppDbContext _context;
 
     public ExcelPdfService(
         IAppraisalCycleService cycleService,
@@ -37,7 +39,8 @@ public class ExcelPdfService : IExcelPdfService
         IPerformanceOutcomeService outcomeService,
         IDepartmentService departmentService,
         ITeamService teamService,
-        IEmployeeService employeeService)
+        IEmployeeService employeeService,
+        AppDbContext context)
     {
         _cycleService = cycleService;
         _questionService = questionService;
@@ -49,6 +52,7 @@ public class ExcelPdfService : IExcelPdfService
         _departmentService = departmentService;
         _teamService = teamService;
         _employeeService = employeeService;
+        _context = context;
     }
 
     public async Task<byte[]> ExportAppraisalCyclesToExcelAsync()
@@ -902,6 +906,79 @@ public class ExcelPdfService : IExcelPdfService
                 i.JoinDate?.ToString("yyyy-MM-dd") ?? "", 
                 (i.IsActive ?? true) ? "Active" : "Inactive" 
             }).ToList());
+    }
+
+    public async Task<byte[]> Export360FeedbackReportAsync(int evalId, string? respondentRole = null)
+    {
+        var responses = await _responseService.GetByEvalIdAsync(evalId);
+        if (respondentRole != null)
+        {
+            responses = responses.Where(r => r.RespondentRole == respondentRole);
+        }
+
+        var rows = responses.Select(r => new[]
+        {
+            r.QuestionText ?? "",
+            r.RespondentName ?? "",
+            r.RespondentRole ?? "",
+            r.RatingValue?.ToString() ?? "",
+            r.AnswerText ?? ""
+        }).ToList();
+
+        return GeneratePdf("360° Feedback Report", 
+            new[] { "Question", "Evaluator", "Role", "Rating", "Comments" }, 
+            rows);
+    }
+
+    public async Task<byte[]> ExportPerformanceAppraisalReportAsync(int evalId)
+    {
+        var evaluation = await _evaluationService.GetByIdAsync(evalId);
+        var responses = (await _responseService.GetByEvalIdAsync(evalId)).ToList();
+        
+        var scales = _context.RatingScales.ToList();
+        var band = scales.OrderByDescending(s => s.RatingLevel)
+            .FirstOrDefault(s => evaluation != null && evaluation.FinalRatingScore >= s.RatingLevel);
+
+        var rows = responses
+            .OrderBy(r => r.QuestionCategory)
+            .ThenBy(r => r.SortOrder)
+            .Select(r => new[]
+            {
+                r.QuestionCategory ?? "",
+                r.SortOrder?.ToString() ?? "",
+                r.QuestionText ?? "",
+                r.RatingValue?.ToString() ?? "",
+                r.AnswerText ?? ""
+            }).ToList();
+
+        var footerRows = new List<string[]>
+        {
+            new[] { "", "", "Final Rating Score:", evaluation?.FinalRatingScore?.ToString() ?? "0", "" },
+            new[] { "", "", "Performance Band:", band?.Label ?? "N/A", "" }
+        };
+        rows.AddRange(footerRows);
+
+        return GeneratePdf("Performance Appraisal Report", 
+            new[] { "Category", "No.", "Question", "Rating", "Comments" }, 
+            rows);
+    }
+
+    public async Task<byte[]> ExportSelfAssessmentReportAsync(int evalId, int employeeId)
+    {
+        var responses = (await _responseService.GetByEvalIdAsync(evalId))
+            .Where(r => r.RespondentEmployeeId == employeeId)
+            .ToList();
+
+        var rows = responses.Select(r => new[]
+        {
+            r.QuestionText ?? "",
+            r.RatingValue?.ToString() ?? "N/A",
+            r.AnswerText ?? "N/A"
+        }).ToList();
+
+        return GeneratePdf("Self-Assessment Report", 
+            new[] { "Question", "Yes/No (Rating)", "Comments" }, 
+            rows);
     }
 
     private static void StyleHeaderRow(IXLWorksheet ws, int columnCount)

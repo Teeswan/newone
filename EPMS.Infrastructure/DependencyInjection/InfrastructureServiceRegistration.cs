@@ -182,6 +182,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPipObjectiveRepository, PipObjectiveRepository>();
         services.AddScoped<IPipMeetingRepository, PipMeetingRepository>();
         services.AddScoped<IPipReportRepository, PipReportRepository>();
+        services.AddScoped<IRatingScaleRepository, RatingScaleRepository>();
 
         return services;
     }

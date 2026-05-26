@@ -84,6 +84,22 @@
                 </MudStack>
             </MudPaper>
         </MudItem>
+        <MudItem xs="12" sm="6" md="4" lg="3">
+            <MudPaper Class="pa-6" Elevation="2">
+                <MudStack Row="false" Gap="3" AlignItems="AlignItems.Stretch">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Large" Color="Color.Warning" />
+                    <MudText Typo="Typo.h6">Appraisal Reports</MudText>
+                    <MudText Typo="Typo.body2" Class="text-gray-600">360°, Performance Appraisal, and Self-Assessment reports</MudText>
+                    <MudSpacer />
+                    <MudStack Row="true" Gap="2">
+                        <MudButton Color="Color.Warning" Variant="Variant.Filled" FullWidth="true" OnClick="@(() => NavManager.NavigateTo("/performanceevaluations"))">
+                            <MudIcon Icon="@Icons.Material.Filled.List" Class="mr-2" />
+                            Go to Evaluations
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 

@@ -2,26 +2,56 @@
 @using EPMS.Shared.Requests
 @using EPMS.Domain.Enums
 @using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
 @inject IPerformanceEvaluationBlazorService PerformanceEvaluationService
+@inject IEmployeeBlazorService EmployeeService
+@inject IAppraisalCycleBlazorService CycleService
+@inject IAppraisalFormBlazorService FormService
+@inject IFormQuestionBlazorService FormQuestionService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     <MudPaper Class="pa-8" Elevation="3">
         <MudText Typo="Typo.h4" Class="mb-4">Create Performance Evaluation</MudText>
         <MudDivider Class="mb-6" />
 
         <MudForm Model="@createRequest" @ref="@form" ValidationDelay="0">
             <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudNumericField Label="Employee ID" @bind-Value="createRequest.EmployeeId" Required="true" Variant="Variant.Outlined" />
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Employee" Value="createRequest.EmployeeId" ValueChanged="@(v => OnEmployeeChanged(v))" Required="true" Variant="Variant.Outlined">
+                        @if (employees != null)
+                        {
+                            @foreach (var emp in employees)
+                            {
+                                <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName (@emp.EmployeeCode)</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudNumericField Label="Cycle ID" @bind-Value="createRequest.CycleId" Required="true" Variant="Variant.Outlined" />
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Appraisal Cycle" @bind-Value="createRequest.CycleId" Required="true" Variant="Variant.Outlined">
+                        @if (cycles != null)
+                        {
+                            @foreach (var cycle in cycles)
+                            {
+                                <MudSelectItem T="int?" Value="@cycle.CycleId">@cycle.CycleName</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudNumericField Label="Form ID" @bind-Value="createRequest.FormId" Required="true" Variant="Variant.Outlined" />
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int" Label="Appraisal Form" Value="createRequest.FormId" ValueChanged="@(v => OnFormChanged(v))" Required="true" Variant="Variant.Outlined">
+                        @if (forms != null)
+                        {
+                            @foreach (var formItem in forms)
+                            {
+                                <MudSelectItem T="int" Value="@formItem.FormId">@formItem.FormName</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                 </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudSelect T="PerformanceEvaluationStatus?" Label="Status" @bind-Value="createRequest.Status" Variant="Variant.Outlined">
                         @foreach (PerformanceEvaluationStatus status in Enum.GetValues(typeof(PerformanceEvaluationStatus)))
@@ -30,6 +60,10 @@
                         }
                     </MudSelect>
                 </MudItem>
+                <MudItem xs="12" sm="6" Class="d-flex align-center">
+                    <MudCheckBox T="bool" @bind-Value="isFinalizedValue" Label="Is Finalized" Color="Color.Primary" />
+                </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudNumericField Label="Self Rating" @bind-Value="createRequest.SelfRating" Variant="Variant.Outlined" Min="0" Max="5" />
                 </MudItem>
@@ -37,16 +71,72 @@
                     <MudNumericField Label="Manager Rating" @bind-Value="createRequest.ManagerRating" Variant="Variant.Outlined" Min="0" Max="5" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField Label="Self Comments" @bind-Value="createRequest.SelfComments" Variant="Variant.Outlined" Lines="3" />
+                    <MudTextField Label="Self Comments" @bind-Value="createRequest.SelfComments" Variant="Variant.Outlined" Lines="2" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField Label="Manager Comments" @bind-Value="createRequest.ManagerComments" Variant="Variant.Outlined" Lines="3" />
+                    <MudTextField Label="Manager Comments" @bind-Value="createRequest.ManagerComments" Variant="Variant.Outlined" Lines="2" />
                 </MudItem>
+
+                <MudItem xs="12" Class="mt-6">
+                    <MudText Typo="Typo.h5" Class="mb-4">Evaluation Feedback (360 Feedback)</MudText>
+                    <MudTable Items="@createRequest.Responses" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Class="border">
+                        <HeaderContent>
+                            <MudTh>Evaluator</MudTh>
+                            <MudTh>Role</MudTh>
+                            <MudTh>Question</MudTh>
+                            <MudTh>Rating</MudTh>
+                            <MudTh>Comments</MudTh>
+                            <MudTh>Action</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="response">
+                            <MudTd DataLabel="Evaluator">
+                                <MudSelect T="int?" @bind-Value="response.RespondentEmployeeId" Variant="Variant.Text">
+                                    @if (employees != null)
+                                    {
+                                        @foreach (var emp in employees)
+                                        {
+                                            <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName</MudSelectItem>
+                                        }
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Role">
+                                <MudSelect T="string" @bind-Value="response.RespondentRole" Variant="Variant.Text">
+                                    <MudSelectItem Value="@("Self")">Self</MudSelectItem>
+                                    <MudSelectItem Value="@("Manager")">Manager</MudSelectItem>
+                                    <MudSelectItem Value="@("Peer")">Peer</MudSelectItem>
+                                    <MudSelectItem Value="@("Subordinate")">Subordinate</MudSelectItem>
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Question">
+                                <MudSelect T="int?" @bind-Value="response.QuestionId" Variant="Variant.Text">
+                                    @if (formQuestions != null)
+                                    {
+                                        @foreach (var q in formQuestions)
+                                        {
+                                            <MudSelectItem T="int?" Value="@q.QuestionId">@q.QuestionText</MudSelectItem>
+                                        }
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Rating">
+                                <MudRating SelectedValue="@(response.RatingValue ?? 0)" SelectedValueChanged="@(v => response.RatingValue = v)" MaxValue="5" />
+                            </MudTd>
+                            <MudTd DataLabel="Comments">
+                                <MudTextField @bind-Value="response.AnswerText" Variant="Variant.Text" />
+                            </MudTd>
+                            <MudTd>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveResponse(response))" />
+                            </MudTd>
+                        </RowTemplate>
+                        <FooterContent>
+                            <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddResponse">Add Evaluator Feedback</MudButton>
+                        </FooterContent>
+                    </MudTable>
+                </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudNumericField Label="Final Rating Score" @bind-Value="createRequest.FinalRatingScore" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6" Class="d-flex align-center">
-                    <MudCheckBox T="bool" @bind-Value="isFinalizedValue" Label="Is Finalized" Color="Color.Primary" />
                 </MudItem>
 
                 <MudItem xs="12" Class="d-flex justify-end mt-4">
@@ -62,6 +152,122 @@
     private MudForm? form;
     private CreatePerformanceEvaluationRequest createRequest = new() { Status = PerformanceEvaluationStatus.Draft };
     private bool isFinalizedValue { get; set; } = false;
+
+    private List<EmployeeDto>? employees;
+    private List<AppraisalCycleDto>? cycles;
+    private List<AppraisalFormDto>? forms;
+    private List<FormQuestionDto>? formQuestions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            employees = await EmployeeService.GetEmployeesAsync();
+            var cyclesEnumerable = await CycleService.GetAllAppraisalCyclesAsync();
+            cycles = cyclesEnumerable.ToList();
+            var formsEnumerable = await FormService.GetAllAppraisalFormsAsync();
+            forms = formsEnumerable.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading lookup data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OnEmployeeChanged(int? empId)
+    {
+        createRequest.EmployeeId = empId;
+        if (empId.HasValue)
+        {
+            var emp = employees?.FirstOrDefault(e => e.EmployeeId == empId.Value);
+            if (emp != null)
+            {
+                // Auto-add manager if available
+                if (emp.ReportsTo.HasValue)
+                {
+                    AddEvaluatorFeedback(emp.ReportsTo.Value, "Manager");
+                }
+                // Auto-add self
+                AddEvaluatorFeedback(emp.EmployeeId, "Self");
+            }
+        }
+    }
+
+    private async Task OnFormChanged(int formId)
+    {
+        createRequest.FormId = formId;
+        try
+        {
+            var questions = await FormQuestionService.GetByFormIdAsync(formId);
+            formQuestions = questions.ToList();
+            
+            // If we already have evaluators but no questions assigned, assign them now
+            var evaluators = createRequest.Responses
+                .Where(r => r.RespondentEmployeeId.HasValue && !r.QuestionId.HasValue)
+                .Select(r => new { r.RespondentEmployeeId, r.RespondentRole })
+                .Distinct()
+                .ToList();
+
+            foreach (var eval in evaluators)
+            {
+                // Remove the empty row
+                var emptyRow = createRequest.Responses.FirstOrDefault(r => r.RespondentEmployeeId == eval.RespondentEmployeeId && !r.QuestionId.HasValue);
+                if (emptyRow != null) createRequest.Responses.Remove(emptyRow);
+
+                // Add questions for this evaluator
+                foreach (var q in formQuestions)
+                {
+                    createRequest.Responses.Add(new CreateAppraisalResponseRequest
+                    {
+                        RespondentEmployeeId = eval.RespondentEmployeeId,
+                        RespondentRole = eval.RespondentRole,
+                        QuestionId = q.QuestionId
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading form questions: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void AddResponse()
+    {
+        createRequest.Responses.Add(new CreateAppraisalResponseRequest());
+    }
+
+    private void AddEvaluatorFeedback(int employeeId, string role)
+    {
+        if (formQuestions != null && formQuestions.Any())
+        {
+            foreach (var q in formQuestions)
+            {
+                if (!createRequest.Responses.Any(r => r.RespondentEmployeeId == employeeId && r.QuestionId == q.QuestionId))
+                {
+                    createRequest.Responses.Add(new CreateAppraisalResponseRequest
+                    {
+                        RespondentEmployeeId = employeeId,
+                        RespondentRole = role,
+                        QuestionId = q.QuestionId
+                    });
+                }
+            }
+        }
+        else
+        {
+             createRequest.Responses.Add(new CreateAppraisalResponseRequest
+             {
+                 RespondentEmployeeId = employeeId,
+                 RespondentRole = role
+             });
+        }
+    }
+
+    private void RemoveResponse(CreateAppraisalResponseRequest response)
+    {
+        createRequest.Responses.Remove(response);
+    }
 
     private async Task HandleValidSubmit()
     {
