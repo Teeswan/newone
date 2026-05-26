@@ -6,12 +6,34 @@
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
 
+<style>
+    .login-appbar {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+    }
+
+    .login-main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+    }
+
+    .main-layout, .mud-layout {
+        height: 100% !important;
+    }
+</style>
+
 <MudThemeProvider />
-<MudLayout>
-    <MudAppBar Elevation="8" Color="Color.Primary">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+<MudLayout Class="main-layout">
+    <MudAppBar Elevation="0" Class="@(IsLoginPage ? "login-appbar" : "")" Color="Color.Primary">
+        @if (!IsLoginPage)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        }
         <div class="d-flex align-items-center">
-            <MudAvatar Color="Color.Secondary" Size="Size.Medium" Class="mr-3">
+            <MudAvatar Color="@(IsLoginPage ? Color.Inherit : Color.Secondary)" Size="Size.Medium" Class="mr-3">
                 <MudIcon Icon="@Icons.Material.Filled.Insights" Size="Size.Medium" />
             </MudAvatar>
             <div>
@@ -21,7 +43,7 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
-                <MudChip T="string" Color="Color.Secondary" Size="Size.Medium" Class="mr-4">
+                <MudChip T="string" Color="@(IsLoginPage ? Color.Inherit : Color.Secondary)" Size="Size.Medium" Class="mr-4">
                     Welcome, @context.User.Identity?.Name!
                 </MudChip>
                 <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="HandleLogout" StartIcon="@Icons.Material.Filled.Logout">
@@ -29,24 +51,31 @@
                 </MudButton>
             </Authorized>
             <NotAuthorized>
-                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" Href="/login" StartIcon="@Icons.Material.Filled.Login">
-                    Login
-                </MudButton>
+                @if (!IsLoginPage)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Inherit" Href="/login" StartIcon="@Icons.Material.Filled.Login">
+                        Login
+                    </MudButton>
+                }
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="4">
-        <NavMenu CloseDrawer="() => _drawerOpen = false" />
-    </MudDrawer>
+    @if (!IsLoginPage)
+    {
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="4">
+            <NavMenu CloseDrawer="() => _drawerOpen = false" />
+        </MudDrawer>
+    }
 
-    <MudMainContent Class="mt-16 pa-8">
+    <MudMainContent Class="@(IsLoginPage ? "login-main-content" : "mt-16 pa-8")">
         @Body
     </MudMainContent>
 </MudLayout>
 
 @code {
     private bool _drawerOpen = true;
+    private bool IsLoginPage => Navigation.Uri.Contains("/login");
 
     private async Task HandleLogout()
     {
