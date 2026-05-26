@@ -24,7 +24,7 @@ public class GetPositionKpiByIdQueryHandler : IRequestHandler<GetPositionKpiById
 
     public async Task<Result<PositionKpiDto>> Handle(GetPositionKpiByIdQuery request, CancellationToken cancellationToken)
     {
-        var cacheKey = $"positionkpi:id:{request.Id}";
+        var cacheKey = $"positionkpi:id:{request.Id}:v2";
         var cached = await _cacheService.GetAsync<PositionKpiDto>(cacheKey);
         if (cached != null) return Result<PositionKpiDto>.Success(cached);
 
@@ -39,8 +39,6 @@ public class GetPositionKpiByIdQueryHandler : IRequestHandler<GetPositionKpiById
             Category = kpi.Kpi.Category,
             Unit = kpi.Kpi.Unit,
             WeightPercent = kpi.DefaultWeightPercent,
-            TargetValue = kpi.Kpi.TargetValue,
-            PriorityLevel = kpi.Kpi.PriorityLevel,
             Direction = kpi.Kpi.Direction,
             PositionId = kpi.PositionId,
             PositionName = kpi.Position?.PositionTitle,

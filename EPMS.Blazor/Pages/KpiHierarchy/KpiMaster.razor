@@ -28,8 +28,6 @@
                 <MudTh>Name</MudTh>
                 <MudTh>Category</MudTh>
                 <MudTh>Unit</MudTh>
-                <MudTh>Weight %</MudTh>
-                <MudTh>Priority</MudTh>
                 <MudTh>Direction</MudTh>
                 <MudTh>Status</MudTh>
                 <MudTh>Actions</MudTh>
@@ -38,10 +36,6 @@
                 <MudTd DataLabel="Name">@context.KpiName</MudTd>
                 <MudTd DataLabel="Category">@context.Category</MudTd>
                 <MudTd DataLabel="Unit">@context.Unit</MudTd>
-                <MudTd DataLabel="Weight %">@context.WeightPercent%</MudTd>
-                <MudTd DataLabel="Priority">
-                    <MudChip T="string" Color="@GetPriorityColor(context.PriorityLevel)" Size="Size.Small">@context.PriorityLevel</MudChip>
-                </MudTd>
                 <MudTd DataLabel="Direction">@context.Direction</MudTd>
                 <MudTd DataLabel="Status">
                     <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">@(context.IsActive ? "Active" : "Inactive")</MudChip>
@@ -93,14 +87,7 @@
         return false;
     }
 
-    private Color GetPriorityColor(PriorityLevel priority) => priority switch
-    {
-        PriorityLevel.Critical => Color.Error,
-        PriorityLevel.High => Color.Warning,
-        PriorityLevel.Medium => Color.Info,
-        PriorityLevel.Lower => Color.Default,
-        _ => Color.Default
-    };
+
 
     private async Task OpenCreateDialog()
     {

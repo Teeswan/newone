@@ -7,7 +7,7 @@ BEGIN
         AssignmentId,
         EmployeeID,
         CycleID,
-        KPI_ID,
+        KpiID,
         KpiNameSnapshot,
         CategorySnapshot,
         UnitSnapshot,

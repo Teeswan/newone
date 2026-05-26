@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EPMS.Shared.Requests;
 
-public class LoginRequest
+public class  LoginRequest
 {
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Please enter a valid email address")]

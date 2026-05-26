@@ -38,9 +38,6 @@ namespace EPMS.Application.Services
                 request.KpiName,
                 request.Category,
                 request.Unit,
-                request.WeightPercent,
-                request.TargetValue,
-                request.PriorityLevel,
                 request.Direction,
                 createdByEmployeeId);
             
@@ -57,9 +54,6 @@ namespace EPMS.Application.Services
                 request.KpiName,
                 request.Category,
                 request.Unit,
-                request.WeightPercent,
-                request.TargetValue,
-                request.PriorityLevel,
                 request.Direction);
             
             await _repository.UpdateAsync(entity);
@@ -110,7 +104,7 @@ namespace EPMS.Application.Services
             var entity = DepartmentKpi.Create(
                 request.DepartmentId,
                 request.CycleId,
-                request.KpiMasterId,
+                request.KpiId,
                 request.DepartmentTarget,
                 request.Weight);
             

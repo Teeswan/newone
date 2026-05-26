@@ -19,16 +19,13 @@ public class UpdateKpiAssignmentCommandHandler : IRequestHandler<UpdateKpiAssign
 {
     private readonly EPMS.Domain.Interfaces.IKpiAssignmentRepository _repository;
     private readonly EPMS.Domain.Interfaces.IUnitOfWork _unitOfWork;
-    private readonly EPMS.Domain.Interfaces.IKpiScoreCalculator _scoreCalculator;
 
     public UpdateKpiAssignmentCommandHandler(
         EPMS.Domain.Interfaces.IKpiAssignmentRepository repository,
-        EPMS.Domain.Interfaces.IUnitOfWork unitOfWork,
-        EPMS.Domain.Interfaces.IKpiScoreCalculator scoreCalculator)
+        EPMS.Domain.Interfaces.IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
-        _scoreCalculator = scoreCalculator;
     }
 
     public async Task<Result<bool>> Handle(UpdateKpiAssignmentCommand request, CancellationToken cancellationToken)
@@ -48,12 +45,6 @@ public class UpdateKpiAssignmentCommandHandler : IRequestHandler<UpdateKpiAssign
         if (request.ActualValue.HasValue && assignment.Status == KpiAssignmentStatus.Active)
         {
             assignment.SetActualValue(request.ActualValue.Value);
-            var kpiScore = _scoreCalculator.CalculateKpiScore(
-                request.ActualValue.Value,
-                request.TargetValue,
-                request.Direction);
-            var weightedScore = _scoreCalculator.CalculateWeightedScore(kpiScore, request.WeightPercent);
-            assignment.UpdateScores(kpiScore, weightedScore);
         }
 
         await _repository.UpdateAsync(assignment);

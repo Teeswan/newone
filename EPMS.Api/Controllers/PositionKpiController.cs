@@ -32,7 +32,7 @@ public class PositionKpiController : ControllerBase
     [HttpGet]
     [HasPermission(Permissions.Kpis.View)]
     public async Task<ActionResult<ApiResponse<IEnumerable<PositionKpiDto>>>> GetList([FromQuery] GetPositionKpiListQuery query)
-    {
+     {
         var result = await _mediator.Send(query);
         return result.IsSuccess 
             ? Ok(ApiResponse<IEnumerable<PositionKpiDto>>.SuccessResponse(result.Value!))
@@ -73,7 +73,7 @@ public class PositionKpiController : ControllerBase
     [HasPermission(Permissions.Kpis.Manage)]
     public async Task<ActionResult<ApiResponse<object>>> Update(int id, UpdatePositionKpiCommand command)
     {
-        if (id != command.KpiId) return BadRequest(ApiResponse<object>.FailureResponse("ID mismatch"));
+        if (id != command.PositionKpiId) return BadRequest(ApiResponse<object>.FailureResponse("ID mismatch"));
         var result = await _mediator.Send(command);
         return result.IsSuccess 
             ? Ok(ApiResponse<object>.SuccessResponse(null!, "Updated successfully"))

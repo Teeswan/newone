@@ -7,7 +7,7 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
-public record DeletePositionKpiCommand(int KpiId, int? EmployeeId) : IRequest<Result>;
+public record DeletePositionKpiCommand(int PositionKpiId, int? EmployeeId) : IRequest<Result>;
 
 public class DeletePositionKpiCommandHandler : IRequestHandler<DeletePositionKpiCommand, Result>
 {
@@ -27,16 +27,16 @@ public class DeletePositionKpiCommandHandler : IRequestHandler<DeletePositionKpi
 
     public async Task<Result> Handle(DeletePositionKpiCommand request, CancellationToken cancellationToken)
     {
-        var positionKpi = await _repository.GetByIdAsync(request.KpiId);
+        var positionKpi = await _repository.GetByIdAsync(request.PositionKpiId);
         if (positionKpi == null) return Result.Failure("KPI not found.");
 
         // Check if referenced by ANY cycle, not just active ones, to maintain data integrity
-        if (await _repository.IsKpiReferencedByActiveCycleAsync(request.KpiId))
+        if (await _repository.IsKpiReferencedByActiveCycleAsync(positionKpi.KpiId))
         {
             return Result.Failure("Cannot delete KPI as it is currently referenced in an appraisal cycle.");
         }
 
-        await _repository.DeleteAsync(request.KpiId);
+        await _repository.DeleteAsync(request.PositionKpiId);
 
         await _cacheService.RemoveAsync($"positionkpi:id:{positionKpi.PositionKpiId}");
         await _cacheService.RemoveByPatternAsync("positionkpi:list:*");

@@ -24,26 +24,47 @@ public class KpiCacheService : IKpiCacheService
 
     public async Task<T?> GetAsync<T>(string key)
     {
-        var cachedData = await _cache.GetStringAsync(key);
-        if (cachedData == null)
+        try
         {
-            _logger.LogDebug("Cache MISS for key: {Key}", key);
+            var cachedData = await _cache.GetStringAsync(key);
+            if (cachedData == null)
+            {
+                _logger.LogDebug("Cache MISS for key: {Key}", key);
+                return default;
+            }
+
+            _logger.LogDebug("Cache HIT for key: {Key}", key);
+            return JsonSerializer.Deserialize<T>(cachedData, _jsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to deserialize cache data for key: {Key}, treating as cache miss", key);
+            await _cache.RemoveAsync(key);
             return default;
         }
-
-        _logger.LogDebug("Cache HIT for key: {Key}", key);
-        return JsonSerializer.Deserialize<T>(cachedData, _jsonOptions);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error accessing cache for key: {Key}", key);
+            return default;
+        }
     }
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null)
     {
-        var options = new DistributedCacheEntryOptions
+        try
         {
-            AbsoluteExpirationRelativeToNow = expiration ?? TimeSpan.FromMinutes(30)
-        };
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration ?? TimeSpan.FromMinutes(30)
+            };
 
-        var jsonData = JsonSerializer.Serialize(value, _jsonOptions);
-        await _cache.SetStringAsync(key, jsonData, options);
+            var jsonData = JsonSerializer.Serialize(value, _jsonOptions);
+            await _cache.SetStringAsync(key, jsonData, options);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set cache for key: {Key}", key);
+        }
     }
 
     public async Task RemoveAsync(string key)

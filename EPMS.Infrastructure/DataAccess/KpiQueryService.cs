@@ -21,10 +21,32 @@ public class KpiQueryService : IKpiQueryService
     public async Task<IEnumerable<PositionKpiDto>> GetKpiByPositionAsync(int? positionId, bool isActive = true)
     {
         using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = @"
+        SELECT 
+            pk.PositionKPIID as PositionKpiId,
+            pk.KpiID as KpiId,
+            k.KPIName as KpiName,
+            k.Category as Category,
+            k.Unit as Unit,
+            pk.DefaultWeightPercent as WeightPercent,
+            k.Direction as Direction,
+            pk.PositionID as PositionId,
+            p.PositionTitle as PositionName,
+            pk.IsRequired as IsRequired,
+            k.IsActive as IsKpiActive,
+            pk.IsActive as IsPositionKpiActive
+        FROM PositionKPIs pk
+        INNER JOIN KPIs k ON pk.KpiID = k.KpiID
+        LEFT JOIN Positions p ON pk.PositionID = p.PositionID
+        WHERE (@PositionId IS NULL OR pk.PositionID = @PositionId)
+          AND k.IsActive = @IsActive
+          AND pk.IsActive = 1
+        ORDER BY k.KPIName";
+
         return await connection.QueryAsync<PositionKpiDto>(
-            "sp_GetKpiByPosition",
-            new { PositionId = positionId, IsActive = isActive },
-            commandType: CommandType.StoredProcedure);
+            sql,
+            new { PositionId = positionId, IsActive = isActive });
     }
 
     public async Task<IEnumerable<EmployeeKpiAssignmentDto>> GetEmployeeKpiAssignmentAsync(int employeeId, int cycleId)

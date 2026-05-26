@@ -13,16 +13,13 @@ public record EnterActualValueCommand(int AssignmentId, decimal ActualValue, int
 public class EnterActualValueCommandHandler : IRequestHandler<EnterActualValueCommand, Result<KpiScoreSummaryDto>>
 {
     private readonly IKpiAssignmentRepository _repository;
-    private readonly IKpiScoreCalculator _scoreCalculator;
     private readonly IKpiQueryService _queryService;
 
     public EnterActualValueCommandHandler(
         IKpiAssignmentRepository repository,
-        IKpiScoreCalculator scoreCalculator,
         IKpiQueryService queryService)
     {
         _repository = repository;
-        _scoreCalculator = scoreCalculator;
         _queryService = queryService;
     }
 
@@ -32,11 +29,6 @@ public class EnterActualValueCommandHandler : IRequestHandler<EnterActualValueCo
         if (assignment == null) return Result<KpiScoreSummaryDto>.Failure("Assignment not found.");
 
         assignment.SetActualValue(request.ActualValue);
-
-        var score = _scoreCalculator.CalculateKpiScore(request.ActualValue, assignment.TargetValue, assignment.Direction);
-        var weightedScore = _scoreCalculator.CalculateWeightedScore(score, assignment.WeightPercent);
-
-        assignment.UpdateScores(score, weightedScore);
         await _repository.UpdateAsync(assignment);
 
         var summary = await _queryService.GetKpiScoreSummaryAsync(assignment.EmployeeId, assignment.CycleId);

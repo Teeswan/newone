@@ -39,7 +39,6 @@
         <MudTh>Position</MudTh>
         <MudTh>Category</MudTh>
         <MudTh>Weight (%)</MudTh>
-        <MudTh>Priority</MudTh>
         <MudTh>Direction</MudTh>
         <MudTh>Active</MudTh>
         <MudTh>Actions</MudTh>
@@ -49,9 +48,6 @@
         <MudTd DataLabel="Position">@(context.PositionName ?? "Global")</MudTd>
         <MudTd DataLabel="Category">@context.Category</MudTd>
         <MudTd DataLabel="Weight (%)">@context.WeightPercent%</MudTd>
-        <MudTd DataLabel="Priority">
-            <MudChip T="string" Color="@GetPriorityColor(context.PriorityLevel)" Size="Size.Small">@context.PriorityLevel</MudChip>
-        </MudTd>
         <MudTd DataLabel="Direction">@context.Direction</MudTd>
         <MudTd DataLabel="Active">
             <MudIcon Icon="@(context.IsActive ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" 

@@ -14,7 +14,7 @@ public class PositionKpiConfiguration : IEntityTypeConfiguration<PositionKpi>
         builder.Property(k => k.PositionKpiId).HasColumnName("PositionKPIID");
 
         builder.Property(k => k.PositionId).HasColumnName("PositionID");
-        builder.Property(k => k.KpiId).HasColumnName("KPI_ID");
+        builder.Property(k => k.KpiId).HasColumnName("KpiID");
 
         builder.Property(k => k.DefaultWeightPercent)
             .HasColumnType("decimal(5, 2)")

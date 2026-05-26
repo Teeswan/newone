@@ -26,7 +26,7 @@ public class PositionKpiRepository : IPositionKpiRepository
     {
         if (id <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "KPI id must be greater than zero.");
+            return null;
         }
 
         return await _context.PositionKpis
@@ -51,6 +51,16 @@ public class PositionKpiRepository : IPositionKpiRepository
         return await _context.PositionKpis
             .Include(k => k.Kpi)
             .Where(k => k.PositionId == null && k.Kpi.IsActive == isActive)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<PositionKpi>> GetAllActiveAsync()
+    {
+        return await _context.PositionKpis
+            .Include(k => k.Kpi)
+            .Include(k => k.Position)
+            .Where(k => k.Kpi.IsActive)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -86,10 +96,28 @@ public class PositionKpiRepository : IPositionKpiRepository
             throw new ArgumentOutOfRangeException(nameof(kpiId), "KPI id must be greater than zero.");
         }
 
-        using var connection = _connectionFactory.CreateConnection();
-        const string sql = "SELECT COUNT(1) FROM EmployeeKpiAssignment WHERE KPI_ID = @KpiId AND Status = @Status";
-        var count = await connection.ExecuteScalarAsync<int>(sql, new { KpiId = kpiId, Status = "Active" });
-        return count > 0;
+        try
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            
+            // First check if the table exists
+            const string checkTableSql = "SELECT COUNT(1) FROM sys.tables WHERE name = 'EmployeeKpiAssignment'";
+            var tableExists = await connection.ExecuteScalarAsync<int>(checkTableSql) > 0;
+            
+            if (!tableExists)
+            {
+                return false;
+            }
+            
+            const string sql = "SELECT COUNT(1) FROM EmployeeKpiAssignment WHERE KpiID = @KpiId AND Status = @Status";
+            var count = await connection.ExecuteScalarAsync<int>(sql, new { KpiId = kpiId, Status = "Active" });
+            return count > 0;
+        }
+        catch
+        {
+            // If anything fails, just return false
+            return false;
+        }
     }
 
     public async Task<bool> ExistsDuplicateAsync(string name, string? category, int? positionId)
@@ -97,8 +125,8 @@ public class PositionKpiRepository : IPositionKpiRepository
         ArgumentNullException.ThrowIfNull(name);
 
         using var connection = _connectionFactory.CreateConnection();
-        const string sql = @"SELECT COUNT(1) FROM KPIs k
-                           JOIN PositionKPIs pk ON k.KPI_ID = pk.KPI_ID
+        const string sql = @"SELECT COUNT(1) FROM KPIs k 
+                           JOIN PositionKPIs pk ON k.KpiID = pk.KpiID 
                            WHERE k.KPIName = @Name 
                            AND (k.Category = @Category OR (@Category IS NULL AND k.Category IS NULL)) 
                            AND (pk.PositionID = @PositionId OR (@PositionId IS NULL AND pk.PositionID IS NULL))

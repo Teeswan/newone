@@ -62,9 +62,6 @@ public class BulkImportPositionKpiCommandHandler
                     importDto.KpiName,
                     importDto.Category,
                     importDto.Unit,
-                    importDto.WeightPercent,
-                    importDto.TargetValue,
-                    importDto.PriorityLevel,
                     importDto.Direction,
                     request.EmployeeId);
 

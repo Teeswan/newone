@@ -9,6 +9,7 @@ public interface IPositionKpiRepository
     Task<PositionKpi?> GetByIdAsync(int id);
     Task<IEnumerable<PositionKpi>> GetListByPositionAsync(int? positionId, bool isActive = true);
     Task<IEnumerable<PositionKpi>> GetGlobalKpisAsync(bool isActive = true);
+    Task<IEnumerable<PositionKpi>> GetAllActiveAsync();
     Task AddAsync(PositionKpi kpi);
     Task UpdateAsync(PositionKpi kpi);
     Task DeleteAsync(int id);

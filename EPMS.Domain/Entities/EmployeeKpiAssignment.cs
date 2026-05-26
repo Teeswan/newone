@@ -21,8 +21,8 @@ public class EmployeeKpiAssignment
     public decimal TargetValue { get; private set; }
     
     public decimal? ActualValue { get; private set; }
-    public decimal? KpiScore { get; private set; }
-    public decimal? WeightedScore { get; private set; }
+    public decimal? KpiScore { get; }
+    public decimal? WeightedScore { get; }
     public int VersionNo { get; private set; } = 1;
     public KpiAssignmentStatus Status { get; private set; } = KpiAssignmentStatus.Draft;
     public bool IsAdHoc { get; private set; }
@@ -58,7 +58,7 @@ public class EmployeeKpiAssignment
             UnitSnapshot = kpi.Kpi.Unit,
             Direction = kpi.Kpi.Direction,
             WeightPercent = kpi.DefaultWeightPercent,
-            TargetValue = kpi.Kpi.TargetValue ?? 0,
+            TargetValue = 0,
             IsAdHoc = false,
             CreatedAt = DateTime.UtcNow,
             Status = KpiAssignmentStatus.Draft
@@ -113,12 +113,6 @@ public class EmployeeKpiAssignment
         WeightPercent = weight;
         TargetValue = target;
         VersionNo++;
-    }
-
-    public void UpdateScores(decimal kpiScore, decimal weightedScore)
-    {
-        KpiScore = kpiScore;
-        WeightedScore = weightedScore;
     }
 
     public void Activate()

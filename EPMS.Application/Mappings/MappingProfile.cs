@@ -100,14 +100,14 @@ public class MappingProfile : Profile
         CreateMap<DepartmentKpi, DepartmentKpiDto>()
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null))
-            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.KpiMaster != null ? src.KpiMaster.KpiName : null));
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.Kpi != null ? src.Kpi.KpiName : null));
         CreateMap<TeamKpi, TeamKpiDto>()
             .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null))
-            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.DepartmentKpi != null && src.DepartmentKpi.KpiMaster != null ? src.DepartmentKpi.KpiMaster.KpiName : null))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.DepartmentKpi != null && src.DepartmentKpi.Kpi != null ? src.DepartmentKpi.Kpi.KpiName : null))
             .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.DepartmentKpi != null ? src.DepartmentKpi.DepartmentTarget : 0));
         CreateMap<EmployeeKpi, EmployeeKpiDto>()
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
-            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.TeamKpi != null && src.TeamKpi.DepartmentKpi != null && src.TeamKpi.DepartmentKpi.KpiMaster != null ? src.TeamKpi.DepartmentKpi.KpiMaster.KpiName : null))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.TeamKpi != null && src.TeamKpi.DepartmentKpi != null && src.TeamKpi.DepartmentKpi.Kpi != null ? src.TeamKpi.DepartmentKpi.Kpi.KpiName : null))
             .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.TeamKpi != null ? src.TeamKpi.TeamTarget : 0));
 
         CreateMap<OneOnOneMeeting, MeetingDto>()
@@ -200,47 +200,44 @@ public class MappingProfile : Profile
             .ForMember(d => d.Pip, o => o.Ignore());
 
         CreateMap<PositionKpi, PositionKpiDto>()
-       .ForMember(dest => dest.PositionKpiId,
-           opt => opt.MapFrom(src => src.PositionKpiId))
+   .ForMember(dest => dest.PositionKpiId,
+       opt => opt.MapFrom(src => src.PositionKpiId))
 
-       .ForMember(dest => dest.KpiId,
-           opt => opt.MapFrom(src => src.KpiId))
+   .ForMember(dest => dest.KpiId,
+       opt => opt.MapFrom(src => src.KpiId))
 
-       .ForMember(dest => dest.KpiName,
-           opt => opt.MapFrom(src => src.Kpi.KpiName))
+   .ForMember(dest => dest.KpiName,
+       opt => opt.MapFrom(src => src.Kpi.KpiName))
 
-       .ForMember(dest => dest.Category,
-           opt => opt.MapFrom(src => src.Kpi.Category))
+   .ForMember(dest => dest.Category,
+       opt => opt.MapFrom(src => src.Kpi.Category))
 
-       .ForMember(dest => dest.Unit,
-           opt => opt.MapFrom(src => src.Kpi.Unit))
+   .ForMember(dest => dest.Unit,
+       opt => opt.MapFrom(src => src.Kpi.Unit))
 
-       .ForMember(dest => dest.WeightPercent,
-           opt => opt.MapFrom(src => src.DefaultWeightPercent))
+   .ForMember(dest => dest.WeightPercent,
+       opt => opt.MapFrom(src => src.DefaultWeightPercent))
 
-       .ForMember(dest => dest.TargetValue,
-           opt => opt.MapFrom(src => src.Kpi.TargetValue))
+   .ForMember(dest => dest.Direction,
+       opt => opt.MapFrom(src => src.Kpi.Direction))
 
-       .ForMember(dest => dest.PriorityLevel,
-           opt => opt.MapFrom(src => src.Kpi.PriorityLevel))
+   .ForMember(dest => dest.PositionId,
+       opt => opt.MapFrom(src => src.PositionId))
 
-       .ForMember(dest => dest.Direction,
-           opt => opt.MapFrom(src => src.Kpi.Direction))
+   .ForMember(dest => dest.PositionName,
+       opt => opt.MapFrom(src =>
+           src.Position != null
+               ? src.Position.PositionTitle
+               : null))
 
-       .ForMember(dest => dest.PositionId,
-           opt => opt.MapFrom(src => src.PositionId))
+   .ForMember(dest => dest.IsRequired,
+       opt => opt.MapFrom(src => src.IsRequired))
 
-       .ForMember(dest => dest.PositionName,
-           opt => opt.MapFrom(src =>
-               src.Position != null
-                   ? src.Position.PositionTitle
-                   : null))
+   .ForMember(dest => dest.IsKpiActive,
+       opt => opt.MapFrom(src => src.Kpi.IsActive))
 
-       .ForMember(dest => dest.IsRequired,
-           opt => opt.MapFrom(src => src.IsRequired))
-
-       .ForMember(dest => dest.IsActive,
-           opt => opt.MapFrom(src => src.Kpi.IsActive));
+   .ForMember(dest => dest.IsPositionKpiActive,
+       opt => opt.MapFrom(src => src.IsActive));
 
         //CreateMap<CreatePositionKpiRequest, PositionKpi>();
         //CreateMap<UpdatePositionKpiRequest, PositionKpi>();

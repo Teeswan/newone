@@ -2,6 +2,8 @@ using EPMS.Application.Interfaces;
 using EPMS.Application.Services;
 using EPMS.Application.UseCases.Auth.Commands;
 using EPMS.Domain.Interfaces;
+using EPMS.Infrastructure.Authorization;
+using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 using MediatR;
@@ -113,8 +115,8 @@ public class AuthController : ControllerBase
         return Ok(new { Token = tokenString });
     }
 
-    [AllowAnonymous]
     [HttpPost("update-system-settings")]
+    [HasPermission(Permissions.Security.Manage)]
     public async Task<IActionResult> UpdateSystemSettings([FromBody] UpdateSystemSettingsRequest request)
     {
         var command = new UpdateSystemSettingsCommand 

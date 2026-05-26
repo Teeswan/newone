@@ -101,7 +101,7 @@
         {
             Snackbar.Add("Starting import...", Severity.Info, config => { config.Icon = Icons.Material.Filled.Info; });
             using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            var count = await DepartmentService.ImportFromExcelAsync(stream, skipFirstRow, string.Empty, skipExisting);
+            var count = await DepartmentService.ImportFromExcelAsync(stream, skipFirstRow, string.Empty, skipExisting: true);
             Snackbar.Add($"Successfully imported {count} departments!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
             MudDialog.Close(DialogResult.Ok(true));
         }

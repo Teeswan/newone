@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using EPMS.Application.Interfaces;
 using EPMS.Domain.Entities;
 using EPMS.Infrastructure.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace EPMS.Infrastructure.Services;
 
@@ -24,8 +25,7 @@ public class AuditLogService : IAuditLogService
             RecordId = recordId,
             OldData = null,
             NewData = details,
-            ChangedByEmployeeId = (employeeId == 0) ? null : employeeId,
-            ChangedAt = DateTimeOffset.UtcNow
+            ChangedByEmployeeId = employeeId
         };
 
         _context.AuditLogs.Add(auditLog);

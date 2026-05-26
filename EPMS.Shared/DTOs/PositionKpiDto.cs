@@ -16,10 +16,6 @@ public class PositionKpiDto
 
     public decimal WeightPercent { get; set; }
 
-    public decimal? TargetValue { get; set; }
-
-    public PriorityLevel PriorityLevel { get; set; }
-
     public KpiDirection Direction { get; set; }
 
     public int? PositionId { get; set; }
@@ -28,5 +24,13 @@ public class PositionKpiDto
 
     public bool IsRequired { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool IsKpiActive { get; set; }
+
+    public bool IsPositionKpiActive { get; set; }
+
+    public bool IsActive
+    {
+        get => IsPositionKpiActive;
+        set => IsPositionKpiActive = value;
+    }
 }
