@@ -178,10 +178,12 @@
                             Variant="Variant.Outlined"
                             Style="width: 100%"
                             Immediate="true"
-                            Adornment="Adornment.Start"
-                            AdornmentIcon="@Icons.Material.Filled.Email"
                             IconColor="Color.Info"
-                            For="@(() => loginModel.Email)" />
+                            For="@(() => loginModel.Email)">
+                            <AdornmentStart>
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Info" />
+                            </AdornmentStart>
+                        </MudTextField>
                         <ValidationMessage For="@(() => loginModel.Email)" class="text-danger mt-1 ms-2" />
                     </div>
 
@@ -195,10 +197,11 @@
                             Variant="Variant.Outlined"
                             Style="width: 100%"
                             Immediate="true"
-                            Adornment="Adornment.Start"
-                            AdornmentIcon="@Icons.Material.Filled.Lock"
                             IconColor="Color.Info"
                             For="@(() => loginModel.Password)">
+                            <AdornmentStart>
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Color="Color.Info" />
+                            </AdornmentStart>
                             <AdornmentEnd>
                                 <MudIconButton 
                                     Icon="@(showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
