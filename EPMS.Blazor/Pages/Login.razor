@@ -14,74 +14,259 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="d-flex justify-center align-center" Style="min-height: 100vh;">
-    <MudPaper Elevation="12" Class="pa-10" Rounded="true">
-        <div class="text-center mb-8">
-            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mx-auto mb-4">
-                <MudIcon Icon="@Icons.Material.Filled.Insights" Size="Size.Large" />
-            </MudAvatar>
-            <MudText Typo="Typo.h3" Class="fw-bold text-primary mb-2">Employee Performance</MudText>
-            <MudText Typo="Typo.h5" Class="text-secondary mb-2">Management System</MudText>
-            <MudText Typo="Typo.body2" Class="text-grey">
-                Please sign in to continue
+<style>
+    html, body, #app, .mud-layout, .main-layout, .login-main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    *, *::before, *::after {
+        box-sizing: inherit !important;
+    }
+
+    .login-fullscreen {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 100% !important;
+        height: 100% !important;
+        background: white;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+    }
+
+    .login-left-col {
+        width: 100% !important;
+        min-height: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: white;
+    }
+
+    .login-right-col {
+        display: none;
+        width: 100% !important;
+        min-height: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    @@media (min-width: 768px) {
+        .login-left-col {
+            width: 50% !important;
+        }
+        .login-right-col {
+            display: flex;
+            width: 50% !important;
+        }
+    }
+
+    .login-form-container {
+        max-width: 450px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .pill-input {
+        background: white;
+        border-radius: 50px;
+        padding: 4px 16px 4px 12px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .pill-input .mud-input-control {
+        padding: 4px 0;
+        flex: 1;
+    }
+
+    .pill-input .mud-input-adornment {
+        z-index: 2;
+    }
+
+    .gradient-btn {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+        border: none;
+        border-radius: 50px;
+        padding: 12px 48px;
+        color: white;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        transition: all 0.3s ease;
+    }
+
+    .gradient-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+    }
+
+    .gradient-btn:active {
+        transform: translateY(0);
+    }
+
+    .welcome-panel {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+        min-height: 100% !important;
+        height: 100% !important;
+        width: 100% !important;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .welcome-panel::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -10%;
+        width: 120%;
+        height: 200%;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.1) 0%, transparent 40%);
+        transform: rotate(-15deg);
+    }
+
+    .welcome-panel::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -20%;
+        width: 140%;
+        height: 80%;
+        background: rgba(255,255,255,0.08);
+        border-radius: 100% 100% 0 0;
+    }
+</style>
+
+<div class="login-fullscreen">
+    <div class="login-left-col">
+        <div class="login-form-container">
+            <MudText Typo="Typo.h2" Class="fw-bold mb-1" Align="Align.Left" Style="color: #1e3a8a;">Hello!</MudText>
+            <MudText Typo="Typo.body1" Class="mb-8" Align="Align.Left" Style="color: #64748b;">Sign in to your account</MudText>
+
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-4">
+                        <MudTextField 
+                            T="string"
+                            Label="E-mail"
+                            @bind-Value="loginModel.Email"
+                            Placeholder="Enter your email"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Immediate="true"
+                            IconColor="Color.Info"
+                            For="@(() => loginModel.Email)">
+                            <AdornmentStart>
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Info" />
+                            </AdornmentStart>
+                        </MudTextField>
+                        <ValidationMessage For="@(() => loginModel.Email)" class="text-danger mt-1 ms-2" />
+                    </div>
+
+                    <div class="mb-6">
+                        <MudTextField 
+                            T="string"
+                            Label="Password"
+                            @bind-Value="loginModel.Password"
+                            InputType="@(showPassword ? InputType.Text : InputType.Password)"
+                            Placeholder="Enter your password"
+                            Variant="Variant.Outlined"
+                            Style="width: 100%"
+                            Immediate="true"
+                            IconColor="Color.Info"
+                            For="@(() => loginModel.Password)">
+                            <AdornmentStart>
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Color="Color.Info" />
+                            </AdornmentStart>
+                            <AdornmentEnd>
+                                <MudIconButton 
+                                    Icon="@(showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                    Color="Color.Info"
+                                    Size="Size.Medium"
+                                    OnClick="@TogglePasswordVisibility"
+                                    Edge="Edge.End" />
+                            </AdornmentEnd>
+                        </MudTextField>
+                        <ValidationMessage For="@(() => loginModel.Password)" class="text-danger mt-1 ms-2" />
+                    </div>
+
+                <div class="d-flex justify-space-between align-center mb-6">
+                    <MudCheckBox T="bool" Label="Remember me" Size="Size.Small" Color="Color.Info" />
+                    <MudLink Href="/forgot-password" Color="Color.Info" Typo="Typo.body2" Class="text-decoration-none">
+                        Forgot password?
+                    </MudLink>
+                </div>
+
+                <div class="text-center mb-6">
+                    <button type="submit" class="gradient-btn">
+                        SIGN IN
+                    </button>
+                </div>
+
+
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-6" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ErrorOutline" Closable="true">
+                        @errorMessage
+                    </MudAlert>
+                }
+            </EditForm>
+        </div>
+    </div>
+
+    <div class="login-right-col">
+        <div class="welcome-panel">
+            <MudText Typo="Typo.h2" Class="fw-bold mb-4" Align="Align.Center" Style="color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.15);">
+                Welcome Back!
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mb-2" Align="Align.Center" Style="max-width: 300px; color: #dbeafe; opacity: 0.95;">
+                Lorem ipsum dolor sit amet, consectetuer
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mb-2" Align="Align.Center" Style="max-width: 300px; color: #dbeafe; opacity: 0.95;">
+                adipiscing elit. Sed pharetra magna nisl, at
+            </MudText>
+            <MudText Typo="Typo.body1" Align="Align.Center" Style="max-width: 300px; color: #dbeafe; opacity: 0.95;">
+                posuere sem dapibus sed.
             </MudText>
         </div>
-
-        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-            <DataAnnotationsValidator />
-            
-            <MudTextField 
-                T="string"
-                Label="Email" 
-                @bind-Value="loginModel.Email"
-                Placeholder="Enter your email"
-                Variant="Variant.Outlined"
-                Style="width: 100%"
-                Class="mb-4"
-                Immediate="true" />
-
-            <MudTextField 
-                T="string"
-                Label="Password" 
-                @bind-Value="loginModel.Password"
-                InputType="InputType.Password"
-                Placeholder="Enter your password"
-                Variant="Variant.Outlined"
-                Style="width: 100%"
-                Class="mb-6"
-                Immediate="true" />
-
-            <MudButton 
-                ButtonType="ButtonType.Submit"
-                Variant="Variant.Filled"
-                Color="Color.Primary"
-                Style="width: 100%"
-                Size="Size.Large"
-                Class="mt-2">
-                <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Login" />
-                Sign In
-            </MudButton>
-
-            <div class="text-center mt-6">
-                <MudText Typo="Typo.body2" Class="text-secondary">
-                    Forgot your password? 
-                    <MudLink Href="/forgot-password" Color="Color.Primary">Reset it here</MudLink>
-                </MudText>
-            </div>
-
-            @if (!string.IsNullOrEmpty(errorMessage))
-            {
-                <MudAlert Severity="Severity.Error" Class="mt-6" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ErrorOutline" Closable="true">
-                    @errorMessage
-                </MudAlert>
-            }
-        </EditForm>
-    </MudPaper>
-</MudContainer>
+    </div>
+</div>
 
 @code {
     private LoginRequest loginModel = new();
     private string? errorMessage;
+    private bool showPassword;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+        StateHasChanged(); // Forces Blazor to update the UI
+    }
 
     private async Task HandleLogin()
     {
@@ -118,4 +303,3 @@
         }
     }
 }
-  
