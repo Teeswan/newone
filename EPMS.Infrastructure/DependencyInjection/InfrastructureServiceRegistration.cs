@@ -175,6 +175,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IExcelPdfService, ExcelPdfService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IRdlcReportService, RdlcReportService>();
 
         // ?? PIP Module (EF Core CRUD + Dapper Reports) ????????????????????????
         services.AddScoped<IPipPlanRepository, PipPlanRepository>();

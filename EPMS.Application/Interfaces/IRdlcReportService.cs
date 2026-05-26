@@ -1,13 +1,11 @@
 using EPMS.Shared.DTOs;
 
-namespace EPMS.Blazor.Services;
+namespace EPMS.Application.Interfaces;
 
-public interface IReportBlazorService
+public interface IRdlcReportService
 {
     Task<byte[]> GenerateEmployeePerformanceSummaryReportAsync(EmployeePerformanceSummaryReportDto reportData);
     Task<byte[]> GenerateDepartmentPerformanceComparisonReportAsync();
     Task<byte[]> GenerateHighLowPerformerReportAsync();
     Task<byte[]> GeneratePromotionIncrementRecommendationReportAsync();
-    Task DownloadPdfAsync(byte[] pdfBytes, string fileName);
-    Task OpenPdfInNewTabAsync(byte[] pdfBytes);
 }

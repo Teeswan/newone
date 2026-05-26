@@ -61,6 +61,23 @@
             link.click();
             document.body.removeChild(link);
         };
+
+        window.downloadFile = function (fileName, base64Data) {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = 'data:application/pdf;base64,' + base64Data;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.openInNewTab = function (dataUrl) {
+            const newWindow = window.open();
+            if (newWindow) {
+                newWindow.document.write('<iframe src="' + dataUrl + '" style="width:100%;height:100%;border:none;"></iframe>');
+                newWindow.document.title = 'Report';
+            }
+        };
     </script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>

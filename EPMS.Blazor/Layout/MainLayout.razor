@@ -7,19 +7,6 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 <style>
-    .login-appbar {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
-    }
-
-    .login-main-content {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        height: 100% !important;
-        min-height: 100% !important;
-    }
-
     .main-layout, .mud-layout {
         height: 100% !important;
     }
@@ -27,7 +14,7 @@
 
 <MudThemeProvider />
 <MudLayout Class="main-layout">
-    <MudAppBar Elevation="0" Class="@(IsLoginPage ? "login-appbar" : "")" Color="Color.Primary">
+    <MudAppBar Elevation="1" Color="Color.Primary">
         @if (!IsLoginPage)
         {
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
@@ -68,7 +55,7 @@
         </MudDrawer>
     }
 
-    <MudMainContent Class="@(IsLoginPage ? "login-main-content" : "mt-16 pa-8")">
+    <MudMainContent Class="@(IsLoginPage ? "mt-16" : "mt-16 pa-8")" Style="@(IsLoginPage ? "height: calc(100% - 64px); padding: 0;" : "")">
         @Body
     </MudMainContent>
 </MudLayout>

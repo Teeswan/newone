@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition">
+  <Width>6in</Width>
+  <Body>
+    <ReportItems>
+      <Textbox Name="Title">
+        <CanGrow>true</CanGrow>
+        <Value>Promotion and Increment Recommendation Report</Value>
+        <Style>
+          <FontSize>18pt</FontSize>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+        <Height>0.5in</Height>
+        <Width>6in</Width>
+        <Left>0in</Left>
+        <Top>0in</Top>
+      </Textbox>
+    </ReportItems>
+    <Height>8in</Height>
+  </Body>
+  <Page>
+    <LeftMargin>1in</LeftMargin>
+    <RightMargin>1in</RightMargin>
+    <TopMargin>1in</TopMargin>
+    <BottomMargin>1in</BottomMargin>
+    <PageHeight>11in</PageHeight>
+    <PageWidth>8.5in</PageWidth>
+  </Page>
+</Report>
