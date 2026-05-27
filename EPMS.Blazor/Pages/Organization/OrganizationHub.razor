@@ -1,0 +1,392 @@
+@page "/organization-hub"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Dialogs
+@using EPMS.Blazor.Pages.Employees
+@inject IEmployeeBlazorService EmployeeService
+@inject ITeamBlazorService TeamService
+@inject IDepartmentBlazorService DepartmentService
+@inject ILevelBlazorService LevelService
+@inject IPositionBlazorService PositionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Organization Hub</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h3" Class="mb-8" Style="font-weight: 800; color: #111827; letter-spacing: -0.025em;">
+        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Class="mr-3 mb-2" Size="Size.Large" Color="Color.Primary" />
+        Organization Hub
+    </MudText>
+
+    <MudTabs Elevation="4" Rounded="true" ApplyEffectsToContainer="true" Color="Color.Primary" PanelClass="pa-6" Class="rounded-xl overflow-hidden mb-8">
+        @* Employees Tab *@
+        <MudTabPanel Text="Employees" Icon="@Icons.Material.Filled.PeopleAlt">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Employees</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="OpenEmployeeAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Employee
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_employeeSearch" Placeholder="Search employees..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_employees" T="EmployeeDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<EmployeeDto,bool>(FilterEmployees)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Code</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Department</MudTh>
+                    <MudTh>Position</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
+                    <MudTd DataLabel="Name">@context.FullName</MudTd>
+                    <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive == true ? Color.Success : Color.Error)">@(context.IsActive == true ? "Active" : "Inactive")</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEmployeeEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Departments Tab *@
+        <MudTabPanel Text="Departments" Icon="@Icons.Material.Filled.Business">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Departments</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDepartmentAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Department
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_deptSearch" Placeholder="Search departments..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_departments" T="DepartmentDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<DepartmentDto,bool>(FilterDepartments)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Code</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Parent</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Code">@context.DepartmentIdName</MudTd>
+                    <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Parent">@context.ParentDepartmentName</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Teams Tab *@
+        <MudTabPanel Text="Teams" Icon="@Icons.Material.Filled.Groups">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Teams</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenTeamAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Team
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_teamSearch" Placeholder="Search teams..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_teams" T="TeamDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<TeamDto,bool>(FilterTeams)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Manager</MudTh>
+                    <MudTh>Department</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.TeamName</MudTd>
+                    <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
+                    <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenTeamEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteTeam(context.TeamId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Positions Tab *@
+        <MudTabPanel Text="Positions" Icon="@Icons.Material.Filled.Work">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Positions</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenPositionAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Position
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_posSearch" Placeholder="Search positions..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_positions" T="PositionDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<PositionDto,bool>(FilterPositions)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Title</MudTh>
+                    <MudTh>Level</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Title">@context.PositionTitle</MudTd>
+                    <MudTd DataLabel="Level">@context.LevelName</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenPositionEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeletePosition(context.PositionId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Levels Tab *@
+        <MudTabPanel Text="Levels" Icon="@Icons.Material.Filled.Grade">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Levels</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenLevelAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Level
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_levelSearch" Placeholder="Search levels..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_levels" T="LevelDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<LevelDto,bool>(FilterLevels)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>ID</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="ID">@context.LevelId</MudTd>
+                    <MudTd DataLabel="Name">@context.LevelName</MudTd>
+                    <MudTd DataLabel="Description">@context.LevelDescription</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenLevelEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteLevel(context.LevelId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private List<EmployeeDto> _employees = new();
+    private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
+    private List<PositionDto> _positions = new();
+    private List<LevelDto> _levels = new();
+
+    private string _employeeSearch = "";
+    private string _deptSearch = "";
+    private string _teamSearch = "";
+    private string _posSearch = "";
+    private string _levelSearch = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllData();
+    }
+
+    private async Task LoadAllData()
+    {
+        try
+        {
+            // Fetch all data in parallel
+            var empTask = EmployeeService.GetEmployeesAsync();
+            var deptTask = DepartmentService.GetAllDepartmentsAsync();
+            var teamTask = TeamService.GetAllTeamsAsync();
+            var posTask = PositionService.GetAllPositionsAsync();
+            var levelTask = LevelService.GetAllLevelsAsync();
+
+            await Task.WhenAll(empTask, deptTask, teamTask, posTask, levelTask);
+
+            // Assign results
+            _employees = await empTask;
+            _departments = (await deptTask).ToList();
+            _teams = (await teamTask).ToList();
+            _positions = (await posTask).ToList();
+            _levels = (await levelTask).ToList();
+            
+            // Force UI update
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    // Filtering logic
+    private bool FilterEmployees(EmployeeDto employee) => 
+        string.IsNullOrWhiteSpace(_employeeSearch) || 
+        employee.FullName.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase) ||
+        employee.EmployeeCode.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase);
+
+    private bool FilterDepartments(DepartmentDto dept) => 
+        string.IsNullOrWhiteSpace(_deptSearch) || 
+        dept.DepartmentName.Contains(_deptSearch, StringComparison.OrdinalIgnoreCase) ||
+        (dept.DepartmentIdName?.Contains(_deptSearch, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private bool FilterTeams(TeamDto team) => 
+        string.IsNullOrWhiteSpace(_teamSearch) || 
+        team.TeamName.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ||
+        (team.ManagerName?.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (team.DepartmentName?.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private bool FilterPositions(PositionDto pos) => 
+        string.IsNullOrWhiteSpace(_posSearch) || 
+        pos.PositionTitle.Contains(_posSearch, StringComparison.OrdinalIgnoreCase) ||
+        (pos.LevelName?.Contains(_posSearch, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private bool FilterLevels(LevelDto level) => 
+        string.IsNullOrWhiteSpace(_levelSearch) || 
+        level.LevelName.Contains(_levelSearch, StringComparison.OrdinalIgnoreCase) ||
+        (level.LevelDescription?.Contains(_levelSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        level.LevelId.Contains(_levelSearch, StringComparison.OrdinalIgnoreCase);
+
+    // CRUD Handlers
+    private async Task OpenEmployeeAddDialog()
+    {
+        try
+        {
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = DialogService.Show<EmployeeForm>("Add Employee", options);
+            var result = await dialog.Result;
+            
+            if (result != null && !result.Canceled && result.Data is CreateEmployeeRequest request)
+            {
+                var success = await EmployeeService.CreateEmployeeAsync(request);
+                if (success)
+                {
+                    Snackbar.Add("Employee created successfully!", Severity.Success);
+                    await Task.Delay(200);
+                    await LoadAllData();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding employee: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OpenEmployeeEditDialog(EmployeeDto employee)
+    {
+        try
+        {
+            var parameters = new DialogParameters { ["EmployeeId"] = employee.EmployeeId, ["IsEdit"] = true };
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = DialogService.Show<EmployeeForm>("Edit Employee", parameters, options);
+            var result = await dialog.Result;
+            
+            if (result != null && !result.Canceled && result.Data is UpdateEmployeeRequest request)
+            {
+                var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
+                if (success)
+                {
+                    Snackbar.Add("Employee updated successfully!", Severity.Success);
+                    await Task.Delay(200);
+                    await LoadAllData();
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error editing employee: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteEmployee(int id) => await ConfirmAndDelete(() => EmployeeService.DeleteEmployeeAsync(id), "Employee");
+
+    private async Task OpenDepartmentAddDialog() => await ShowDialog<DepartmentDialog>("Add Department");
+    private async Task OpenDepartmentEditDialog(DepartmentDto dept) => await ShowDialog<DepartmentDialog>("Edit Department", new DialogParameters { ["Id"] = dept.DepartmentId });
+    private async Task DeleteDepartment(int id) => await ConfirmAndDelete(() => DepartmentService.DeleteDepartmentAsync(id), "Department");
+
+    private async Task OpenTeamAddDialog() => await ShowDialog<TeamDialog>("Add Team");
+    private async Task OpenTeamEditDialog(TeamDto team) => await ShowDialog<TeamDialog>("Edit Team", new DialogParameters { ["Id"] = team.TeamId });
+    private async Task DeleteTeam(int id) => await ConfirmAndDelete(() => TeamService.DeleteTeamAsync(id), "Team");
+
+    private async Task OpenPositionAddDialog() => await ShowDialog<PositionDialog>("Add Position");
+    private async Task OpenPositionEditDialog(PositionDto pos) => await ShowDialog<PositionDialog>("Edit Position", new DialogParameters { ["Id"] = pos.PositionId });
+    private async Task DeletePosition(int id) => await ConfirmAndDelete(() => PositionService.DeletePositionAsync(id), "Position");
+
+    private async Task OpenLevelAddDialog() => await ShowDialog<LevelDialog>("Add Level");
+    private async Task OpenLevelEditDialog(LevelDto level) => await ShowDialog<LevelDialog>("Edit Level", new DialogParameters { ["Id"] = level.LevelId });
+    private async Task DeleteLevel(string id) => await ConfirmAndDelete(() => LevelService.DeleteLevelAsync(id), "Level");
+
+    private async Task ShowDialog<T>(string title, DialogParameters parameters = null) where T : ComponentBase
+    {
+        try
+        {
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = DialogService.Show<T>(title, parameters ?? new DialogParameters(), options);
+            var result = await dialog.Result;
+            
+            if (result != null && !result.Canceled)
+            {
+                // Add a small delay to ensure server-side processing and cache invalidation are complete
+                await Task.Delay(200);
+                await LoadAllData();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error opening dialog: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmAndDelete(Func<Task<bool>> deleteAction, string entityName)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete this {entityName}?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var success = await deleteAction();
+            if (success)
+            {
+                Snackbar.Add($"{entityName} deleted successfully!", Severity.Success);
+                await LoadAllData();
+            }
+            else
+            {
+                Snackbar.Add($"Error deleting {entityName}.", Severity.Error);
+            }
+        }
+    }
+}

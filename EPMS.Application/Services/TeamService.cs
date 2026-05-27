@@ -42,8 +42,21 @@ public class TeamService : ITeamService
         var existingEntity = await _repository.GetByIdAsync(id);
         if (existingEntity == null) return null;
 
+        var oldDeptId = existingEntity.DepartmentId;
+        var oldManagerId = existingEntity.ManagerId;
+
         _mapper.Map(request, existingEntity);
         existingEntity.TeamId = id;
+
+        // Reset navigation properties if IDs changed to ensure EF updates the foreign keys correctly
+        if (oldDeptId != existingEntity.DepartmentId)
+        {
+            existingEntity.Department = null;
+        }
+        if (oldManagerId != existingEntity.ManagerId)
+        {
+            existingEntity.Manager = null;
+        }
         
         var updated = await _repository.UpdateAsync(existingEntity);
         return _mapper.Map<TeamDto?>(updated);

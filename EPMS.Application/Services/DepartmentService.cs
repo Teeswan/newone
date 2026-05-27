@@ -42,8 +42,17 @@ public class DepartmentService : IDepartmentService
         var entity = await _repository.GetByIdAsync(id);
         if (entity == null) return null;
 
+        // Capture old ID to check for changes
+        var oldParentId = entity.ParentDepartmentId;
+
         _mapper.Map(request, entity);
         entity.DepartmentId = id;
+
+        // If ParentDepartmentId changed, null out the navigation property to force EF to update the FK
+        if (oldParentId != entity.ParentDepartmentId)
+        {
+            entity.ParentDepartment = null;
+        }
         
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<DepartmentDto?>(updated);

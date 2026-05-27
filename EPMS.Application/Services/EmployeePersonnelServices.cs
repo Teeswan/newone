@@ -70,8 +70,26 @@ public class EmployeeService : IEmployeeService
             }
         }
 
+        var oldDeptId = entity.DepartmentId;
+        var oldPosId = entity.PositionId;
+        var oldReportsTo = entity.ReportsTo;
+
         _mapper.Map(request, entity);
         entity.EmployeeId = id;
+
+        // Reset navigation properties if IDs changed to ensure EF updates the foreign keys correctly
+        if (oldDeptId != entity.DepartmentId)
+        {
+            entity.Department = null;
+        }
+        if (oldPosId != entity.PositionId)
+        {
+            entity.Position = null;
+        }
+        if (oldReportsTo != entity.ReportsTo)
+        {
+            entity.ReportsToNavigation = null;
+        }
 
         // Handle Team update
         entity.TeamsNavigation.Clear();
@@ -195,8 +213,16 @@ public class PositionService : IPositionService
         var entity = await _repository.GetByIdAsync(id);
         if (entity == null) return null;
 
+        var oldLevelId = entity.LevelId;
+
         _mapper.Map(request, entity);
         entity.PositionId = id;
+
+        // Reset navigation property if LevelId changed to ensure EF updates the FK correctly
+        if (oldLevelId != entity.LevelId)
+        {
+            entity.Level = null;
+        }
 
         var updated = await _repository.UpdateAsync(entity);
         return _mapper.Map<PositionDto?>(updated);

@@ -1,0 +1,97 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IPositionBlazorService PositionService
+@inject ILevelBlazorService LevelService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(Id.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.Work)" Class="mr-3 mb-n1" Color="@(Id.HasValue ? Color.Warning : Color.Primary)" />
+            @(Id.HasValue ? "Update Position" : "Create New Position")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.PositionTitle" Label="Position Title" Required="true" RequiredError="Position title is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Work" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect @bind-Value="request.LevelId" Label="Level" Variant="Variant.Outlined" T="string" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Grade" Class="rounded-lg">
+                        <MudSelectItem T="string" Value="@((string?)null)">Select Level</MudSelectItem>
+                        @foreach (var level in allLevels)
+                        {
+                            <MudSelectItem T="string" Value="@level.LevelId">@level.LevelName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(Id.HasValue ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? Id { get; set; }
+
+    private UpdatePositionRequest request = new();
+    private List<LevelDto> allLevels = new();
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        allLevels = (await LevelService.GetAllLevelsAsync()).ToList();
+        
+        if (Id.HasValue)
+        {
+            var pos = await PositionService.GetPositionByIdAsync(Id.Value);
+            if (pos != null)
+            {
+                request = new UpdatePositionRequest
+                {
+                    PositionTitle = pos.PositionTitle,
+                    LevelId = pos.LevelId
+                };
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                if (Id.HasValue)
+                {
+                    await PositionService.UpdatePositionAsync(Id.Value, request);
+                    Snackbar.Add("Position updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    var createRequest = new CreatePositionRequest
+                    {
+                        PositionTitle = request.PositionTitle,
+                        LevelId = request.LevelId
+                    };
+                    await PositionService.CreatePositionAsync(createRequest);
+                    Snackbar.Add("Position created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

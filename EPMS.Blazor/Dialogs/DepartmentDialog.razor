@@ -1,0 +1,108 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IDepartmentBlazorService DepartmentService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(Id.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.AddBusiness)" Class="mr-3 mb-n1" Color="@(Id.HasValue ? Color.Warning : Color.Primary)" />
+            @(Id.HasValue ? "Update Department" : "Create New Department")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.DepartmentIdName" Label="Department Code" Variant="Variant.Outlined" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Code" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.DepartmentName" Label="Department Name" Required="true" RequiredError="Department name is required!" Variant="Variant.Outlined" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect @bind-Value="request.ParentDepartmentId" Label="Parent Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountTree" Class="rounded-lg">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None (Top Level)</MudSelectItem>
+                        @if (allDepartments != null)
+                        {
+                            @foreach (var dept in allDepartments.Where(d => d.DepartmentId != Id))
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudCheckBox @bind-Value="request.IsActive" Label="Department is Active" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(Id.HasValue ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? Id { get; set; }
+
+    private UpdateDepartmentRequest request = new() { IsActive = true };
+    private IEnumerable<DepartmentDto>? allDepartments;
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        allDepartments = await DepartmentService.GetAllDepartmentsAsync();
+        if (Id.HasValue)
+        {
+            var dept = await DepartmentService.GetDepartmentByIdAsync(Id.Value);
+            if (dept != null)
+            {
+                request = new UpdateDepartmentRequest
+                {
+                    DepartmentIdName = dept.DepartmentIdName,
+                    DepartmentName = dept.DepartmentName,
+                    ParentDepartmentId = dept.ParentDepartmentId,
+                    IsActive = dept.IsActive
+                };
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                if (Id.HasValue)
+                {
+                    await DepartmentService.UpdateDepartmentAsync(Id.Value, request);
+                    Snackbar.Add("Department updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    var createRequest = new CreateDepartmentRequest
+                    {
+                        DepartmentIdName = request.DepartmentIdName,
+                        DepartmentName = request.DepartmentName,
+                        ParentDepartmentId = request.ParentDepartmentId,
+                        IsActive = request.IsActive
+                    };
+                    await DepartmentService.CreateDepartmentAsync(createRequest);
+                    Snackbar.Add("Department created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

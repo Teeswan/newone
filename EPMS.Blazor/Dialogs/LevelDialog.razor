@@ -1,0 +1,92 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject ILevelBlazorService LevelService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Grade)" Class="mr-3 mb-n1" Color="@(IsEdit ? Color.Warning : Color.Primary)" />
+            @(IsEdit ? "Update Level" : "Create New Level")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.LevelId" Label="Level ID" Required="true" RequiredError="Level ID is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" Class="rounded-lg" Disabled="@IsEdit" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.LevelName" Label="Level Name" Required="true" RequiredError="Level name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Grade" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="request.LevelDescription" Label="Description" Variant="Variant.Outlined" Lines="3" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Class="rounded-lg" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(IsEdit ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string? Id { get; set; }
+    private bool IsEdit => !string.IsNullOrEmpty(Id);
+
+    private CreateLevelRequest request = new();
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit)
+        {
+            var level = await LevelService.GetLevelByIdAsync(Id!);
+            if (level != null)
+            {
+                request = new CreateLevelRequest
+                {
+                    LevelId = level.LevelId,
+                    LevelName = level.LevelName,
+                    LevelDescription = level.LevelDescription
+                };
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                if (IsEdit)
+                {
+                    var updateRequest = new UpdateLevelRequest
+                    {
+                        LevelName = request.LevelName,
+                        LevelDescription = request.LevelDescription
+                    };
+                    await LevelService.UpdateLevelAsync(Id!, updateRequest);
+                    Snackbar.Add("Level updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    await LevelService.CreateLevelAsync(request);
+                    Snackbar.Add("Level created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

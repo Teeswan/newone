@@ -1,0 +1,116 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject ITeamBlazorService TeamService
+@inject IDepartmentBlazorService DepartmentService
+@inject IEmployeeBlazorService EmployeeService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(Id.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.Groups)" Class="mr-3 mb-n1" Color="@(Id.HasValue ? Color.Warning : Color.Primary)" />
+            @(Id.HasValue ? "Update Team" : "Create New Team")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.TeamName" Label="Team Name" Required="true" RequiredError="Team name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Groups" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect @bind-Value="request.DepartmentId" Label="Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg">
+                        <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
+                        @foreach (var dept in allDepartments)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)dept.DepartmentId)">@dept.DepartmentName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect @bind-Value="request.ManagerId" Label="Team Manager" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" Class="rounded-lg">
+                        <MudSelectItem T="int?" Value="@((int?)null)">Select Manager</MudSelectItem>
+                        @foreach (var emp in allEmployees)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)emp.EmployeeId)">@emp.FullName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudCheckBox @bind-Value="request.IsActive" Label="Team is Active" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(Id.HasValue ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? Id { get; set; }
+
+    private UpdateTeamRequest request = new() { IsActive = true };
+    private List<DepartmentDto> allDepartments = new();
+    private List<EmployeeDto> allEmployees = new();
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        allDepartments = (await DepartmentService.GetAllDepartmentsAsync()).ToList();
+        allEmployees = await EmployeeService.GetEmployeesAsync();
+        
+        if (Id.HasValue)
+        {
+            var team = await TeamService.GetTeamByIdAsync(Id.Value);
+            if (team != null)
+            {
+                request = new UpdateTeamRequest
+                {
+                    TeamName = team.TeamName,
+                    DepartmentId = team.DepartmentId,
+                    ManagerId = team.ManagerId,
+                    IsActive = team.IsActive
+                };
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                if (Id.HasValue)
+                {
+                    await TeamService.UpdateTeamAsync(Id.Value, request);
+                    Snackbar.Add("Team updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    var createRequest = new CreateTeamRequest
+                    {
+                        TeamName = request.TeamName,
+                        DepartmentId = request.DepartmentId,
+                        ManagerId = request.ManagerId,
+                        IsActive = request.IsActive
+                    };
+                    await TeamService.CreateTeamAsync(createRequest);
+                    Snackbar.Add("Team created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
