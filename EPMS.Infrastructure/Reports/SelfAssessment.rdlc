@@ -17,18 +17,12 @@
         <CommandText>/* Local Query */</CommandText>
       </Query>
       <Fields>
-        <Field Name="QuestionText">
-          <DataField>QuestionText</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="RatingValue">
-          <DataField>RatingValue</DataField>
-          <rd:TypeName>System.Int32</rd:TypeName>
-        </Field>
-        <Field Name="AnswerText">
-          <DataField>AnswerText</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
+        <Field Name="QuestionCategory"><DataField>QuestionCategory</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="SortOrder"><DataField>SortOrder</DataField><rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="QuestionText"><DataField>QuestionText</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="RatingValue"><DataField>RatingValue</DataField><rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="AnswerText"><DataField>AnswerText</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="RespondentName"><DataField>RespondentName</DataField><rd:TypeName>System.String</rd:TypeName></Field>
       </Fields>
     </DataSet>
   </DataSets>
@@ -36,252 +30,241 @@
     <ReportSection>
       <Body>
         <ReportItems>
-          <Textbox Name="Title">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Employee Self-Assessment Form</Value>
-                    <Style>
-                      <FontSize>18pt</FontSize>
-                      <FontWeight>Bold</FontWeight>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-            </Paragraphs>
-            <Height>0.4in</Height>
-            <Width>6.5in</Width>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
+          <!-- Top Title Bar -->
+          <Textbox Name="MainTitle">
+            <Paragraphs><Paragraph><TextRuns><TextRun><Value>Employee Self-assessment Form</Value><Style><FontFamily>Arial</FontFamily><FontSize>14pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+            <Height>0.4in</Height><Width>7.5in</Width>
+            <Style><BackgroundColor>#FDE9D9</BackgroundColor><Border><Style>Solid</Style></Border><PaddingLeft>5pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style>
           </Textbox>
-          <Tablix Name="Tablix1">
+
+          <!-- Center Headers -->
+          <Textbox Name="SubHeader">
+            <Paragraphs>
+              <Paragraph><TextRuns><TextRun><Value>Employee Self-assessment Form</Value><Style><FontFamily>Arial</FontFamily><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph>
+              <Paragraph><TextRuns><TextRun><Value>ACE Data Systems Ltd.,</Value><Style><FontFamily>Arial</FontFamily><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph>
+            </Paragraphs>
+            <Top>0.5in</Top><Height>0.4in</Height><Width>7.5in</Width>
+          </Textbox>
+
+          <!-- Employee Info Table -->
+          <Tablix Name="TablixEmployeeInfo">
+            <TablixBody>
+              <TablixColumns><TablixColumn><Width>2.0in</Width></TablixColumn><TablixColumn><Width>5.5in</Width></TablixColumn></TablixColumns>
+              <TablixRows>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="LblEmpName"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Employee Name :</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValEmpName"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!EmployeeName.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="LblEmpId"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Employee ID :</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValEmpId"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!EmployeeCode.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="LblPos"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Current Position :</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValPos"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!PositionTitle.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="LblDept"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Department :</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValDept"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!DepartmentName.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="LblAssDate"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Assessment Date :</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValAssDate"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!AssessmentDate.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="LblMgr"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Manager Name :</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValMgr"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!ManagerName.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember /><TablixMember /></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /></TablixMembers></TablixRowHierarchy>
+            <Top>1.0in</Top><Height>1.5in</Height><Width>7.5in</Width>
+          </Tablix>
+
+          <!-- Main Appraisal Table -->
+          <Tablix Name="TablixMain">
+            <DataSetName>Responses</DataSetName>
             <TablixBody>
               <TablixColumns>
-                <TablixColumn>
-                  <Width>3.5in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>1.5in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>1.5in</Width>
-                </TablixColumn>
+                <TablixColumn><Width>0.5in</Width></TablixColumn>
+                <TablixColumn><Width>3.0in</Width></TablixColumn>
+                <TablixColumn><Width>0.5in</Width></TablixColumn>
+                <TablixColumn><Width>0.5in</Width></TablixColumn>
+                <TablixColumn><Width>0.6in</Width></TablixColumn>
+                <TablixColumn><Width>0.6in</Width></TablixColumn>
+                <TablixColumn><Width>0.6in</Width></TablixColumn>
+                <TablixColumn><Width>0.6in</Width></TablixColumn>
+                <TablixColumn><Width>0.6in</Width></TablixColumn>
               </TablixColumns>
               <TablixRows>
-                <TablixRow>
-                  <Height>0.25in</Height>
+                <!-- Table Header 1 -->
+                <TablixRow><Height>0.25in</Height>
                   <TablixCells>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="Textbox1">
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>Question</Value>
-                                  <Style>
-                                    <FontWeight>Bold</FontWeight>
-                                  </Style>
-                                </TextRun>
-                              </TextRuns>
-                            </Paragraph>
-                          </Paragraphs>
-                          <Style>
-                            <BackgroundColor>LightGrey</BackgroundColor>
-                            <PaddingLeft>2pt</PaddingLeft>
-                          </Style>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="Textbox2">
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>Yes/No (Rating)</Value>
-                                  <Style>
-                                    <FontWeight>Bold</FontWeight>
-                                  </Style>
-                                </TextRun>
-                              </TextRuns>
-                            </Paragraph>
-                          </Paragraphs>
-                          <Style>
-                            <BackgroundColor>LightGrey</BackgroundColor>
-                            <PaddingLeft>2pt</PaddingLeft>
-                          </Style>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="Textbox3">
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>Comments</Value>
-                                  <Style>
-                                    <FontWeight>Bold</FontWeight>
-                                  </Style>
-                                </TextRun>
-                              </TextRuns>
-                            </Paragraph>
-                          </Paragraphs>
-                          <Style>
-                            <BackgroundColor>LightGrey</BackgroundColor>
-                            <PaddingLeft>2pt</PaddingLeft>
-                          </Style>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_Empty"><Paragraphs><Paragraph><TextRuns><TextRun><Value /></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox><ColSpan>2</ColSpan></CellContents></TablixCell>
+                    <TablixCell /><TablixCell><CellContents><Textbox Name="H_Yes"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Yes</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_No"><Paragraphs><Paragraph><TextRuns><TextRun><Value>No</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_Rating"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Rating</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox><ColSpan>5</ColSpan></CellContents></TablixCell>
+                    <TablixCell /><TablixCell /><TablixCell /><TablixCell />
                   </TablixCells>
                 </TablixRow>
-                <TablixRow>
-                  <Height>0.25in</Height>
+                <!-- Table Header 2 -->
+                <TablixRow><Height>0.25in</Height>
                   <TablixCells>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="QuestionText">
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>=Fields!QuestionText.Value</Value>
-                                </TextRun>
-                              </TextRuns>
-                            </Paragraph>
-                          </Paragraphs>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="RatingValue">
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>=Fields!AnswerText.Value &amp; " (" &amp; Fields!RatingValue.Value &amp; ")"</Value>
-                                </TextRun>
-                              </TextRuns>
-                            </Paragraph>
-                          </Paragraphs>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="Comments">
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>=Fields!AnswerText.Value</Value>
-                                </TextRun>
-                              </TextRuns>
-                            </Paragraph>
-                          </Paragraphs>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_NoCol"><Paragraphs><Paragraph><TextRuns><TextRun><Value /></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_Subject"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Assessment Subject</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_YesBox"><Paragraphs><Paragraph><TextRuns><TextRun><Value /></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_NoBox"><Paragraphs><Paragraph><TextRuns><TextRun><Value /></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_5"><Paragraphs><Paragraph><TextRuns><TextRun><Value>5</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_4"><Paragraphs><Paragraph><TextRuns><TextRun><Value>4</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>3</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>2</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="H_1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>1</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <!-- Data Row -->
+                <TablixRow><Height>0.3in</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="ValNo"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!SortOrder.Value</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="ValCriteria"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!QuestionText.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="ValYes"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value &gt;= 3, "☑", "☐")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="ValNoBox"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value &lt; 3 AND Fields!RatingValue.Value &gt; 0, "☑", "☐")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="Val5"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value = 5, "☑", "")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="Val4"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value = 4, "☑", "")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="Val3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value = 3, "☑", "")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="Val2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value = 2, "☑", "")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="Val1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=IIF(Fields!RatingValue.Value = 1, "☑", "")</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
                   </TablixCells>
                 </TablixRow>
               </TablixRows>
             </TablixBody>
-            <TablixColumnHierarchy>
-              <TablixMembers>
-                <TablixMember />
-                <TablixMember />
-                <TablixMember />
-              </TablixMembers>
-            </TablixColumnHierarchy>
-            <TablixRowHierarchy>
-              <TablixMembers>
-                <TablixMember>
-                  <KeepWithGroup>After</KeepWithGroup>
-                </TablixMember>
-                <TablixMember>
-                  <Group Name="Details" />
-                </TablixMember>
-              </TablixMembers>
-            </TablixRowHierarchy>
-            <Top>0.5in</Top>
-            <Height>0.5in</Height>
-            <Width>6.5in</Width>
+            <TablixColumnHierarchy><TablixMembers><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember /><TablixMember /><TablixMember><Group Name="Details" /></TablixMember></TablixMembers></TablixRowHierarchy>
+            <Top>2.6in</Top><Height>0.8in</Height><Width>7.5in</Width>
           </Tablix>
+
+          <!-- Calculation Section -->
+          <Tablix Name="TablixCalc">
+            <TablixBody>
+              <TablixColumns><TablixColumn><Width>1.5in</Width></TablixColumn><TablixColumn><Width>3.0in</Width></TablixColumn><TablixColumn><Width>3.0in</Width></TablixColumn></TablixColumns>
+              <TablixRows>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="H_Arial"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Total Points</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="H_Formula"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Formula</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="H_Score"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Score</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <TablixRow><Height>0.75in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="V_TotalPoints"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Total Points</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents>
+                    <Rectangle Name="RectFormula">
+                      <ReportItems>
+                        <Textbox Name="TxtTotalPoint"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!TotalPoints.Value</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Height>0.2in</Height><Width>2.8in</Width><Style><BottomBorder><Style>Solid</Style></BottomBorder></Style></Textbox>
+                        <Textbox Name="TxtX100"><Paragraphs><Paragraph><TextRuns><TextRun><Value>X 100</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Top>0.25in</Top><Height>0.2in</Height><Width>2.8in</Width></Textbox>
+                        <Textbox Name="TxtNumQ"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!MaxPoints.Value</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Top>0.5in</Top><Height>0.2in</Height><Width>2.8in</Width><Style><TopBorder><Style>Solid</Style></TopBorder></Style></Textbox>
+                      </ReportItems>
+                      <Style><Border><Style>Solid</Style></Border></Style>
+                    </Rectangle>
+                  </CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="ValFinalScore"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!FinalScore.Value</Value><Style><FontSize>14pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember /><TablixMember /><TablixMember /></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember /><TablixMember /></TablixMembers></TablixRowHierarchy>
+            <Top>3.6in</Top><Height>1.0in</Height><Width>7.5in</Width>
+          </Tablix>
+
+          <!-- Score Explanation Table -->
+          <Tablix Name="ExplTab">
+            <TablixBody>
+              <TablixColumns><TablixColumn><Width>0.8in</Width></TablixColumn><TablixColumn><Width>6.7in</Width></TablixColumn></TablixColumns>
+              <TablixRows>
+                <TablixRow><Height>0.25in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="EH1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Score</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><BackgroundColor>LightGrey</BackgroundColor></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="EH2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Explanation</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><BackgroundColor>LightGrey</BackgroundColor></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <!-- Outstanding -->
+                <TablixRow><Height>0.5in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="S1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>86-100</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="E1"><Paragraphs>
+                    <Paragraph><TextRuns><TextRun><Value>Oustanding</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph>
+                    <Paragraph><TextRuns><TextRun><Value>Performance exceptional and far exceeds expectations. Consistently demonstrates excellent standards in all job requirement</Value></TextRun></TextRuns></Paragraph>
+                  </Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <!-- Good -->
+                <TablixRow><Height>0.4in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="S2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>71-85</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="E2"><Paragraphs>
+                    <Paragraph><TextRuns><TextRun><Value>Good</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph>
+                    <Paragraph><TextRuns><TextRun><Value>Performance is consistent. Clearly meets essential requirements of job.</Value></TextRun></TextRuns></Paragraph>
+                  </Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <!-- Meet requirement -->
+                <TablixRow><Height>0.4in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="S3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>60-70</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="E3"><Paragraphs>
+                    <Paragraph><TextRuns><TextRun><Value>Meet requirement</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph>
+                    <Paragraph><TextRuns><TextRun><Value>Performance is satisfactory. Meets requirements of the job</Value></TextRun></TextRuns></Paragraph>
+                  </Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <!-- Need Improvement -->
+                <TablixRow><Height>0.5in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="S4"><Paragraphs><Paragraph><TextRuns><TextRun><Value>40-59</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="E4"><Paragraphs>
+                    <Paragraph><TextRuns><TextRun><Value>Need Improvement</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph>
+                    <Paragraph><TextRuns><TextRun><Value>Perfromance is inconsistent. Meets requirements of the job occasionally. Supervision and training is required for most problem areas.</Value></TextRun></TextRuns></Paragraph>
+                  </Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+                <!-- Unsatisfactory -->
+                <TablixRow><Height>0.4in</Height><TablixCells>
+                  <TablixCell><CellContents><Textbox Name="S5"><Paragraphs><Paragraph><TextRuns><TextRun><Value>00-39</Value></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs><Style><Border><Style>Solid</Style></Border><VerticalAlign>Middle</VerticalAlign></Style></Textbox></CellContents></TablixCell>
+                  <TablixCell><CellContents><Textbox Name="E5"><Paragraphs>
+                    <Paragraph><TextRuns><TextRun><Value>Unsatisfactory</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph>
+                    <Paragraph><TextRuns><TextRun><Value>Performance does not meet the minimum requirement of the job.</Value></TextRun></TextRuns></Paragraph>
+                  </Paragraphs><Style><Border><Style>Solid</Style></Border><PaddingLeft>2pt</PaddingLeft></Style></Textbox></CellContents></TablixCell>
+                </TablixCells></TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember /><TablixMember /></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /><TablixMember /></TablixMembers></TablixRowHierarchy>
+            <Top>4.8in</Top><Height>2.45in</Height><Width>7.5in</Width>
+          </Tablix>
+
+          <!-- Footer Signatures -->
+          <Textbox Name="SignLine1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>-----------------------------------------------------------</Value></TextRun></TextRuns></Paragraph></Paragraphs><Top>7.5in</Top><Height>0.2in</Height><Width>3in</Width></Textbox>
+          <Textbox Name="SignLine2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>-----------------------------------------------------------</Value></TextRun></TextRuns></Paragraph></Paragraphs><Top>7.5in</Top><Left>4.5in</Left><Height>0.2in</Height><Width>3in</Width></Textbox>
+          <Textbox Name="SignLabel1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Signature of Appraisee &amp;amp; Date</Value></TextRun></TextRuns></Paragraph></Paragraphs><Top>7.7in</Top><Height>0.2in</Height><Width>3in</Width></Textbox>
+          <Textbox Name="SignLabel2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Signature of Appraiser &amp;amp; Date</Value></TextRun></TextRuns></Paragraph></Paragraphs><Top>7.7in</Top><Left>4.5in</Left><Height>0.2in</Height><Width>3in</Width></Textbox>
+          
+          <Textbox Name="ReviewBy"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Review by</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>8.2in</Top><Height>0.2in</Height><Width>7.5in</Width></Textbox>
+          <Textbox Name="SignLine3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>__________________________________</Value></TextRun></TextRuns></Paragraph></Paragraphs><Top>8.6in</Top><Height>0.2in</Height><Width>3in</Width></Textbox>
+          <Textbox Name="HRSignLabel"><Paragraphs><Paragraph><TextRuns><TextRun><Value>HR Signature / Date / Designation</Value></TextRun></TextRuns></Paragraph></Paragraphs><Top>8.8in</Top><Height>0.2in</Height><Width>7.5in</Width></Textbox>
         </ReportItems>
-        <Height>2in</Height>
+        <Height>9.5in</Height>
         <Style />
       </Body>
-      <Width>6.5in</Width>
+      <Width>7.5in</Width>
       <Page>
-        <PageHeader>
-          <Height>0.5in</Height>
-          <ReportItems>
-            <Textbox Name="HeaderInfo">
-              <Paragraphs>
-                <Paragraph>
-                  <TextRuns>
-                    <TextRun>
-                      <Value>="Employee: " &amp; Parameters!EmployeeName.Value &amp; " (" &amp; Parameters!EmployeeCode.Value &amp; ")" &amp; vbCrLf &amp; "Department: " &amp; Parameters!DepartmentName.Value</Value>
-                    </TextRun>
-                  </TextRuns>
-                </Paragraph>
-              </Paragraphs>
-              <Height>0.4in</Height>
-              <Width>6.5in</Width>
-            </Textbox>
-          </ReportItems>
-        </PageHeader>
-        <PageHeight>11.69in</PageHeight>
-        <PageWidth>8.27in</PageWidth>
-        <LeftMargin>0.5in</LeftMargin>
-        <RightMargin>0.5in</RightMargin>
-        <TopMargin>0.5in</TopMargin>
-        <BottomMargin>0.5in</BottomMargin>
+        <PageHeight>11.69in</PageHeight><PageWidth>8.27in</PageWidth>
+        <LeftMargin>0.4in</LeftMargin><RightMargin>0.4in</RightMargin><TopMargin>0.5in</TopMargin><BottomMargin>0.5in</BottomMargin>
         <Style />
       </Page>
     </ReportSection>
   </ReportSections>
   <ReportParameters>
-    <ReportParameter Name="EmployeeName">
-      <DataType>String</DataType>
-      <Prompt>ReportParameter1</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="EmployeeCode">
-      <DataType>String</DataType>
-      <Prompt>ReportParameter1</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="DepartmentName">
-      <DataType>String</DataType>
-      <Prompt>ReportParameter1</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="CycleName">
-      <DataType>String</DataType>
-      <Prompt>ReportParameter1</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="FinalScore">
-      <DataType>String</DataType>
-      <Prompt>ReportParameter1</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="PerformanceBand">
-      <DataType>String</DataType>
-      <Prompt>ReportParameter1</Prompt>
-    </ReportParameter>
+    <ReportParameter Name="EmployeeName"><DataType>String</DataType><Prompt>EmployeeName</Prompt></ReportParameter>
+    <ReportParameter Name="EmployeeCode"><DataType>String</DataType><Prompt>EmployeeCode</Prompt></ReportParameter>
+    <ReportParameter Name="DepartmentName"><DataType>String</DataType><Prompt>DepartmentName</Prompt></ReportParameter>
+    <ReportParameter Name="PositionTitle"><DataType>String</DataType><Prompt>PositionTitle</Prompt></ReportParameter>
+    <ReportParameter Name="CycleName"><DataType>String</DataType><Prompt>CycleName</Prompt></ReportParameter>
+    <ReportParameter Name="ManagerName"><DataType>String</DataType><Prompt>ManagerName</Prompt></ReportParameter>
+    <ReportParameter Name="AssessmentDate"><DataType>String</DataType><Prompt>AssessmentDate</Prompt></ReportParameter>
+    <ReportParameter Name="EffectiveDate"><DataType>String</DataType><Prompt>EffectiveDate</Prompt></ReportParameter>
+    <ReportParameter Name="FinalScore"><DataType>String</DataType><Prompt>FinalScore</Prompt></ReportParameter>
+    <ReportParameter Name="PerformanceBand"><DataType>String</DataType><Prompt>PerformanceBand</Prompt></ReportParameter>
+    <ReportParameter Name="TotalPoints"><DataType>String</DataType><Prompt>TotalPoints</Prompt></ReportParameter>
+    <ReportParameter Name="AnsweredQuestionsCount"><DataType>String</DataType><Prompt>AnsweredQuestionsCount</Prompt></ReportParameter>
+    <ReportParameter Name="MaxPoints"><DataType>String</DataType><Prompt>MaxPoints</Prompt></ReportParameter>
   </ReportParameters>
   <rd:ReportUnit>Inch</rd:ReportUnit>
   <rd:ReportID>self-assessment-rdlc</rd:ReportID>

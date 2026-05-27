@@ -11,6 +11,10 @@ public class PerformanceEvaluationDto
     public string? EmployeeName { get; set; }
     public string? CycleName { get; set; }
     public string? FormName { get; set; }
+    public string? EmployeeCode { get; set; }
+    public string? DepartmentName { get; set; }
+    public string? PositionTitle { get; set; }
+    public string? ManagerName { get; set; }
     public PerformanceEvaluationStatus Status { get; set; }
     public int? SelfRating { get; set; }
     public int? ManagerRating { get; set; }
@@ -21,4 +25,5 @@ public class PerformanceEvaluationDto
     public DateTime? FinalizedAt { get; set; }
 
     public List<AppraisalResponseDto> Responses { get; set; } = new();
+    public List<FormQuestionDto> FormQuestions { get; set; } = new();
 }

@@ -32,9 +32,15 @@
             <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
             <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
             <MudTd DataLabel="Form">@context.FormName</MudTd>
-            <MudTd DataLabel="Self Rating">@context.SelfRating</MudTd>
-            <MudTd DataLabel="Manager Rating">@context.ManagerRating</MudTd>
-            <MudTd DataLabel="Final Score">@context.FinalRatingScore</MudTd>
+            <MudTd DataLabel="Self Rating">
+                <MudRating SelectedValue="@(context.SelfRating ?? 0)" ReadOnly="true" MaxValue="5" />
+            </MudTd>
+            <MudTd DataLabel="Manager Rating">
+                <MudRating SelectedValue="@(context.ManagerRating ?? 0)" ReadOnly="true" MaxValue="5" />
+            </MudTd>
+            <MudTd DataLabel="Final Score">
+                <MudText Color="Color.Primary" Style="font-weight: bold;">@context.FinalRatingScore?.ToString("N2")%</MudText>
+            </MudTd>
             <MudTd DataLabel="Status">
                 <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status</MudChip>
             </MudTd>

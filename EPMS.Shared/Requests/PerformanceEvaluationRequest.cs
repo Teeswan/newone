@@ -32,4 +32,6 @@ public class UpdatePerformanceEvaluationRequest
     public decimal? FinalRatingScore { get; set; }
     public bool? IsFinalized { get; set; }
     public DateTime? FinalizedAt { get; set; }
+
+    public List<UpdateAppraisalResponseRequest> Responses { get; set; } = new();
 }

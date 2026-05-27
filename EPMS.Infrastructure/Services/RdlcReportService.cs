@@ -85,10 +85,14 @@ public class RdlcReportService : IRdlcReportService
                 new ReportParameter("DepartmentName", reportData.DepartmentName),
                 new ReportParameter("PositionTitle", reportData.PositionTitle),
                 new ReportParameter("CycleName", reportData.CycleName),
+                new ReportParameter("ManagerName", reportData.ManagerName),
                 new ReportParameter("AssessmentDate", reportData.AssessmentDate?.ToString("yyyy-MM-dd") ?? "N/A"),
                 new ReportParameter("EffectiveDate", reportData.EffectiveDate?.ToString("yyyy-MM-dd") ?? "N/A"),
                 new ReportParameter("FinalScore", reportData.FinalScore?.ToString("N2") ?? "0.00"),
-                new ReportParameter("PerformanceBand", reportData.PerformanceBand)
+                new ReportParameter("PerformanceBand", reportData.PerformanceBand),
+                new ReportParameter("TotalPoints", reportData.TotalPoints.ToString()),
+                new ReportParameter("AnsweredQuestionsCount", reportData.AnsweredQuestionsCount.ToString()),
+                new ReportParameter("MaxPoints", (reportData.AnsweredQuestionsCount * 5).ToString())
             });
 
             return report.Render("PDF");

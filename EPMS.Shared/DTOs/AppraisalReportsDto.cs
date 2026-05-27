@@ -7,9 +7,13 @@ public class AppraisalReportDto
     public string DepartmentName { get; set; } = string.Empty;
     public string PositionTitle { get; set; } = string.Empty;
     public string CycleName { get; set; } = string.Empty;
+    public string ManagerName { get; set; } = string.Empty;
     public DateTime? AssessmentDate { get; set; }
     public DateTime? EffectiveDate { get; set; }
     public decimal? FinalScore { get; set; }
     public string PerformanceBand { get; set; } = string.Empty;
+    public int TotalPoints { get; set; }
+    public int AnsweredQuestionsCount { get; set; }
+    public int MaxPoints { get; set; }
     public List<AppraisalResponseDto> Responses { get; set; } = new();
 }

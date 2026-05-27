@@ -34,8 +34,11 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
     {
         return await _dbSet
             .Include(pe => pe.Employee)
+                .ThenInclude(e => e!.ReportsToNavigation)
             .Include(pe => pe.Cycle)
             .Include(pe => pe.Form)
+                .ThenInclude(f => f.FormQuestions)
+                    .ThenInclude(fq => fq.Question)
             .Include(pe => pe.AppraisalResponses)
                 .ThenInclude(ar => ar.Question)
             .Include(pe => pe.AppraisalResponses)

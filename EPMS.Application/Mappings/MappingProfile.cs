@@ -36,9 +36,14 @@ public class MappingProfile : Profile
         // Performance Evaluation Mappings
         CreateMap<PerformanceEvaluation, PerformanceEvaluationDto>()
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
+            .ForMember(dest => dest.EmployeeCode, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.EmployeeCode : null))
+            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Employee != null && src.Employee.Department != null ? src.Employee.Department.DepartmentName : null))
+            .ForMember(dest => dest.PositionTitle, opt => opt.MapFrom(src => src.Employee != null && src.Employee.Position != null ? src.Employee.Position.PositionTitle : null))
+            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Employee != null && src.Employee.ReportsToNavigation != null ? src.Employee.ReportsToNavigation.FullName : null))
             .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null))
             .ForMember(dest => dest.FormName, opt => opt.MapFrom(src => src.Form != null ? src.Form.FormName : null))
-            .ForMember(dest => dest.Responses, opt => opt.MapFrom(src => src.AppraisalResponses));
+            .ForMember(dest => dest.Responses, opt => opt.MapFrom(src => src.AppraisalResponses))
+            .ForMember(dest => dest.FormQuestions, opt => opt.MapFrom(src => src.Form != null ? src.Form.FormQuestions : null));
         CreateMap<CreatePerformanceEvaluationRequest, PerformanceEvaluation>();
         CreateMap<UpdatePerformanceEvaluationRequest, PerformanceEvaluation>();
 
@@ -54,7 +59,8 @@ public class MappingProfile : Profile
         CreateMap<UpdateAppraisalCycleRequest, AppraisalCycle>();
 
         CreateMap<FormQuestion, FormQuestionDto>()
-            .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Question != null ? src.Question.QuestionText : null));
+            .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Question != null ? src.Question.QuestionText : null))
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Question != null ? src.Question.Category : null));
         CreateMap<CreateFormQuestionRequest, FormQuestion>();
         CreateMap<UpdateFormQuestionRequest, FormQuestion>();
 

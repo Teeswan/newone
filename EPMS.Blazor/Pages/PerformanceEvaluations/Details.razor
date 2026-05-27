@@ -2,112 +2,207 @@
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
 @inject IPerformanceEvaluationBlazorService PerformanceEvaluationService
+@inject IReportBlazorService ReportService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
-    <MudPaper Class="pa-8" Elevation="3">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-            <MudText Typo="Typo.h4">Performance Evaluation Details</MudText>
-            <MudChip T="string" Color="@GetStatusColor(eval?.Status ?? EPMS.Domain.Enums.PerformanceEvaluationStatus.Draft)">@(eval?.Status.ToString() ?? "N/A")</MudChip>
-        </MudStack>
-        <MudDivider Class="mb-6" />
-
-        @if (eval == null)
-        {
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    @if (eval == null)
+    {
+        <MudPaper Class="pa-8" Elevation="3">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-        }
-        else
-        {
-            <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Evaluation ID</MudText>
-                    <MudText Typo="Typo.body1">@eval.EvalId</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Employee</MudText>
-                    <MudText Typo="Typo.body1">@eval.EmployeeName</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Appraisal Cycle</MudText>
-                    <MudText Typo="Typo.body1">@eval.CycleName</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Appraisal Form</MudText>
-                    <MudText Typo="Typo.body1">@eval.FormName</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Self Rating</MudText>
-                    <MudRating SelectedValue="@(eval.SelfRating ?? 0)" ReadOnly="true" MaxValue="5" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Manager Rating</MudText>
-                    <MudRating SelectedValue="@(eval.ManagerRating ?? 0)" ReadOnly="true" MaxValue="5" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Self Comments</MudText>
-                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(eval.SelfComments) ? "No comments provided." : eval.SelfComments)</MudText>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Manager Comments</MudText>
-                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(eval.ManagerComments) ? "No comments provided." : eval.ManagerComments)</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Final Rating Score</MudText>
-                    <MudText Typo="Typo.h5" Color="Color.Primary">@eval.FinalRatingScore</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Finalized Status</MudText>
-                    <MudText Typo="Typo.body1">
-                        @if (eval.IsFinalized == true)
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="pa-0 mb-6" Elevation="3" Style="overflow: hidden;">
+            <div style="background-color: #FDE9D9; padding: 16px; border-bottom: 1px solid #e0e0e0;">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.h5" Style="font-weight: bold;">Employee Self-assessment Form</MudText>
+                    <MudChip T="string" Color="@GetStatusColor(eval.Status)" Variant="Variant.Filled">@eval.Status.ToString()</MudChip>
+                </MudStack>
+            </div>
+
+            <div class="pa-8">
+                <MudGrid>
+                    <!-- Employee Info Section -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Class="mb-4" Style="text-align: center; font-weight: bold;">ACE Data Systems Ltd.,</MudText>
+                        <MudSimpleTable Style="width: 100%" Bordered="true" Dense="true">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 200px; font-weight: bold; background-color: #f5f5f5;">Employee Name :</td>
+                                    <td>@eval.EmployeeName</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; background-color: #f5f5f5;">Employee ID :</td>
+                                    <td>@eval.EmployeeCode</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; background-color: #f5f5f5;">Current Position :</td>
+                                    <td>@eval.PositionTitle</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; background-color: #f5f5f5;">Department :</td>
+                                    <td>@eval.DepartmentName</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; background-color: #f5f5f5;">Assessment Date :</td>
+                                    <td>@eval.FinalizedAt?.ToString("yyyy-MM-dd")</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; background-color: #f5f5f5;">Manager Name :</td>
+                                    <td>@eval.ManagerName</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; background-color: #f5f5f5;">Finalized Status :</td>
+                                    <td>
+                                        @if (eval.IsFinalized == true)
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-1" />
+                                            <span>Finalized on @eval.FinalizedAt?.ToString("g")</span>
+                                        }
+                                        else
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Pending" Color="Color.Warning" Size="Size.Small" Class="mr-1" />
+                                            <span>Pending Finalization</span>
+                                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </MudSimpleTable>
+                    </MudItem>
+
+                    <!-- Evaluation Ratings Section -->
+                    <MudItem xs="12" Class="mt-6">
+                        <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: bold;">Evaluation Ratings</MudText>
+                        @if (eval.Responses != null && eval.Responses.Any())
                         {
-                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-1" />
-                            <span>Finalized on @eval.FinalizedAt?.ToString("g")</span>
+                            <MudTable Items="@eval.Responses" Hover="true" Bordered="true" Elevation="0" Dense="true">
+                                <HeaderContent>
+                                    <MudTh Style="width: 50px">No</MudTh>
+                                    <MudTh>Role</MudTh>
+                                    <MudTh>Assessment Subject</MudTh>
+                                    <MudTh Style="width: 150px">Rating</MudTh>
+                                    <MudTh>Comments</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="resp">
+                                    <MudTd>@resp.SortOrder</MudTd>
+                                    <MudTd>@resp.RespondentRole</MudTd>
+                                    <MudTd>@resp.QuestionText</MudTd>
+                                    <MudTd>
+                                        <MudRating SelectedValue="@(resp.RatingValue ?? 0)" ReadOnly="true" MaxValue="5" />
+                                    </MudTd>
+                                    <MudTd>@resp.AnswerText</MudTd>
+                                </RowTemplate>
+                            </MudTable>
                         }
                         else
                         {
-                            <MudIcon Icon="@Icons.Material.Filled.Pending" Color="Color.Warning" Size="Size.Small" Class="mr-1" />
-                            <span>Pending Finalization</span>
+                            <MudAlert Severity="Severity.Info">No ratings recorded for this evaluation.</MudAlert>
                         }
-                    </MudText>
-                </MudItem>
+                    </MudItem>
 
-                <MudItem xs="12" Class="mt-6">
-                    <MudText Typo="Typo.h5" Class="mb-4">Evaluation Feedback (360 Feedback)</MudText>
-                    @if (eval.Responses != null && eval.Responses.Any())
-                    {
-                        <MudTable Items="@eval.Responses" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Class="border">
-                            <HeaderContent>
-                                <MudTh>Evaluator</MudTh>
-                                <MudTh>Role</MudTh>
-                                <MudTh>Question</MudTh>
-                                <MudTh>Rating</MudTh>
-                                <MudTh>Comments</MudTh>
-                            </HeaderContent>
-                            <RowTemplate Context="response">
-                                <MudTd DataLabel="Evaluator">@response.RespondentName</MudTd>
-                                <MudTd DataLabel="Role">@response.RespondentRole</MudTd>
-                                <MudTd DataLabel="Question">@response.QuestionText</MudTd>
-                                <MudTd DataLabel="Rating">
-                                    <MudRating SelectedValue="@(response.RatingValue ?? 0)" ReadOnly="true" MaxValue="5" />
-                                </MudTd>
-                                <MudTd DataLabel="Comments">@response.AnswerText</MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    }
-                    else
-                    {
-                        <MudAlert Severity="Severity.Info">No feedback responses recorded for this evaluation.</MudAlert>
-                    }
-                </MudItem>
+                    <!-- Remarks Section -->
+                    <MudItem xs="12" Class="mt-6">
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Outlined="true" Class="pa-4">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="font-weight: bold;">Employee Overall Remarks</MudText>
+                                    <MudText Typo="Typo.body1" Class="mt-2">@(string.IsNullOrEmpty(eval.SelfComments) ? "No remarks." : eval.SelfComments)</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Outlined="true" Class="pa-4">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="font-weight: bold;">Appraiser Overall Remarks</MudText>
+                                    <MudText Typo="Typo.body1" Class="mt-2">@(string.IsNullOrEmpty(eval.ManagerComments) ? "No remarks." : eval.ManagerComments)</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
 
-                <MudItem xs="12" Class="d-flex justify-end mt-6">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList" Class="mr-2">Back to List</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit">Edit</MudButton>
-                </MudItem>
-            </MudGrid>
-        }
-    </MudPaper>
+                    <!-- Calculation Section -->
+                    <MudItem xs="12" Class="mt-6">
+                        <MudGrid>
+                            <MudItem xs="12" sm="8">
+                                <MudSimpleTable Bordered="true" Dense="true">
+                                    <thead>
+                                        <tr>
+                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Total Points</th>
+                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Formula</th>
+                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="text-align: center; vertical-align: middle; font-weight: bold;">Total Points</td>
+                                            <td style="text-align: center;">
+                                                <div style="border-bottom: 1px solid black; padding: 4px;">Total Point</div>
+                                                <div style="padding: 4px;">Number of Questions Answered X 5</div>
+                                            </td>
+                                            <td style="text-align: center; vertical-align: middle;">
+                                                <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">@eval.FinalRatingScore?.ToString("N2")%</MudText>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </MudSimpleTable>
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Outlined="true" Class="pa-4 d-flex flex-column align-center justify-center" Style="height: 100%;">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Self Rating Total</MudText>
+                                    <MudText Typo="Typo.h6">@eval.SelfRating</MudText>
+                                    <MudDivider Class="my-2" Style="width: 100%" />
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Manager Rating Total</MudText>
+                                    <MudText Typo="Typo.h6">@eval.ManagerRating</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+
+                    <!-- Explanation Section -->
+                    <MudItem xs="12" Class="mt-6">
+                        <MudText Typo="Typo.h6" Class="mb-2" Style="font-weight: bold;">Score Explanation</MudText>
+                        <MudSimpleTable Bordered="true" Dense="true">
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px; font-weight: bold; text-align: center; background-color: #f5f5f5;">Score</th>
+                                    <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Explanation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: center;">86-100</td>
+                                    <td><b>Outstanding:</b> Performance exceptional and far exceeds expectations.</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">71-85</td>
+                                    <td><b>Good:</b> Performance is consistent. Clearly meets essential requirements of job.</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">60-70</td>
+                                    <td><b>Meet requirement:</b> Performance is satisfactory. Meets requirements of the job.</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">40-59</td>
+                                    <td><b>Need Improvement:</b> Performance is inconsistent. Meets requirements occasionally.</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">00-39</td>
+                                    <td><b>Unsatisfactory:</b> Performance does not meet the minimum requirement.</td>
+                                </tr>
+                            </tbody>
+                        </MudSimpleTable>
+                    </MudItem>
+
+                    <MudItem xs="12" Class="d-flex justify-end mt-8 gap-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">Back to List</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="DownloadReport">Download Report</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit">Edit</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </div>
+        </MudPaper>
+    }
 </MudContainer>
 
 @code {
@@ -136,6 +231,21 @@
 
     private void BackToList() => NavigationManager.NavigateTo("/performanceevaluations");
     private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceevaluations/edit/{Id}");
+
+    private async Task DownloadReport()
+    {
+        if (eval == null) return;
+        try
+        {
+            var pdfBytes = await ReportService.GenerateSelfAssessmentRdlcAsync(eval.EvalId);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"SelfAssessment_{eval.EmployeeName}_{eval.EvalId}.pdf");
+            Snackbar.Add("Report downloaded successfully.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error downloading report: {ex.Message}", Severity.Error);
+        }
+    }
 
     private Color GetStatusColor(EPMS.Domain.Enums.PerformanceEvaluationStatus status)
     {

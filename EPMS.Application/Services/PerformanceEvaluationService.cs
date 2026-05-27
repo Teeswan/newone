@@ -73,6 +73,30 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                 resp.EvalId = created.EvalId;
                 await _responseRepository.CreateAsync(resp);
             }
+
+            // Re-calculate totals and FinalRatingScore based on created responses
+            var allResponses = await _responseRepository.GetByEvalIdAsync(created.EvalId);
+            var respList = allResponses.ToList();
+            if (respList.Any())
+            {
+                var selfRatings = respList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
+                var otherRatings = respList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
+
+                var selfTotal = selfRatings.Sum(r => r.RatingValue ?? 0);
+                var managerTotal = respList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
+
+                var activeRatings = otherRatings.Any() ? otherRatings : selfRatings;
+                var totalPoints = activeRatings.Sum(r => r.RatingValue ?? 0);
+                var questionsCount = activeRatings.Count();
+
+                created.SelfRating = selfTotal;
+                created.ManagerRating = managerTotal;
+                if (questionsCount > 0)
+                {
+                    created.FinalRatingScore = (decimal)totalPoints / (questionsCount * 5) * 100;
+                }
+                await _repository.UpdateAsync(created);
+            }
         }
 
         return _mapper.Map<PerformanceEvaluationDto>(created);
@@ -84,6 +108,61 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         entity.EvalId = evalId;
 
         var updated = await _repository.UpdateAsync(entity);
+
+        if (request.Responses != null && request.Responses.Any())
+        {
+            foreach (var respReq in request.Responses)
+            {
+                if (respReq.ResponseId > 0)
+                {
+                    var existing = await _responseRepository.GetByIdAsync(respReq.ResponseId);
+                    if (existing != null)
+                    {
+                        existing.RatingValue = respReq.RatingValue;
+                        existing.AnswerText = respReq.AnswerText;
+                        await _responseRepository.UpdateAsync(existing);
+                    }
+                }
+                else
+                {
+                    // Add new response during update
+                    var newResp = _mapper.Map<AppraisalResponse>(respReq);
+                    newResp.EvalId = evalId;
+                    await _responseRepository.CreateAsync(newResp);
+                }
+            }
+            
+            // Re-calculate totals and FinalRatingScore based on updated responses
+            var allResponses = await _responseRepository.GetByEvalIdAsync(evalId);
+            var respList = allResponses.ToList();
+            if (respList.Any())
+            {
+                var selfRatings = respList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
+                var otherRatings = respList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
+
+                var selfTotal = selfRatings.Sum(r => r.RatingValue ?? 0);
+                var managerTotal = respList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
+                
+                // Final score calculation (using other's ratings if available, otherwise self)
+                var activeRatings = otherRatings.Any() ? otherRatings : selfRatings;
+                var totalPoints = activeRatings.Sum(r => r.RatingValue ?? 0);
+                var questionsCount = activeRatings.Count();
+                
+                if (updated != null)
+                {
+                    updated.SelfRating = selfTotal;
+                    updated.ManagerRating = managerTotal;
+                    
+                    if (questionsCount > 0)
+                    {
+                        updated.FinalRatingScore = (decimal)totalPoints / (questionsCount * 5) * 100;
+                    }
+                    
+                    await _repository.UpdateAsync(updated);
+                }
+            }
+        }
+
         return _mapper.Map<PerformanceEvaluationDto?>(updated);
     }
 
@@ -111,10 +190,25 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         var cycle = eval.CycleId.HasValue ? await _cycleRepository.GetByIdAsync(eval.CycleId.Value) : null;
         var dept = employee?.DepartmentId.HasValue == true ? await _departmentRepository.GetByIdAsync(employee.DepartmentId.Value) : null;
         var responses = await _responseRepository.GetByEvalIdAsync(evalId);
+        var responsesList = responses.ToList();
+
+        // Calculate totals for report
+        var selfRatings = responsesList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
+        var otherRatings = responsesList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
+        
+        var selfTotal = selfRatings.Sum(r => r.RatingValue ?? 0);
+        var managerTotal = responsesList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
+        
+        var activeRatingsForScore = otherRatings.Any() ? otherRatings : selfRatings;
+        var totalPoints = activeRatingsForScore.Sum(r => r.RatingValue ?? 0);
+        var questionsCount = activeRatingsForScore.Count();
+        
+        decimal? calculatedScore = questionsCount > 0 ? (decimal)totalPoints / (questionsCount * 5) * 100 : 0;
+        var scoreToUse = eval.FinalRatingScore ?? calculatedScore;
         
         var scales = await _ratingScaleRepository.GetAllAsync();
         var band = scales.OrderByDescending(s => s.RatingLevel)
-            .FirstOrDefault(s => eval.FinalRatingScore >= s.RatingLevel);
+            .FirstOrDefault(s => scoreToUse >= s.RatingLevel);
 
         return new AppraisalReportDto
         {
@@ -123,11 +217,15 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             DepartmentName = dept?.DepartmentName ?? "N/A",
             PositionTitle = employee?.Position?.PositionTitle ?? "N/A",
             CycleName = cycle?.CycleName ?? "N/A",
+            ManagerName = employee?.ReportsToNavigation?.FullName ?? "N/A",
             AssessmentDate = eval.FinalizedAt ?? DateTime.Now,
             EffectiveDate = cycle != null ? new DateTime(cycle.EndDate.Year, cycle.EndDate.Month, cycle.EndDate.Day) : (DateTime?)null,
-            FinalScore = eval.FinalRatingScore,
+            FinalScore = scoreToUse,
             PerformanceBand = band?.Label ?? "N/A",
-            Responses = _mapper.Map<List<AppraisalResponseDto>>(responses)
+            TotalPoints = totalPoints,
+            AnsweredQuestionsCount = questionsCount,
+            MaxPoints = questionsCount * 5,
+            Responses = _mapper.Map<List<AppraisalResponseDto>>(responsesList)
         };
     }
 }

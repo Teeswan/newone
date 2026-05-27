@@ -14,6 +14,7 @@ public class CreateAppraisalResponseRequest
 
 public class UpdateAppraisalResponseRequest
 {
+    public long ResponseId { get; set; }
     public int? EvalId { get; set; }
     public int? QuestionId { get; set; }
     public int? RespondentId { get; set; }

@@ -116,6 +116,22 @@ CREATE OR ALTER PROCEDURE sp_PerformanceEvaluations_Delete
     @EvalID INT
 AS
 BEGIN
-    DELETE FROM PerformanceEvaluations WHERE EvalID = @EvalID;
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- Delete related performance outcomes first
+        DELETE FROM PerformanceOutcomes WHERE EvalID = @EvalID;
+        
+        -- Delete related appraisal responses
+        DELETE FROM AppraisalResponses WHERE EvalID = @EvalID;
+        
+        -- Finally delete the evaluation itself
+        DELETE FROM PerformanceEvaluations WHERE EvalID = @EvalID;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END
 GO
