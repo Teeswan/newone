@@ -1,4 +1,5 @@
 using EPMS.Domain.Entities;
+using EPMS.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,7 +10,7 @@ namespace EPMS.Application.Services;
 
 public interface ITokenService
 {
-    string CreateToken(Employee employee);
+    string CreateToken(Employee employee, User? user = null);
 }
 
 public class TokenService : ITokenService
@@ -21,7 +22,7 @@ public class TokenService : ITokenService
         _config = config;
     }
 
-    public string CreateToken(Employee employee)
+    public string CreateToken(Employee employee, User? user = null)
     {
         var jwtSettings = _config.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
@@ -32,6 +33,11 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.Name, employee.Email ?? employee.FullName),
             new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
         };
+
+        if (user != null)
+        {
+            claims.Add(new Claim("UserId", user.UserId.ToString()));
+        }
 
         if (employee.PositionId != null)
         {

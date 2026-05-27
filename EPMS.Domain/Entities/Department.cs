@@ -9,6 +9,8 @@ public partial class Department : ISoftDelete
 {
     public int DepartmentId { get; set; }
 
+    public string? DepartmentIdName { get; set; }
+
     public string DepartmentName { get; set; } = null!;
 
     public bool? IsActive { get; set; }

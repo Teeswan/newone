@@ -295,6 +295,7 @@ public partial class AppDbContext : DbContext
             entity.HasQueryFilter(e => !e.IsDeleted);
 
             entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
+            entity.Property(e => e.DepartmentIdName).HasMaxLength(50);
             entity.Property(e => e.DepartmentName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.ParentDepartmentId).HasColumnName("ParentDepartmentID");

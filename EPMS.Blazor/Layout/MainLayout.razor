@@ -2,9 +2,12 @@
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components.Authorization
 @using EPMS.Client.Identity
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
+@inject INotificationBlazorService NotificationService
 
 <style>
     .main-layout, .mud-layout {
@@ -30,6 +33,35 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="mr-4">
+                    <ActivatorContent>
+                        <MudBadge Content="@_unreadCount" Color="Color.Error" Overlap="true" Visible="@(_unreadCount > 0)">
+                            <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+                        </MudBadge>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudText Typo="Typo.subtitle2" Class="px-4 py-2">Notifications</MudText>
+                        <MudDivider />
+                        @if (_notifications == null || !_notifications.Any())
+                        {
+                            <MudMenuItem>No new notifications</MudMenuItem>
+                        }
+                        else
+                        {
+                            @foreach (var notification in _notifications.Take(5))
+                            {
+                                <MudMenuItem OnClick="@(() => HandleNotificationClick(notification))">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.body2" Color="@(notification.IsRead == true ? Color.Default : Color.Primary)">@notification.Title</MudText>
+                                        <MudText Typo="Typo.caption">@notification.CreatedAt?.ToString("g")</MudText>
+                                    </div>
+                                </MudMenuItem>
+                            }
+                        }
+                        <MudDivider />
+                        <MudMenuItem Href="/notifications" Class="text-center">View All</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
                 <MudChip T="string" Color="@(IsLoginPage ? Color.Inherit : Color.Secondary)" Size="Size.Medium" Class="mr-4">
                     Welcome, @context.User.Identity?.Name!
                 </MudChip>
@@ -63,6 +95,53 @@
 @code {
     private bool _drawerOpen = true;
     private bool IsLoginPage => Navigation.Uri.Contains("/login");
+    private List<NotificationDto> _notifications = new();
+    private int _unreadCount = 0;
+    private int? _userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst("UserId") ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            {
+                _userId = userId;
+                await LoadNotifications();
+            }
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        if (_userId.HasValue)
+        {
+            _notifications = await NotificationService.GetUserNotificationsAsync(_userId.Value);
+            _unreadCount = await NotificationService.GetUnreadCountAsync(_userId.Value);
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notification)
+    {
+        if (notification.IsRead != true)
+        {
+            await NotificationService.MarkAsReadAsync(notification.NotificationId);
+            await LoadNotifications();
+        }
+
+        // Navigate based on type
+        if (notification.RelatedEntityId.HasValue)
+        {
+            if (notification.Type == "PerformanceEvaluation" || notification.Type == "360Feedback")
+            {
+                Navigation.NavigateTo($"/performance-evaluations/edit/{notification.RelatedEntityId.Value}");
+            }
+        }
+    }
 
     private async Task HandleLogout()
     {

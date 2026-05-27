@@ -16,6 +16,8 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
     private readonly IAppraisalCycleRepository _cycleRepository;
     private readonly IDepartmentRepository _departmentRepository;
     private readonly IRatingScaleRepository _ratingScaleRepository;
+    private readonly INotificationService _notificationService;
+    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
 
     public PerformanceEvaluationService(
@@ -25,6 +27,8 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         IAppraisalCycleRepository cycleRepository,
         IDepartmentRepository departmentRepository,
         IRatingScaleRepository ratingScaleRepository,
+        INotificationService notificationService,
+        IUserRepository userRepository,
         IMapper mapper)
     {
         _repository = repository;
@@ -33,6 +37,8 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         _cycleRepository = cycleRepository;
         _departmentRepository = departmentRepository;
         _ratingScaleRepository = ratingScaleRepository;
+        _notificationService = notificationService;
+        _userRepository = userRepository;
         _mapper = mapper;
     }
 
@@ -96,6 +102,42 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                     created.FinalRatingScore = (decimal)totalPoints / (questionsCount * 5) * 100;
                 }
                 await _repository.UpdateAsync(created);
+            }
+        }
+
+        // Send notifications
+        if (created.EmployeeId.HasValue)
+        {
+            var employeeUser = await _userRepository.GetByEmployeeIdAsync(created.EmployeeId.Value);
+            if (employeeUser != null)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    employeeUser.UserId,
+                    "New Performance Evaluation Assigned",
+                    "PerformanceEvaluation",
+                    created.EvalId);
+            }
+
+            // Notify Evaluators (if any)
+            if (request.Responses != null)
+            {
+                var uniqueEvaluators = request.Responses
+                    .Where(r => r.RespondentRole != "Self" && r.RespondentEmployeeId.HasValue)
+                    .Select(r => r.RespondentEmployeeId!.Value)
+                    .Distinct();
+
+                foreach (var evaluatorId in uniqueEvaluators)
+                {
+                    var evaluatorUser = await _userRepository.GetByEmployeeIdAsync(evaluatorId);
+                    if (evaluatorUser != null)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            evaluatorUser.UserId,
+                            $"Requested to provide feedback for {created.Employee?.FullName ?? "an employee"}",
+                            "360Feedback",
+                            created.EvalId);
+                    }
+                }
             }
         }
 
@@ -163,6 +205,20 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             }
         }
 
+        // Notify if Finalized
+        if (updated != null && updated.Status == PerformanceEvaluationStatus.Finalized && updated.EmployeeId.HasValue)
+        {
+            var employeeUser = await _userRepository.GetByEmployeeIdAsync(updated.EmployeeId.Value);
+            if (employeeUser != null)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    employeeUser.UserId,
+                    "Your Performance Appraisal has been finalized",
+                    "PerformanceEvaluation",
+                    evalId);
+            }
+        }
+
         return _mapper.Map<PerformanceEvaluationDto?>(updated);
     }
 
@@ -173,6 +229,25 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
 
         evaluation.Status = PerformanceEvaluationStatus.SelfSubmitted;
         await _repository.UpdateAsync(evaluation);
+
+        // Notify Manager
+        if (evaluation.EmployeeId.HasValue)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(evaluation.EmployeeId.Value);
+            if (employee?.ReportsTo != null)
+            {
+                var managerUser = await _userRepository.GetByEmployeeIdAsync(employee.ReportsTo.Value);
+                if (managerUser != null)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        managerUser.UserId,
+                        $"{employee.FullName} has submitted their self-assessment",
+                        "PerformanceEvaluation",
+                        evalId);
+                }
+            }
+        }
+
         return true;
     }
 

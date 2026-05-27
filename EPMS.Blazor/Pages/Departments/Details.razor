@@ -45,13 +45,19 @@
                         Basic Information
                     </MudText>
                     <MudGrid Spacing="4">
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="4">
                             <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
                                 <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Department ID</MudText>
                                 <MudChip Color="Color.Primary" Size="Size.Medium" T="int">@department.DepartmentId</MudChip>
                             </MudPaper>
                         </MudItem>
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
+                                <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Department Code</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-bold">@department.DepartmentIdName</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
                             <MudPaper Elevation="0" Class="pa-4" Style="background: white; border-radius: 12px;">
                                 <MudText Typo="Typo.caption" Style="color: #6B7280; font-weight: 500;">Department Name</MudText>
                                 <MudText Typo="Typo.h5" Class="fw-bold">@department.DepartmentName</MudText>

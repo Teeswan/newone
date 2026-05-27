@@ -3,6 +3,7 @@ namespace EPMS.Shared.DTOs;
 public class DepartmentDto
 {
     public int DepartmentId { get; set; }
+    public string? DepartmentIdName { get; set; }
     public string DepartmentName { get; set; } = null!;
     public bool IsActive { get; set; }
     public int? ParentDepartmentId { get; set; }
@@ -12,6 +13,7 @@ public class DepartmentDto
 public class DepartmentTreeDto
 {
     public int DepartmentId { get; set; }
+    public string? DepartmentIdName { get; set; }
     public string DepartmentName { get; set; } = null!;
     public int? ParentDepartmentId { get; set; }
     public int Level { get; set; }

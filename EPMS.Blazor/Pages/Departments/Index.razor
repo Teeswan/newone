@@ -190,7 +190,8 @@
                       Class="rounded-xl">
                 <HeaderContent>
                     <MudTh Style="font-weight: 700; color: #374151;"></MudTh>
-                    <MudTh Style="font-weight: 700; color: #374151;">Department ID</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">ID</MudTh>
+                    <MudTh Style="font-weight: 700; color: #374151;">Code</MudTh>
                     <MudTh Style="font-weight: 700; color: #374151;">Name</MudTh>
                     <MudTh Style="font-weight: 700; color: #374151;">Parent Department</MudTh>
                     <MudTh Style="font-weight: 700; color: #374151; text-align: center;">Active</MudTh>
@@ -198,7 +199,8 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd></MudTd>
-                    <MudTd DataLabel="Department ID" Style="font-weight: 500;">@context.DepartmentId</MudTd>
+                    <MudTd DataLabel="ID" Style="font-weight: 500;">@context.DepartmentId</MudTd>
+                    <MudTd DataLabel="Code" Style="font-weight: 500;">@context.DepartmentIdName</MudTd>
                     <MudTd DataLabel="Name">
                         <div class="d-flex align-center">
                             <MudAvatar Size="Size.Small" Color="Color.Primary" Class="mr-3">
@@ -270,6 +272,7 @@
             {
                 filtered = filtered.Where(d => 
                     d.DepartmentName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    (d.DepartmentIdName != null && d.DepartmentIdName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
                     (d.ParentDepartmentName != null && d.ParentDepartmentName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)));
             }
 

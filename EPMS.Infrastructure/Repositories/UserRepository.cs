@@ -44,5 +44,11 @@ namespace EPMS.Infrastructure.Repositories
             _cache.Remove(_cacheKey);
             return result;
         }
+
+        public async Task<User?> GetByEmployeeIdAsync(int employeeId)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(u => u.EmployeeId == employeeId);
+        }
     }
 }

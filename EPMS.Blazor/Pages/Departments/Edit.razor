@@ -38,6 +38,17 @@
                         <MudGrid Spacing="4">
                             <MudItem xs="12" md="6">
                                 <MudTextField 
+                                    @bind-Value="department.DepartmentIdName" 
+                                    Label="Department Code" 
+                                    Variant="Variant.Outlined"
+                                    Style="width: 100%"
+                                    Immediate="true"
+                                    Adornment="Adornment.Start"
+                                    AdornmentIcon="@Icons.Material.Filled.Code"
+                                    Class="rounded-lg" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField 
                                     @bind-Value="department.DepartmentName" 
                                     Label="Department Name" 
                                     Required="true"
@@ -118,6 +129,7 @@
         {
             department = new UpdateDepartmentRequest
             {
+                DepartmentIdName = deptDto.DepartmentIdName,
                 DepartmentName = deptDto.DepartmentName,
                 ParentDepartmentId = deptDto.ParentDepartmentId,
                 IsActive = deptDto.IsActive

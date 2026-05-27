@@ -11,6 +11,7 @@ namespace EPMS.Application.Services;
 public class AuthService : IAuthService
 {
     private readonly IEmployeeRepository _employeeRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<AuthService> _logger;
     private readonly IMapper _mapper;
@@ -18,12 +19,14 @@ public class AuthService : IAuthService
 
     public AuthService(
         IEmployeeRepository employeeRepository,
+        IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ILogger<AuthService> logger,
         IMapper mapper,
         ITokenService tokenService)
     {
         _employeeRepository = employeeRepository;
+        _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _logger = logger;
         _mapper = mapper;
@@ -60,13 +63,15 @@ public class AuthService : IAuthService
 
         _logger.LogInformation("Successful login for employee: {EmployeeId}", employee.EmployeeId);
 
+        var user = await _userRepository.GetByEmployeeIdAsync(employee.EmployeeId);
+
         return new LoginResponseDto
         {
             EmployeeId = employee.EmployeeId,
             FullName = employee.FullName,
             Email = employee.Email,
             IsFirstLogin = employee.IsFirstLogin,
-            Token = _tokenService.CreateToken(employee)
+            Token = _tokenService.CreateToken(employee, user)
         };
     }
 }
