@@ -20,7 +20,10 @@
                     <MudTextField @bind-Value="request.TeamName" Label="Team Name" Required="true" RequiredError="Team name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Groups" Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.DepartmentId" Label="Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg">
+                    <MudTextField @bind-Value="request.TeamIdName" Label="Team ID/Code" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect @bind-Value="request.DepartmentId" Label="Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg" AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
                         @foreach (var dept in allDepartments)
                         {
@@ -29,7 +32,7 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.ManagerId" Label="Team Manager" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" Class="rounded-lg">
+                    <MudSelect @bind-Value="request.ManagerId" Label="Team Manager" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" Class="rounded-lg" AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Manager</MudSelectItem>
                         @foreach (var emp in allEmployees)
                         {
@@ -71,6 +74,7 @@
                 request = new UpdateTeamRequest
                 {
                     TeamName = team.TeamName,
+                    TeamIdName = team.TeamIdName,
                     DepartmentId = team.DepartmentId,
                     ManagerId = team.ManagerId,
                     IsActive = team.IsActive
@@ -96,6 +100,7 @@
                     var createRequest = new CreateTeamRequest
                     {
                         TeamName = request.TeamName,
+                        TeamIdName = request.TeamIdName,
                         DepartmentId = request.DepartmentId,
                         ManagerId = request.ManagerId,
                         IsActive = request.IsActive

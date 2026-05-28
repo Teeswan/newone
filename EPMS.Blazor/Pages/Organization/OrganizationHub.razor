@@ -109,12 +109,14 @@
             </MudPaper>
             <MudTable Items="_teams" T="TeamDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<TeamDto,bool>(FilterTeams)" Class="rounded-lg">
                 <HeaderContent>
+                    <MudTh>ID</MudTh>
                     <MudTh>Name</MudTh>
                     <MudTh>Manager</MudTh>
                     <MudTh>Department</MudTh>
                     <MudTh Style="text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
+                    <MudTd DataLabel="ID">@context.TeamIdName</MudTd>
                     <MudTd DataLabel="Name">@context.TeamName</MudTd>
                     <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
                     <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
@@ -256,6 +258,7 @@
     private bool FilterTeams(TeamDto team) => 
         string.IsNullOrWhiteSpace(_teamSearch) || 
         team.TeamName.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ||
+        (team.TeamIdName?.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
         (team.ManagerName?.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
         (team.DepartmentName?.Contains(_teamSearch, StringComparison.OrdinalIgnoreCase) ?? false);
 

@@ -3,6 +3,7 @@ namespace EPMS.Shared.Requests;
 public class CreateTeamRequest
 {
     public string TeamName { get; set; } = null!;
+    public string? TeamIdName { get; set; }
     public int? ManagerId { get; set; }
     public int? DepartmentId { get; set; }
     public bool IsActive { get; set; } = true;
@@ -11,6 +12,7 @@ public class CreateTeamRequest
 public class UpdateTeamRequest
 {
     public string TeamName { get; set; } = null!;
+    public string? TeamIdName { get; set; }
     public int? ManagerId { get; set; }
     public int? DepartmentId { get; set; }
     public bool IsActive { get; set; } = true;

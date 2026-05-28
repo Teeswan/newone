@@ -11,6 +11,8 @@ public partial class Team : ISoftDelete
 
     public string TeamName { get; set; } = null!;
 
+    public string? TeamIdName { get; set; }
+
     public bool? IsActive { get; set; }
 
     public bool IsDeleted { get; set; }

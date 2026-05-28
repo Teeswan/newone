@@ -1,0 +1,108 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IAppraisalCycleBlazorService AppraisalCycleService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(Id.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.EventNote)" Class="mr-3 mb-n1" Color="@(Id.HasValue ? Color.Warning : Color.Primary)" />
+            @(Id.HasValue ? "Update Appraisal Cycle" : "Create New Appraisal Cycle")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="request.CycleName" Label="Cycle Name" Required="true" RequiredError="Cycle name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="Start Date" @bind-Date="startDate" Required="true" RequiredError="Start date is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CalendarToday" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="End Date" @bind-Date="endDate" Required="true" RequiredError="End date is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Event" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="request.CycleStatus" Label="Status" Variant="Variant.Outlined" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Flag" Class="rounded-lg">
+                        <MudSelectItem Value="@("Draft")">Draft</MudSelectItem>
+                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(Id.HasValue ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? Id { get; set; }
+
+    private UpdateAppraisalCycleRequest request = new() { CycleStatus = "Draft" };
+    private DateTime? startDate;
+    private DateTime? endDate;
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var cycle = await AppraisalCycleService.GetAppraisalCycleByIdAsync(Id.Value);
+            if (cycle != null)
+            {
+                request = new UpdateAppraisalCycleRequest
+                {
+                    CycleName = cycle.CycleName,
+                    StartDate = cycle.StartDate,
+                    EndDate = cycle.EndDate,
+                    CycleStatus = cycle.CycleStatus
+                };
+                startDate = cycle.StartDate.ToDateTime(TimeOnly.MinValue);
+                endDate = cycle.EndDate.ToDateTime(TimeOnly.MinValue);
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                if (startDate.HasValue) request.StartDate = DateOnly.FromDateTime(startDate.Value);
+                if (endDate.HasValue) request.EndDate = DateOnly.FromDateTime(endDate.Value);
+
+                if (Id.HasValue)
+                {
+                    await AppraisalCycleService.UpdateAppraisalCycleAsync(Id.Value, request);
+                    Snackbar.Add("Appraisal cycle updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    var createRequest = new CreateAppraisalCycleRequest
+                    {
+                        CycleName = request.CycleName,
+                        StartDate = request.StartDate,
+                        EndDate = request.EndDate,
+                        CycleStatus = request.CycleStatus
+                    };
+                    await AppraisalCycleService.CreateAppraisalCycleAsync(createRequest);
+                    Snackbar.Add("Appraisal cycle created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

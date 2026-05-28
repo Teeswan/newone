@@ -1,0 +1,257 @@
+@page "/appraisal-hub"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Dialogs
+@inject IAppraisalCycleBlazorService AppraisalCycleService
+@inject IAppraisalQuestionBlazorService AppraisalQuestionService
+@inject IAppraisalFormBlazorService AppraisalFormService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Appraisal Hub</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudTabs Elevation="4" Rounded="true" Color="Color.Primary" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        @* Appraisal Cycles Tab *@
+        <MudTabPanel Text="Appraisal Cycles" Icon="@Icons.Material.Filled.EventNote">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Appraisal Cycles</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCycleAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Cycle
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_cycleSearch" Placeholder="Search cycles..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_cycles" T="AppraisalCycleDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<AppraisalCycleDto,bool>(FilterCycles)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Cycle Name</MudTh>
+                    <MudTh>Start Date</MudTh>
+                    <MudTh>End Date</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.CycleName</MudTd>
+                    <MudTd DataLabel="Start">@context.StartDate.ToString("dd MMM yyyy")</MudTd>
+                    <MudTd DataLabel="End">@context.EndDate.ToString("dd MMM yyyy")</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="GetStatusColor(context.CycleStatus)" Variant="Variant.Filled" Size="Size.Small">
+                            @context.CycleStatus
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenCycleEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCycle(context.CycleId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Appraisal Questions Tab *@
+        <MudTabPanel Text="Appraisal Questions" Icon="@Icons.Material.Filled.Quiz">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Appraisal Questions</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenQuestionAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Question
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_questionSearch" Placeholder="Search questions..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_questions" T="AppraisalQuestionDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<AppraisalQuestionDto,bool>(FilterQuestions)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Question Text</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Required</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Text">@context.QuestionText</MudTd>
+                    <MudTd DataLabel="Category">@context.Category</MudTd>
+                    <MudTd DataLabel="Required">
+                        <MudChip T="string" Color="@(context.IsRequired == true ? Color.Primary : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                            @(context.IsRequired == true ? "Yes" : "No")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenQuestionEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteQuestion(context.QuestionId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Appraisal Forms Tab *@
+        <MudTabPanel Text="Appraisal Forms" Icon="@Icons.Material.Filled.Description">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Appraisal Forms</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenFormAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    Add Form
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_formSearch" Placeholder="Search forms..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_forms" T="AppraisalFormDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<AppraisalFormDto,bool>(FilterForms)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Form Name</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.FormName</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="@(context.IsActive == true ? Color.Success : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                            @(context.IsActive == true ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.List" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ManageFormQuestions(context.FormId))" Title="Manage Questions" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenFormEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteForm(context.FormId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private List<AppraisalCycleDto> _cycles = new();
+    private List<AppraisalQuestionDto> _questions = new();
+    private List<AppraisalFormDto> _forms = new();
+
+    private string _cycleSearch = "";
+    private string _questionSearch = "";
+    private string _formSearch = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllData();
+    }
+
+    private async Task LoadAllData()
+    {
+        try
+        {
+            var cycleTask = AppraisalCycleService.GetAllAppraisalCyclesAsync();
+            var questionTask = AppraisalQuestionService.GetAllAppraisalQuestionsAsync();
+            var formTask = AppraisalFormService.GetAllAppraisalFormsAsync();
+
+            await Task.WhenAll(cycleTask, questionTask, formTask);
+
+            _cycles = (await cycleTask).ToList();
+            _questions = (await questionTask).ToList();
+            _forms = (await formTask).ToList();
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private bool FilterCycles(AppraisalCycleDto cycle) => 
+        string.IsNullOrWhiteSpace(_cycleSearch) || 
+        cycle.CycleName.Contains(_cycleSearch, StringComparison.OrdinalIgnoreCase) ||
+        cycle.CycleStatus?.Contains(_cycleSearch, StringComparison.OrdinalIgnoreCase) == true;
+
+    private bool FilterQuestions(AppraisalQuestionDto question) => 
+        string.IsNullOrWhiteSpace(_questionSearch) || 
+        question.QuestionText.Contains(_questionSearch, StringComparison.OrdinalIgnoreCase) ||
+        (question.Category?.Contains(_questionSearch, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private bool FilterForms(AppraisalFormDto form) => 
+        string.IsNullOrWhiteSpace(_formSearch) || 
+        form.FormName.Contains(_formSearch, StringComparison.OrdinalIgnoreCase);
+
+    private Color GetStatusColor(string? status) => status?.ToLower() switch
+    {
+        "draft" => Color.Secondary,
+        "active" => Color.Primary,
+        "completed" => Color.Success,
+        _ => Color.Default
+    };
+
+    // CRUD Handlers
+    private async Task OpenCycleAddDialog() => await ShowDialog<AppraisalCycleDialog>("Add Appraisal Cycle");
+    private async Task OpenCycleEditDialog(AppraisalCycleDto cycle) => await ShowDialog<AppraisalCycleDialog>("Edit Appraisal Cycle", new DialogParameters { ["Id"] = cycle.CycleId });
+    private async Task DeleteCycle(int id) => await ConfirmAndDelete(() => AppraisalCycleService.DeleteAppraisalCycleAsync(id), "Appraisal Cycle");
+
+    private async Task OpenQuestionAddDialog() => await ShowDialog<AppraisalQuestionDialog>("Add Appraisal Question");
+    private async Task OpenQuestionEditDialog(AppraisalQuestionDto question) => await ShowDialog<AppraisalQuestionDialog>("Edit Appraisal Question", new DialogParameters { ["Id"] = question.QuestionId });
+    private async Task DeleteQuestion(int id) => await ConfirmAndDelete(() => AppraisalQuestionService.DeleteAppraisalQuestionAsync(id), "Appraisal Question");
+
+    private async Task OpenFormAddDialog() => await ShowDialog<AppraisalFormDialog>("Add Appraisal Form");
+    private async Task OpenFormEditDialog(AppraisalFormDto form) => await ShowDialog<AppraisalFormDialog>("Edit Appraisal Form", new DialogParameters { ["Id"] = form.FormId });
+    private async Task DeleteForm(int id) => await ConfirmAndDelete(() => AppraisalFormService.DeleteAppraisalFormAsync(id), "Appraisal Form");
+
+    private void ManageFormQuestions(int formId) => NavigationManager.NavigateTo($"/appraisalforms/{formId}/manage-questions");
+
+    private async Task ShowDialog<T>(string title, DialogParameters parameters = null) where T : ComponentBase
+    {
+        try
+        {
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = DialogService.Show<T>(title, parameters ?? new DialogParameters(), options);
+            var result = await dialog.Result;
+            
+            if (result != null && !result.Canceled)
+            {
+                await Task.Delay(200);
+                await LoadAllData();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmAndDelete(Func<Task<bool>> deleteAction, string entityName)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete this {entityName}?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await deleteAction();
+                if (success)
+                {
+                    Snackbar.Add($"{entityName} deleted successfully!", Severity.Success);
+                    await Task.Delay(200);
+                    await LoadAllData();
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

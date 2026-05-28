@@ -21,7 +21,7 @@
                     <MudTextField @bind-Value="request.DepartmentName" Label="Department Name" Required="true" RequiredError="Department name is required!" Variant="Variant.Outlined" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.ParentDepartmentId" Label="Parent Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountTree" Class="rounded-lg">
+                    <MudSelect @bind-Value="request.ParentDepartmentId" Label="Parent Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountTree" Class="rounded-lg" AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">None (Top Level)</MudSelectItem>
                         @if (allDepartments != null)
                         {

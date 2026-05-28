@@ -1,0 +1,95 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IAppraisalQuestionBlazorService AppraisalQuestionService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(Id.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.Quiz)" Class="mr-3 mb-n1" Color="@(Id.HasValue ? Color.Warning : Color.Primary)" />
+            @(Id.HasValue ? "Update Appraisal Question" : "Create New Appraisal Question")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="request.QuestionText" Label="Question Text" Required="true" RequiredError="Question text is required!" Variant="Variant.Outlined" Lines="3" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.QuestionMark" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="request.Category" Label="Category" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Category" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="6" Class="d-flex align-center">
+                    <MudCheckBox @bind-Value="isRequiredValue" Label="Is Required" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(Id.HasValue ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? Id { get; set; }
+
+    private UpdateAppraisalQuestionRequest request = new();
+    private bool isRequiredValue;
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var question = await AppraisalQuestionService.GetAppraisalQuestionByIdAsync(Id.Value);
+            if (question != null)
+            {
+                request = new UpdateAppraisalQuestionRequest
+                {
+                    QuestionText = question.QuestionText,
+                    Category = question.Category,
+                    IsRequired = question.IsRequired
+                };
+                isRequiredValue = question.IsRequired ?? false;
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                request.IsRequired = isRequiredValue;
+                if (Id.HasValue)
+                {
+                    await AppraisalQuestionService.UpdateAppraisalQuestionAsync(Id.Value, request);
+                    Snackbar.Add("Appraisal question updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    var createRequest = new CreateAppraisalQuestionRequest
+                    {
+                        QuestionText = request.QuestionText,
+                        Category = request.Category,
+                        IsRequired = request.IsRequired
+                    };
+                    await AppraisalQuestionService.CreateAppraisalQuestionAsync(createRequest);
+                    Snackbar.Add("Appraisal question created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

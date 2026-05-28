@@ -1,0 +1,90 @@
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@inject IAppraisalFormBlazorService AppraisalFormService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">
+            <MudIcon Icon="@(Id.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.Description)" Class="mr-3 mb-n1" Color="@(Id.HasValue ? Color.Warning : Color.Primary)" />
+            @(Id.HasValue ? "Update Appraisal Form" : "Create New Appraisal Form")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="request">
+            <MudGrid Spacing="4">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="request.FormName" Label="Form Name" Required="true" RequiredError="Form name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" Class="d-flex align-center">
+                    <MudCheckBox @bind-Value="isActiveValue" Label="Is Active" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg px-6">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Class="rounded-lg px-8 ml-2">@(Id.HasValue ? "Update" : "Create")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? Id { get; set; }
+
+    private UpdateAppraisalFormRequest request = new();
+    private bool isActiveValue = true;
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var appraisalForm = await AppraisalFormService.GetAppraisalFormByIdAsync(Id.Value);
+            if (appraisalForm != null)
+            {
+                request = new UpdateAppraisalFormRequest
+                {
+                    FormName = appraisalForm.FormName,
+                    IsActive = appraisalForm.IsActive
+                };
+                isActiveValue = appraisalForm.IsActive ?? false;
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                request.IsActive = isActiveValue;
+                if (Id.HasValue)
+                {
+                    await AppraisalFormService.UpdateAppraisalFormAsync(Id.Value, request);
+                    Snackbar.Add("Appraisal form updated successfully!", Severity.Success);
+                }
+                else
+                {
+                    var createRequest = new CreateAppraisalFormRequest
+                    {
+                        FormName = request.FormName,
+                        IsActive = request.IsActive
+                    };
+                    await AppraisalFormService.CreateAppraisalFormAsync(createRequest);
+                    Snackbar.Add("Appraisal form created successfully!", Severity.Success);
+                }
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
