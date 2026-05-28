@@ -38,6 +38,7 @@ public class ApplicationFormRepository : BaseRepository<ApplicationForm, int>, I
         var parameters = new object[]
         {
             new SqlParameter("@FormName", ToDbValue(entity.FormName)),
+            new SqlParameter("@FormType", (int)entity.FormType),
             new SqlParameter("@IsActive", ToDbValue(entity.IsActive))
         };
 
@@ -53,6 +54,7 @@ public class ApplicationFormRepository : BaseRepository<ApplicationForm, int>, I
         {
             new SqlParameter("@FormID", entity.FormId),
             new SqlParameter("@FormName", ToDbValue(entity.FormName)),
+            new SqlParameter("@FormType", (int)entity.FormType),
             new SqlParameter("@IsActive", ToDbValue(entity.IsActive))
         };
 

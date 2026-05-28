@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
+@using EPMS.Domain.Enums
 @using EPMS.Blazor.Services
 @using EPMS.Blazor.Dialogs
 @inject IAppraisalCycleBlazorService AppraisalCycleService
@@ -99,37 +100,52 @@
                     Add Form
                 </MudButton>
             </div>
-            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
-                <MudTextField @bind-Value="_formSearch" Placeholder="Search forms..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
-            </MudPaper>
-            <MudTable Items="_forms" T="AppraisalFormDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<AppraisalFormDto,bool>(FilterForms)" Class="rounded-lg">
-                <HeaderContent>
-                    <MudTh>Form Name</MudTh>
-                    <MudTh>Status</MudTh>
-                    <MudTh Style="text-align: right;">Actions</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="Name">@context.FormName</MudTd>
-                    <MudTd DataLabel="Status">
-                        <MudChip T="string" Color="@(context.IsActive == true ? Color.Success : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
-                            @(context.IsActive == true ? "Active" : "Inactive")
-                        </MudChip>
-                    </MudTd>
-                    <MudTd DataLabel="Actions" Style="text-align: right;">
-                        <MudIconButton Icon="@Icons.Material.Filled.List" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ManageFormQuestions(context.FormId))" Title="Manage Questions" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenFormEditDialog(context))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteForm(context.FormId))" />
-                    </MudTd>
-                </RowTemplate>
-                <PagerContent>
-                    <MudTablePager />
-                </PagerContent>
-            </MudTable>
+            
+            <MudTabs Elevation="0" Rounded="true" Color="Color.Secondary" ApplyEffectsToContainer="true" PanelClass="mt-4" Border="true">
+                <MudTabPanel Text="Performance Appraisal" Icon="@Icons.Material.Filled.Assignment">
+                    @RenderFormsTable(AppraisalFormType.PerformanceAppraisal)
+                </MudTabPanel>
+                <MudTabPanel Text="Self Assessment" Icon="@Icons.Material.Filled.Person">
+                    @RenderFormsTable(AppraisalFormType.SelfAssessment)
+                </MudTabPanel>
+                <MudTabPanel Text="360 Feedback" Icon="@Icons.Material.Filled.Groups">
+                    @RenderFormsTable(AppraisalFormType.Feedback360)
+                </MudTabPanel>
+            </MudTabs>
         </MudTabPanel>
     </MudTabs>
 </MudContainer>
 
 @code {
+    private RenderFragment RenderFormsTable(AppraisalFormType type) => __builder => {
+        <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+            <MudTextField @bind-Value="_formSearch" Placeholder="Search forms..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+        </MudPaper>
+        <MudTable Items="_forms.Where(f => f.FormType == type)" T="AppraisalFormDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<AppraisalFormDto,bool>(FilterForms)" Class="rounded-lg">
+            <HeaderContent>
+                <MudTh>Form Name</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh Style="text-align: right;">Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.FormName</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Color="@(context.IsActive == true ? Color.Success : Color.Secondary)" Variant="Variant.Filled" Size="Size.Small">
+                        @(context.IsActive == true ? "Active" : "Inactive")
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Actions" Style="text-align: right;">
+                    <MudIconButton Icon="@Icons.Material.Filled.List" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ManageFormQuestions(context.FormId))" Title="Manage Questions" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenFormEditDialog(context))" Title="Edit" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteForm(context.FormId))" Title="Delete" />
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    };
+
     private List<AppraisalCycleDto> _cycles = new();
     private List<AppraisalQuestionDto> _questions = new();
     private List<AppraisalFormDto> _forms = new();

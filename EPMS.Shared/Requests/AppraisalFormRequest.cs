@@ -1,14 +1,18 @@
+using EPMS.Domain.Enums;
+
 namespace EPMS.Shared.Requests;
 
 public class CreateAppraisalFormRequest
 {
     public string? FormName { get; set; }
+    public AppraisalFormType FormType { get; set; }
     public bool? IsActive { get; set; }
 }
 
 public class UpdateAppraisalFormRequest
 {
     public string? FormName { get; set; }
+    public AppraisalFormType FormType { get; set; }
     public bool? IsActive { get; set; }
     public List<CreateFormQuestionRequest> Questions { get; set; } = new();
 }

@@ -1,6 +1,7 @@
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
 @using EPMS.Blazor.Services
+@using EPMS.Domain.Enums
 @inject IAppraisalFormBlazorService AppraisalFormService
 @inject ISnackbar Snackbar
 
@@ -14,8 +15,15 @@
     <DialogContent>
         <MudForm @ref="form" Model="request">
             <MudGrid Spacing="4">
-                <MudItem xs="12">
+                <MudItem xs="12" md="8">
                     <MudTextField @bind-Value="request.FormName" Label="Form Name" Required="true" RequiredError="Form name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudSelect @bind-Value="request.FormType" Label="Form Type" Variant="Variant.Outlined" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Category" Class="rounded-lg">
+                        <MudSelectItem Value="AppraisalFormType.PerformanceAppraisal">Performance Appraisal</MudSelectItem>
+                        <MudSelectItem Value="AppraisalFormType.SelfAssessment">Self Assessment</MudSelectItem>
+                        <MudSelectItem Value="AppraisalFormType.Feedback360">360 Feedback</MudSelectItem>
+                    </MudSelect>
                 </MudItem>
                 <MudItem xs="12" Class="d-flex align-center">
                     <MudCheckBox @bind-Value="isActiveValue" Label="Is Active" Color="Color.Primary" />
@@ -33,7 +41,7 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public int? Id { get; set; }
 
-    private UpdateAppraisalFormRequest request = new();
+    private UpdateAppraisalFormRequest request = new() { FormType = AppraisalFormType.PerformanceAppraisal };
     private bool isActiveValue = true;
     private MudForm form = null!;
 
@@ -47,6 +55,7 @@
                 request = new UpdateAppraisalFormRequest
                 {
                     FormName = appraisalForm.FormName,
+                    FormType = appraisalForm.FormType,
                     IsActive = appraisalForm.IsActive
                 };
                 isActiveValue = appraisalForm.IsActive ?? false;
@@ -72,6 +81,7 @@
                     var createRequest = new CreateAppraisalFormRequest
                     {
                         FormName = request.FormName,
+                        FormType = request.FormType,
                         IsActive = request.IsActive
                     };
                     await AppraisalFormService.CreateAppraisalFormAsync(createRequest);

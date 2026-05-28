@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE sp_ApplicationForms_GetAll
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT FormID, FormName, IsActive
+    SELECT FormID, FormName, FormType, IsActive
     FROM ApplicationForms;
 END
 GO
@@ -16,7 +16,7 @@ CREATE OR ALTER PROCEDURE sp_ApplicationForms_GetById
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT FormID, FormName, IsActive
+    SELECT FormID, FormName, FormType, IsActive
     FROM ApplicationForms
     WHERE FormID = @FormID;
 END
@@ -24,14 +24,15 @@ GO
 
 CREATE OR ALTER PROCEDURE sp_ApplicationForms_Create
     @FormName NVARCHAR(100) = NULL,
+    @FormType INT = 1,
     @IsActive BIT = 1
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO ApplicationForms (FormName, IsActive)
-    VALUES (@FormName, ISNULL(@IsActive, 1));
+    INSERT INTO ApplicationForms (FormName, FormType, IsActive)
+    VALUES (@FormName, @FormType, ISNULL(@IsActive, 1));
 
-    SELECT FormID, FormName, IsActive
+    SELECT FormID, FormName, FormType, IsActive
     FROM ApplicationForms
     WHERE FormID = SCOPE_IDENTITY();
 END
@@ -40,16 +41,18 @@ GO
 CREATE OR ALTER PROCEDURE sp_ApplicationForms_Update
     @FormID INT,
     @FormName NVARCHAR(100) = NULL,
+    @FormType INT = NULL,
     @IsActive BIT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     UPDATE ApplicationForms
     SET FormName = ISNULL(@FormName, FormName),
-        IsActive = ISNULL(@IsActive, 1)
+        FormType = ISNULL(@FormType, FormType),
+        IsActive = ISNULL(@IsActive, IsActive)
     WHERE FormID = @FormID;
 
-    SELECT FormID, FormName, IsActive
+    SELECT FormID, FormName, FormType, IsActive
     FROM ApplicationForms
     WHERE FormID = @FormID;
 END
