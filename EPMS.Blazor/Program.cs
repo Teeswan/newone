@@ -59,9 +59,6 @@ builder.Services.AddHttpClient<IAppraisalFormBlazorService, AppraisalFormBlazorS
 builder.Services.AddHttpClient<IAppraisalQuestionBlazorService, AppraisalQuestionBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-builder.Services.AddHttpClient<IAppraisalResponseBlazorService, AppraisalResponseBlazorService>(client => client.BaseAddress = apiBaseUrl)
-    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
-
 builder.Services.AddHttpClient<IPerformanceEvaluationBlazorService, PerformanceEvaluationBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 

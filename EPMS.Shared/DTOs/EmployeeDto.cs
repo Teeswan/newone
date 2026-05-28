@@ -10,6 +10,7 @@ public class EmployeeDto
     public string? DepartmentName { get; set; }
     public int? PositionId { get; set; }
     public string? PositionTitle { get; set; }
+    public string? LevelId { get; set; }
     public int? ReportsTo { get; set; }
     public string? ManagerName { get; set; }
     public int? TeamId { get; set; }

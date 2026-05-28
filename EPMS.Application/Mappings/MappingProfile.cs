@@ -42,6 +42,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Employee != null && src.Employee.ReportsToNavigation != null ? src.Employee.ReportsToNavigation.FullName : null))
             .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null))
             .ForMember(dest => dest.FormName, opt => opt.MapFrom(src => src.Form != null ? src.Form.FormName : null))
+            .ForMember(dest => dest.FormType, opt => opt.MapFrom(src => src.Form != null ? src.Form.FormType : (AppraisalFormType)0))
             .ForMember(dest => dest.Responses, opt => opt.MapFrom(src => src.AppraisalResponses))
             .ForMember(dest => dest.FormQuestions, opt => opt.MapFrom(src => src.Form != null ? src.Form.FormQuestions : null));
         CreateMap<CreatePerformanceEvaluationRequest, PerformanceEvaluation>();
@@ -98,6 +99,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ReportsTo, opt => opt.MapFrom(src => src.ReportsTo))
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.PositionTitle, opt => opt.MapFrom(src => src.Position != null ? src.Position.PositionTitle : null))
+            .ForMember(dest => dest.LevelId, opt => opt.MapFrom(src => src.Position != null ? src.Position.LevelId : null))
             .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.ReportsToNavigation != null ? src.ReportsToNavigation.FullName : null))
             .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamsNavigation != null && src.TeamsNavigation.Any() ? (int?)src.TeamsNavigation.First().TeamId : null))
             .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.TeamsNavigation != null && src.TeamsNavigation.Any() ? src.TeamsNavigation.First().TeamName : null));

@@ -10,6 +10,8 @@
 @inject IFormQuestionBlazorService FormQuestionService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     <MudPaper Class="pa-8" Elevation="3">
@@ -30,7 +32,7 @@
                             <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-4">Employee Information</MudText>
                             <MudGrid>
                                 <MudItem xs="12" sm="6">
-                                    <MudSelect T="int?" Label="Employee Name" Value="updateRequest.EmployeeId" ValueChanged="@(v => OnEmployeeChanged(v))" Required="true" Variant="Variant.Outlined">
+                                    <MudSelect T="int?" Label="Employee Name" Value="updateRequest.EmployeeId" ValueChanged="@(v => OnEmployeeChanged(v))" Required="true" Variant="Variant.Outlined" ReadOnly="true">
                                         @if (employees != null)
                                         {
                                             @foreach (var emp in employees)
@@ -154,6 +156,7 @@
                                 <MudSelectItem Value="@("Manager")">Manager</MudSelectItem>
                                 <MudSelectItem Value="@("Peer")">Peer</MudSelectItem>
                                 <MudSelectItem Value="@("Subordinate")">Subordinate</MudSelectItem>
+                                <MudSelectItem Value="@("External")">External</MudSelectItem>
                             </MudSelect>
                             <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddNewEvaluator">Add Evaluator</MudButton>
                         </div>
@@ -302,10 +305,29 @@
         }
     }
 
+    private int ParseLevel(string? levelId)
+    {
+        if (string.IsNullOrEmpty(levelId)) return 99;
+        var numericPart = new string(levelId.Where(char.IsDigit).ToArray());
+        return int.TryParse(numericPart, out int level) ? level : 99;
+    }
+
     private void AddNewEvaluator()
     {
         if (newEvaluatorId.HasValue)
         {
+            var targetEmp = employees?.FirstOrDefault(e => e.EmployeeId == newEvaluatorId);
+            if (targetEmp == null) return;
+
+            var targetLevel = ParseLevel(targetEmp.LevelId);
+
+            // Validation based on requirements
+            if (newEvaluatorRole == "External" && targetLevel != 3)
+            {
+                Snackbar.Add("Only Level 03 employees can be added as External Consultants.", Severity.Warning);
+                return;
+            }
+
             AddEvaluatorFeedback(newEvaluatorId.Value, newEvaluatorRole);
             newEvaluatorId = null;
         }

@@ -8,6 +8,7 @@ public class PerformanceEvaluationDto
     public int? EmployeeId { get; set; }
     public int? CycleId { get; set; }
     public int FormId { get; set; }
+    public AppraisalFormType FormType { get; set; }
     public string? EmployeeName { get; set; }
     public string? CycleName { get; set; }
     public string? FormName { get; set; }

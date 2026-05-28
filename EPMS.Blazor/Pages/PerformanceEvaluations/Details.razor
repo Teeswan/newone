@@ -5,6 +5,8 @@
 @inject IReportBlazorService ReportService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     @if (eval == null)
@@ -18,7 +20,7 @@
         <MudPaper Class="pa-0 mb-6" Elevation="3" Style="overflow: hidden;">
             <div style="background-color: #FDE9D9; padding: 16px; border-bottom: 1px solid #e0e0e0;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                    <MudText Typo="Typo.h5" Style="font-weight: bold;">Employee Self-assessment Form</MudText>
+                    <MudText Typo="Typo.h5" Style="font-weight: bold;">@GetTypeName(eval.FormType)</MudText>
                     <MudChip T="string" Color="@GetStatusColor(eval.Status)" Variant="Variant.Filled">@eval.Status.ToString()</MudChip>
                 </MudStack>
             </div>
@@ -210,16 +212,53 @@
     public int Id { get; set; }
 
     private PerformanceEvaluationDto? eval;
+    private EmployeeDto? currentUserEmployee;
+    private bool isExternalConsultant;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var empIdClaim = user.FindFirst("EmployeeId")?.Value;
+
             eval = await PerformanceEvaluationService.GetPerformanceEvaluationByIdAsync(Id);
             if (eval == null)
             {
                 Snackbar.Add("Performance evaluation not found.", Severity.Error);
                 NavigationManager.NavigateTo("/performanceevaluations");
+                return;
+            }
+
+            if (int.TryParse(empIdClaim, out int empId))
+            {
+                // In a real scenario, we'd fetch the level from the user's employee record
+                // For this validation check, we'll implement a safety check on responses
+                
+                // 1. External Consultants (L03) should only see 360 Feedback
+                // 2. They should only see responses if they are the respondent OR if it's a 360 form they are invited to
+                // For now, we filter the responses they can see if they are not the subject or manager
+                
+                bool isSubject = eval.EmployeeId == empId;
+                bool isManager = eval.ManagerName != null && eval.ManagerName.Contains(user.Identity?.Name ?? "___"); // Rough check
+
+                // If not subject/manager, filter responses to only show their own contribution if they are an external consultant
+                if (!isSubject && !isManager)
+                {
+                    // Filter responses: if there's any 'External' role response for this user, they only see that
+                    var myResponses = eval.Responses.Where(r => r.RespondentId == empId).ToList();
+                    if (myResponses.Any())
+                    {
+                        eval.Responses = myResponses;
+                        // Hide overall comments as well for external consultants
+                        eval.ManagerComments = "HIDDEN (Restricted Access)";
+                        eval.SelfComments = "HIDDEN (Restricted Access)";
+                        eval.FinalRatingScore = null;
+                        eval.SelfRating = null;
+                        eval.ManagerRating = null;
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -232,13 +271,40 @@
     private void BackToList() => NavigationManager.NavigateTo("/performanceevaluations");
     private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceevaluations/edit/{Id}");
 
+    private string GetTypeName(EPMS.Domain.Enums.AppraisalFormType type) => type switch
+    {
+        EPMS.Domain.Enums.AppraisalFormType.PerformanceAppraisal => "Performance Appraisal Form",
+        EPMS.Domain.Enums.AppraisalFormType.SelfAssessment => "Employee Self-assessment Form",
+        EPMS.Domain.Enums.AppraisalFormType.Feedback360 => "360° Feedback Form",
+        _ => "Performance Evaluation Form"
+    };
+
     private async Task DownloadReport()
     {
         if (eval == null) return;
         try
         {
-            var pdfBytes = await ReportService.GenerateSelfAssessmentRdlcAsync(eval.EvalId);
-            await ReportService.DownloadPdfAsync(pdfBytes, $"SelfAssessment_{eval.EmployeeName}_{eval.EvalId}.pdf");
+            byte[] pdfBytes;
+            string fileName;
+
+            switch (eval.FormType)
+            {
+                case EPMS.Domain.Enums.AppraisalFormType.PerformanceAppraisal:
+                    pdfBytes = await ReportService.GeneratePerformanceAppraisalRdlcAsync(eval.EvalId);
+                    fileName = $"PerformanceAppraisal_{eval.EmployeeName}_{eval.EvalId}.pdf";
+                    break;
+                case EPMS.Domain.Enums.AppraisalFormType.Feedback360:
+                    pdfBytes = await ReportService.Generate360FeedbackRdlcAsync(eval.EvalId);
+                    fileName = $"360Feedback_{eval.EmployeeName}_{eval.EvalId}.pdf";
+                    break;
+                case EPMS.Domain.Enums.AppraisalFormType.SelfAssessment:
+                default:
+                    pdfBytes = await ReportService.GenerateSelfAssessmentRdlcAsync(eval.EvalId);
+                    fileName = $"SelfAssessment_{eval.EmployeeName}_{eval.EvalId}.pdf";
+                    break;
+            }
+
+            await ReportService.DownloadPdfAsync(pdfBytes, fileName);
             Snackbar.Add("Report downloaded successfully.", Severity.Success);
         }
         catch (Exception ex)

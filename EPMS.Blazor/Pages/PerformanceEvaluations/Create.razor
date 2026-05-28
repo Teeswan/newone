@@ -10,10 +10,12 @@
 @inject IFormQuestionBlazorService FormQuestionService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     <MudPaper Class="pa-8" Elevation="3">
-        <MudText Typo="Typo.h4" Class="mb-4">Create Performance Evaluation</MudText>
+        <MudText Typo="Typo.h4" Class="mb-4">Create @(evaluationType.HasValue ? GetTypeName(evaluationType.Value) : "Performance Evaluation")</MudText>
         <MudDivider Class="mb-6" />
 
         <MudForm Model="@createRequest" @ref="@form" ValidationDelay="0">
@@ -27,7 +29,7 @@
                                 <MudSelect T="int?" Label="Employee Name" Value="createRequest.EmployeeId" ValueChanged="@(v => OnEmployeeChanged(v))" Required="true" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
                                     @if (employees != null)
                                     {
-                                        @foreach (var emp in employees)
+                                        @foreach (var emp in GetFilterEmployeesByContext())
                                         {
                                             <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName</MudSelectItem>
                                         }
@@ -148,6 +150,7 @@
                             <MudSelectItem Value="@("Manager")">Manager</MudSelectItem>
                             <MudSelectItem Value="@("Peer")">Peer</MudSelectItem>
                             <MudSelectItem Value="@("Subordinate")">Subordinate</MudSelectItem>
+                            <MudSelectItem Value="@("External")">External</MudSelectItem>
                         </MudSelect>
                         <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddNewEvaluator">Add Evaluator</MudButton>
                     </div>
@@ -190,6 +193,12 @@
 </MudContainer>
 
 @code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int? Type { get; set; }
+
+    private AppraisalFormType? evaluationType => Type.HasValue ? (AppraisalFormType)Type.Value : null;
+
     private MudForm? form;
     private CreatePerformanceEvaluationRequest createRequest = new() { Status = PerformanceEvaluationStatus.Draft, FinalizedAt = DateTime.Now };
     private bool isFinalizedValue { get; set; } = false;
@@ -200,6 +209,7 @@
     private List<FormQuestionDto>? formQuestions;
 
     private EmployeeDto? selectedEmployee;
+    private EmployeeDto? currentUserEmployee;
     private string? effectiveDateDisplay;
 
     private int? newEvaluatorId;
@@ -210,15 +220,74 @@
         try
         {
             employees = await EmployeeService.GetEmployeesAsync();
+            
+            // Get current user's employee info
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var empIdClaim = user.FindFirst("EmployeeId")?.Value;
+            if (int.TryParse(empIdClaim, out int empId))
+            {
+                currentUserEmployee = employees.FirstOrDefault(e => e.EmployeeId == empId);
+            }
+
             var cyclesEnumerable = await CycleService.GetAllAppraisalCyclesAsync();
             cycles = cyclesEnumerable.ToList();
             var formsEnumerable = await FormService.GetAllAppraisalFormsAsync();
-            forms = formsEnumerable.ToList();
+            
+            if (evaluationType.HasValue)
+            {
+                forms = formsEnumerable.Where(f => f.FormType == evaluationType.Value).ToList();
+            }
+            else
+            {
+                forms = formsEnumerable.ToList();
+            }
+
+            // Auto-select current employee for Self-Assessment
+            if (evaluationType == AppraisalFormType.SelfAssessment && currentUserEmployee != null)
+            {
+                await OnEmployeeChanged(currentUserEmployee.EmployeeId);
+            }
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error loading lookup data: {ex.Message}", Severity.Error);
         }
+    }
+
+    private IEnumerable<EmployeeDto> GetFilterEmployeesByContext()
+    {
+        if (employees == null || currentUserEmployee == null) return Enumerable.Empty<EmployeeDto>();
+
+        var userLevel = ParseLevel(currentUserEmployee.LevelId);
+
+        return evaluationType switch
+        {
+            AppraisalFormType.SelfAssessment => 
+                // Every employee (02-34) submits for themselves
+                (userLevel >= 2 && userLevel <= 34) 
+                    ? employees.Where(e => e.EmployeeId == currentUserEmployee.EmployeeId) 
+                    : Enumerable.Empty<EmployeeDto>(),
+
+            AppraisalFormType.PerformanceAppraisal => 
+                // Managers (02-19) submit for direct reports
+                (userLevel >= 2 && userLevel <= 19) 
+                    ? employees.Where(e => e.ReportsTo == currentUserEmployee.EmployeeId) 
+                    : Enumerable.Empty<EmployeeDto>(),
+
+            AppraisalFormType.Feedback360 => 
+                // 360 Feedback can be for anyone, but multi-directional rules apply later
+                employees,
+
+            _ => employees
+        };
+    }
+
+    private int ParseLevel(string? levelId)
+    {
+        if (string.IsNullOrEmpty(levelId)) return 99;
+        var numericPart = new string(levelId.Where(char.IsDigit).ToArray());
+        return int.TryParse(numericPart, out int level) ? level : 99;
     }
 
     private async Task OnEmployeeChanged(int? empId)
@@ -229,13 +298,51 @@
 
         if (empId.HasValue && selectedEmployee != null)
         {
-            // Auto-add manager if available
-            if (selectedEmployee.ReportsTo.HasValue)
+            if (evaluationType == AppraisalFormType.SelfAssessment)
             {
-                AddEvaluatorFeedback(selectedEmployee.ReportsTo.Value, "Manager");
+                // Self assessment is only by the employee themselves
+                AddEvaluatorFeedback(selectedEmployee.EmployeeId, "Self");
             }
-            // Auto-add self
-            AddEvaluatorFeedback(selectedEmployee.EmployeeId, "Self");
+            else if (evaluationType == AppraisalFormType.PerformanceAppraisal)
+            {
+                // Auto-add manager (the current user)
+                if (currentUserEmployee != null)
+                {
+                    AddEvaluatorFeedback(currentUserEmployee.EmployeeId, "Manager");
+                }
+                
+                // Also add the employee themselves for their self-reflection part of the appraisal if needed
+                AddEvaluatorFeedback(selectedEmployee.EmployeeId, "Self");
+            }
+            else if (evaluationType == AppraisalFormType.Feedback360)
+            {
+                // 360 Feedback: Auto-add self and manager as starting point
+                AddEvaluatorFeedback(selectedEmployee.EmployeeId, "Self");
+                if (selectedEmployee.ReportsTo.HasValue)
+                {
+                    AddEvaluatorFeedback(selectedEmployee.ReportsTo.Value, "Manager");
+                }
+
+                // Add peers (same level)
+                var peers = employees?.Where(e => e.LevelId == selectedEmployee.LevelId && e.EmployeeId != selectedEmployee.EmployeeId).Take(2);
+                if (peers != null)
+                {
+                    foreach (var peer in peers)
+                    {
+                        AddEvaluatorFeedback(peer.EmployeeId, "Peer");
+                    }
+                }
+
+                // Add subordinates (those who report to this employee)
+                var subordinates = employees?.Where(e => e.ReportsTo == selectedEmployee.EmployeeId).Take(2);
+                if (subordinates != null)
+                {
+                    foreach (var sub in subordinates)
+                    {
+                        AddEvaluatorFeedback(sub.EmployeeId, "Subordinate");
+                    }
+                }
+            }
         }
         StateHasChanged();
     }
@@ -246,6 +353,14 @@
         var cycle = cycles?.FirstOrDefault(c => c.CycleId == cycleId);
         effectiveDateDisplay = cycle?.EndDate.ToString("yyyy-MM-dd") ?? "N/A";
     }
+
+    private string GetTypeName(AppraisalFormType type) => type switch
+    {
+        AppraisalFormType.PerformanceAppraisal => "Performance Appraisal",
+        AppraisalFormType.SelfAssessment => "Self Assessment",
+        AppraisalFormType.Feedback360 => "360 Feedback",
+        _ => "Performance Evaluation"
+    };
 
     private async Task OnFormChanged(int formId)
     {
@@ -308,6 +423,18 @@
         if (!newEvaluatorId.HasValue)
         {
             Snackbar.Add("Please select an employee to add as an evaluator.", Severity.Warning);
+            return;
+        }
+
+        var targetEmp = employees?.FirstOrDefault(e => e.EmployeeId == newEvaluatorId);
+        if (targetEmp == null) return;
+
+        var targetLevel = ParseLevel(targetEmp.LevelId);
+
+        // Validation based on requirements
+        if (newEvaluatorRole == "External" && targetLevel != 3)
+        {
+            Snackbar.Add("Only Level 03 employees can be added as External Consultants.", Severity.Warning);
             return;
         }
 
