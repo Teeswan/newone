@@ -69,18 +69,42 @@ public class PerformanceEvaluationsController : ControllerBase
     [HasPermission(Permissions.PerformanceEvaluations.Manage)]
     public async Task<ActionResult<PerformanceEvaluationDto>> Update(int id, UpdatePerformanceEvaluationRequest request)
     {
-        var result = await _service.UpdateAsync(id, request);
+        var result = await _service.UpdateAsync(id, request, GetCurrentEmployeeId());
         if (result == null) return NotFound();
         return Ok(result);
     }
 
-    [HttpPost("{id}/submit-self-assessment")]
+    [HttpPost("{id}/submit-self")]
     [HasPermission(Permissions.PerformanceEvaluations.Manage)]
     public async Task<ActionResult> SubmitSelfAssessment(int id)
     {
-        var result = await _service.SubmitSelfAssessmentAsync(id);
+        var result = await _service.SubmitSelfAssessmentAsync(id, GetCurrentEmployeeId());
         if (!result) return NotFound();
         return Ok();
+    }
+
+    [HttpPost("{id}/submit-manager")]
+    [HasPermission(Permissions.PerformanceEvaluations.Manage)]
+    public async Task<ActionResult> SubmitManagerReview(int id)
+    {
+        var result = await _service.SubmitManagerReviewAsync(id, GetCurrentEmployeeId());
+        if (!result) return NotFound();
+        return Ok();
+    }
+
+    [HttpPost("{id}/reopen")]
+    [HasPermission(Permissions.PerformanceEvaluations.Manage)]
+    public async Task<ActionResult> Reopen(int id)
+    {
+        var result = await _service.ReopenAsync(id, GetCurrentEmployeeId());
+        if (!result) return NotFound();
+        return Ok();
+    }
+
+    private int? GetCurrentEmployeeId()
+    {
+        var claim = User.FindFirst("EmployeeId")?.Value;
+        return int.TryParse(claim, out int id) ? id : null;
     }
 
     [HttpDelete("{id}")]

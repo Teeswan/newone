@@ -18,6 +18,22 @@
 <PageTitle>Performance Management Hub</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    @* Action Needed Section *@
+    @if (GetActionItems().Any())
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-6 rounded-lg shadow-md" Icon="@Icons.Material.Filled.NotificationImportant">
+            <MudText Typo="Typo.h6"><b>Action Required:</b> You have @GetActionItems().Count() pending performance tasks.</MudText>
+            <MudList T="PerformanceEvaluationDto" Class="mt-2" Dense="true">
+                @foreach (var item in GetActionItems().Take(3))
+                {
+                    <MudListItem Icon="@Icons.Material.Filled.ArrowForward" OnClick="@(() => ViewEvaluation(item.EvalId))">
+                        @GetActionMessage(item)
+                    </MudListItem>
+                }
+            </MudList>
+        </MudAlert>
+    }
+
     <MudTabs Elevation="4" Rounded="true" Color="Color.Primary" ApplyEffectsToContainer="true" PanelClass="pa-6">
         @* Evaluations Tab *@
         <MudTabPanel Text="Evaluations" Icon="@Icons.Material.Filled.Assessment">
@@ -222,7 +238,7 @@
 
     private bool CanEditEvaluation(PerformanceEvaluationDto eval)
     {
-        if (currentUserEmployee == null || eval.IsFinalized == true) return false;
+        if (currentUserEmployee == null || eval.Status == PerformanceEvaluationStatus.Finalized) return false;
         
         var level = ParseLevel(currentUserEmployee.LevelId);
 
@@ -255,11 +271,40 @@
         outcome.RecommendationType?.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) == true ||
         outcome.ApprovalStatus?.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) == true;
 
+    private IEnumerable<PerformanceEvaluationDto> GetActionItems()
+    {
+        if (currentUserEmployee == null) return Enumerable.Empty<PerformanceEvaluationDto>();
+
+        var userLevel = ParseLevel(currentUserEmployee.LevelId);
+
+        return _evaluations.Where(e => 
+            (e.EmployeeId == currentUserEmployee.EmployeeId && e.Status == PerformanceEvaluationStatus.Draft) || // My self-assessment to do
+            (IsDirectReport(e.EmployeeId) && e.Status == PerformanceEvaluationStatus.SelfSubmitted) || // Direct report submitted self, manager needs to review
+            (userLevel <= 4 && e.Status == PerformanceEvaluationStatus.AwaitingCalibration) || // Senior Management needs to calibrate
+            (e.Responses.Any(r => r.RespondentId == currentUserEmployee.EmployeeId && r.RatingValue == null)) // I am an evaluator but haven't rated yet
+        );
+    }
+
+    private string GetActionMessage(PerformanceEvaluationDto item)
+    {
+        if (item.EmployeeId == currentUserEmployee?.EmployeeId && item.Status == PerformanceEvaluationStatus.Draft)
+            return $"Complete your Self-Assessment for {item.CycleName}";
+        
+        if (IsDirectReport(item.EmployeeId) && item.Status == PerformanceEvaluationStatus.SelfSubmitted)
+            return $"Review and Appraise {item.EmployeeName}'s Performance";
+
+        if (item.Status == PerformanceEvaluationStatus.AwaitingCalibration)
+            return $"Calibrate Performance Score for {item.EmployeeName}";
+
+        return $"Provide feedback for {item.EmployeeName} ({item.FormName})";
+    }
+
     private Color GetEvalStatusColor(PerformanceEvaluationStatus status) => status switch
     {
         PerformanceEvaluationStatus.Draft => Color.Default,
         PerformanceEvaluationStatus.SelfSubmitted => Color.Info,
         PerformanceEvaluationStatus.ManagerReviewed => Color.Primary,
+        PerformanceEvaluationStatus.AwaitingCalibration => Color.Warning,
         PerformanceEvaluationStatus.Finalized => Color.Success,
         _ => Color.Default
     };
@@ -267,6 +312,7 @@
     private Color GetOutcomeStatusColor(string? status) => status?.ToLower() switch
     {
         "pending" => Color.Warning,
+        "requires hr review" => Color.Error,
         "approved" => Color.Success,
         "rejected" => Color.Error,
         _ => Color.Default

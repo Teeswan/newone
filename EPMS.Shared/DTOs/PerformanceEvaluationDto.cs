@@ -21,6 +21,7 @@ public class PerformanceEvaluationDto
     public int? ManagerRating { get; set; }
     public string? SelfComments { get; set; }
     public string? ManagerComments { get; set; }
+    public string? CalibrationComments { get; set; }
     public decimal? FinalRatingScore { get; set; }
     public bool? IsFinalized { get; set; }
     public DateTime? FinalizedAt { get; set; }

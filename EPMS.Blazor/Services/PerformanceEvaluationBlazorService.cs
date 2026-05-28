@@ -35,11 +35,35 @@ namespace EPMS.Blazor.Services
             return await response.Content.ReadFromJsonAsync<PerformanceEvaluationDto>() ?? throw new InvalidOperationException("Could not create performance evaluation.");
         }
 
-        public async Task<PerformanceEvaluationDto?> UpdatePerformanceEvaluationAsync(int id, UpdatePerformanceEvaluationRequest request)
+        public async Task<PerformanceEvaluationDto> UpdatePerformanceEvaluationAsync(int id, UpdatePerformanceEvaluationRequest request)
         {
             var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<PerformanceEvaluationDto>();
+            return await response.Content.ReadFromJsonAsync<PerformanceEvaluationDto>() ?? throw new InvalidOperationException("Could not update performance evaluation.");
+        }
+
+        public async Task<bool> SubmitSelfAssessmentAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/{id}/submit-self", null);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> SubmitManagerReviewAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/{id}/submit-manager", null);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> CompletePerformanceEvaluationAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/{id}/complete", null);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> ReopenPerformanceEvaluationAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/{id}/reopen", null);
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeletePerformanceEvaluationAsync(int id)

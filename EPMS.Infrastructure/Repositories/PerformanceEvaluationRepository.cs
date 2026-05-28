@@ -60,6 +60,7 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
             new SqlParameter("@ManagerRating", ToDbValue(entity.ManagerRating)),
             new SqlParameter("@SelfComments", ToDbValue(entity.SelfComments)),
             new SqlParameter("@ManagerComments", ToDbValue(entity.ManagerComments)),
+            new SqlParameter("@CalibrationComments", ToDbValue(entity.CalibrationComments)),
             new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
             new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
             new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
@@ -84,6 +85,7 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
             new SqlParameter("@ManagerRating", ToDbValue(entity.ManagerRating)),
             new SqlParameter("@SelfComments", ToDbValue(entity.SelfComments)),
             new SqlParameter("@ManagerComments", ToDbValue(entity.ManagerComments)),
+            new SqlParameter("@CalibrationComments", ToDbValue(entity.CalibrationComments)),
             new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
             new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
             new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))

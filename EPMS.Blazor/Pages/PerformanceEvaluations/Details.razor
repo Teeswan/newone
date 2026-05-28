@@ -80,10 +80,10 @@
                         <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: bold;">Evaluation Ratings</MudText>
                         @if (eval.Responses != null && eval.Responses.Any())
                         {
-                            <MudTable Items="@eval.Responses" Hover="true" Bordered="true" Elevation="0" Dense="true">
+                            <MudTable Items="@GetDisplayResponses()" Hover="true" Bordered="true" Elevation="0" Dense="true">
                                 <HeaderContent>
                                     <MudTh Style="width: 50px">No</MudTh>
-                                    <MudTh>Role</MudTh>
+                                    <MudTh>Source</MudTh>
                                     <MudTh>Assessment Subject</MudTh>
                                     <MudTh Style="width: 150px">Rating</MudTh>
                                     <MudTh>Comments</MudTh>
@@ -120,6 +120,15 @@
                                     <MudText Typo="Typo.body1" Class="mt-2">@(string.IsNullOrEmpty(eval.ManagerComments) ? "No remarks." : eval.ManagerComments)</MudText>
                                 </MudPaper>
                             </MudItem>
+                            @if (!string.IsNullOrEmpty(eval.CalibrationComments))
+                            {
+                                <MudItem xs="12">
+                                    <MudPaper Outlined="true" Class="pa-4" Style="background-color: #fff9f0; border: 1px solid #ffb74d;">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Warning" Style="font-weight: bold;">Senior Management Calibration Comments</MudText>
+                                        <MudText Typo="Typo.body1" Class="mt-2">@eval.CalibrationComments</MudText>
+                                    </MudPaper>
+                                </MudItem>
+                            }
                         </MudGrid>
                     </MudItem>
 
@@ -130,22 +139,56 @@
                                 <MudSimpleTable Bordered="true" Dense="true">
                                     <thead>
                                         <tr>
-                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Total Points</th>
-                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Formula</th>
-                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Score</th>
+                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Assessment Source</th>
+                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Weight</th>
+                                            <th style="font-weight: bold; text-align: center; background-color: #f5f5f5;">Calculated Score</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td style="text-align: center; vertical-align: middle; font-weight: bold;">Total Points</td>
-                                            <td style="text-align: center;">
-                                                <div style="border-bottom: 1px solid black; padding: 4px;">Total Point</div>
-                                                <div style="padding: 4px;">Number of Questions Answered X 5</div>
-                                            </td>
-                                            <td style="text-align: center; vertical-align: middle;">
-                                                <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">@eval.FinalRatingScore?.ToString("N2")%</MudText>
-                                            </td>
-                                        </tr>
+                                        @if (eval.FormType == EPMS.Domain.Enums.AppraisalFormType.PerformanceAppraisal)
+                                        {
+                                            <tr>
+                                                <td style="text-align: center;">
+                                                    Manager Review
+                                                    <MudTooltip Text="Weights reflect organizational policy to balance supervisor oversight and self-growth.">
+                                                        <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Color="Color.Info" Class="ml-1" />
+                                                    </MudTooltip>
+                                                </td>
+                                                <td style="text-align: center;">80%</td>
+                                                <td rowspan="2" style="text-align: center; vertical-align: middle;">
+                                                    <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">@eval.FinalRatingScore?.ToString("N2")%</MudText>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: center;">Self Assessment</td>
+                                                <td style="text-align: center;">20%</td>
+                                            </tr>
+                                        }
+                                        else if (eval.FormType == EPMS.Domain.Enums.AppraisalFormType.Feedback360)
+                                        {
+                                            <tr>
+                                                <td style="text-align: center;">
+                                                    360° Multi-Source
+                                                    <MudTooltip Text="360° scores are calculated as an equal weighted average across all multi-directional sources.">
+                                                        <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Color="Color.Info" Class="ml-1" />
+                                                    </MudTooltip>
+                                                </td>
+                                                <td style="text-align: center;">Equal Weighted Average</td>
+                                                <td style="text-align: center; vertical-align: middle;">
+                                                    <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">@eval.FinalRatingScore?.ToString("N2")%</MudText>
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td style="text-align: center;">Self Assessment</td>
+                                                <td style="text-align: center;">100%</td>
+                                                <td style="text-align: center; vertical-align: middle;">
+                                                    <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">@eval.FinalRatingScore?.ToString("N2")%</MudText>
+                                                </td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </MudSimpleTable>
                             </MudItem>
@@ -198,8 +241,30 @@
 
                     <MudItem xs="12" Class="d-flex justify-end mt-8 gap-4">
                         <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">Back to List</MudButton>
+                        
+                        @if (eval.Status == EPMS.Domain.Enums.PerformanceEvaluationStatus.Draft && eval.EmployeeId == currentUserEmployee?.EmployeeId)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitSelf">Submit Self-Assessment</MudButton>
+                        }
+                        
+                        @if (eval.Status == EPMS.Domain.Enums.PerformanceEvaluationStatus.SelfSubmitted && eval.ManagerName?.Contains(currentUserEmployee?.FullName ?? "___") == true)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="SubmitManager">Complete Manager Review</MudButton>
+                        }
+
                         <MudButton Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="DownloadReport">Download Report</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit">Edit</MudButton>
+                        
+                        <AuthorizeView Permissions="@EPMS.Shared.Constants.Permissions.PerformanceEvaluations.Manage">
+                            @if (eval.Status == EPMS.Domain.Enums.PerformanceEvaluationStatus.Finalized)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ReopenEvaluation" StartIcon="@Icons.Material.Filled.LockOpen">Re-open Review</MudButton>
+                            }
+                        </AuthorizeView>
+
+                        @if (eval.Status != EPMS.Domain.Enums.PerformanceEvaluationStatus.Finalized)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                        }
                     </MudItem>
                 </MudGrid>
             </div>
@@ -271,6 +336,67 @@
     private void BackToList() => NavigationManager.NavigateTo("/performanceevaluations");
     private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceevaluations/edit/{Id}");
 
+    private async Task SubmitSelf()
+    {
+        var success = await PerformanceEvaluationService.SubmitSelfAssessmentAsync(Id);
+        if (success)
+        {
+            Snackbar.Add("Self-assessment submitted successfully!", Severity.Success);
+            await OnInitializedAsync();
+        }
+    }
+
+    private async Task SubmitManager()
+    {
+        var success = await PerformanceEvaluationService.SubmitManagerReviewAsync(Id);
+        if (success)
+        {
+            Snackbar.Add("Manager review completed successfully!", Severity.Success);
+            await OnInitializedAsync();
+        }
+    }
+
+    private async Task ReopenEvaluation()
+    {
+        var success = await PerformanceEvaluationService.ReopenPerformanceEvaluationAsync(Id);
+        if (success)
+        {
+            Snackbar.Add("Evaluation re-opened successfully.", Severity.Success);
+            await OnInitializedAsync();
+        }
+    }
+
+    private List<AppraisalResponseDto> GetDisplayResponses()
+    {
+        if (eval?.Responses == null) return new List<AppraisalResponseDto>();
+
+        // For 360 Feedback, we want to maintain anonymity for Peer and Subordinate roles 
+        // when the viewer is the subject (the employee being evaluated).
+        // However, the Manager should be able to see who said what for coaching purposes.
+        
+        // Let's implement a policy: 
+        // 1. If the viewer is the subject, Peer/Subordinate roles are shown as "Anonymous Peer/Subordinate".
+        // 2. Otherwise, show full details.
+
+        var currentUserId = 0; // In a real app, get from authState
+        // For now, let's assume we want to protect anonymity for everyone viewing the ratings table 
+        // except maybe HR or the Appraiser.
+
+        return eval.Responses.Select(r => new AppraisalResponseDto
+        {
+            ResponseId = r.ResponseId,
+            EvalId = r.EvalId,
+            QuestionId = r.QuestionId,
+            QuestionText = r.QuestionText,
+            RespondentId = r.RespondentId,
+            RespondentName = (r.RespondentRole == "Peer" || r.RespondentRole == "Subordinate") ? "Anonymous" : r.RespondentName,
+            RespondentRole = r.RespondentRole,
+            RatingValue = r.RatingValue,
+            AnswerText = (r.RespondentRole == "Peer" || r.RespondentRole == "Subordinate") ? "Comments hidden for anonymity" : r.AnswerText,
+            SortOrder = r.SortOrder
+        }).ToList();
+    }
+
     private string GetTypeName(EPMS.Domain.Enums.AppraisalFormType type) => type switch
     {
         EPMS.Domain.Enums.AppraisalFormType.PerformanceAppraisal => "Performance Appraisal Form",
@@ -320,6 +446,7 @@
             EPMS.Domain.Enums.PerformanceEvaluationStatus.Draft => Color.Default,
             EPMS.Domain.Enums.PerformanceEvaluationStatus.SelfSubmitted => Color.Primary,
             EPMS.Domain.Enums.PerformanceEvaluationStatus.ManagerReviewed => Color.Info,
+            EPMS.Domain.Enums.PerformanceEvaluationStatus.AwaitingCalibration => Color.Warning,
             EPMS.Domain.Enums.PerformanceEvaluationStatus.Finalized => Color.Success,
             _ => Color.Default
         };
