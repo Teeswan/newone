@@ -1,4 +1,5 @@
 @page "/"
+@inject NavigationManager Nav
 
 <PageTitle>EPMS - Home</PageTitle>
 
@@ -42,7 +43,7 @@
     </MudItem>
 
     <MudItem xs="12" sm="6" md="3">
-        <MudPaper Elevation="3" Class="pa-6" Rounded="true">
+        <MudPaper Elevation="3" Class="pa-6" Rounded="true" Style="cursor: pointer;" @onclick="@(() => Nav.NavigateTo("/development-hub"))">
             <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Info" Size="Size.Large" Class="mb-2" />
             <MudText Typo="Typo.h4" Class="fw-bold">PIP Plans</MudText>
             <MudText Typo="Typo.body1" Class="text-grey">Performance improvement</MudText>

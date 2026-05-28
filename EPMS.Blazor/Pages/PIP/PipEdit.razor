@@ -112,13 +112,13 @@
             else
             {
                 Snackbar.Add(response?.Message ?? "Failed to load PIP.", Severity.Error);
-                NavigationManager.NavigateTo("/pip");
+                NavigationManager.NavigateTo("/development-hub");
             }
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error loading PIP: {ex.Message}", Severity.Error);
-            NavigationManager.NavigateTo("/pip");
+            NavigationManager.NavigateTo("/development-hub");
         }
         finally
         {

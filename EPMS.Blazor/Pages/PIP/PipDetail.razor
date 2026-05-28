@@ -26,7 +26,7 @@
         <MudPaper Elevation="2" Class="pa-6 mb-6">
             <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
                 <MudItem>
-                    <MudText Typo="Typo.h4">PIP – @_plan.EmployeeName</MudText>
+                    <MudText Typo="Typo.h4">PIP ï¿½ @_plan.EmployeeName</MudText>
                     <MudText Typo="Typo.subtitle1" Class="text-muted">Managed by @_plan.ManagerName</MudText>
                 </MudItem>
                 <MudItem>
@@ -34,7 +34,7 @@
                     <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip/edit/" + PipId))" StartIcon="@Icons.Material.Filled.Edit" Class="mr-2">
                         Edit
                     </MudButton>
-                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/pip"))" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="@(() => NavigationManager.NavigateTo("/development-hub"))" StartIcon="@Icons.Material.Filled.ArrowBack">
                         Back
                     </MudButton>
                 </MudItem>
@@ -45,7 +45,7 @@
                     <MudCard>
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="text-muted">Duration</MudText>
-                            <MudText Typo="Typo.h5">@_plan.StartDate.ToString("dd MMM") – @_plan.EndDate.ToString("dd MMM yyyy")</MudText>
+                            <MudText Typo="Typo.h5">@_plan.StartDate.ToString("dd MMM") ï¿½ @_plan.EndDate.ToString("dd MMM yyyy")</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
