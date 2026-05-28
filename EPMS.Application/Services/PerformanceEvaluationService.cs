@@ -12,6 +12,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
 {
     private readonly IPerformanceEvaluationRepository _repository;
     private readonly IAppraisalResponseRepository _responseRepository;
+    private readonly IPerformanceOutcomeRepository _outcomeRepository;
     private readonly IEmployeeRepository _employeeRepository;
     private readonly IAppraisalCycleRepository _cycleRepository;
     private readonly IDepartmentRepository _departmentRepository;
@@ -23,6 +24,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
     public PerformanceEvaluationService(
         IPerformanceEvaluationRepository repository, 
         IAppraisalResponseRepository responseRepository,
+        IPerformanceOutcomeRepository outcomeRepository,
         IEmployeeRepository employeeRepository,
         IAppraisalCycleRepository cycleRepository,
         IDepartmentRepository departmentRepository,
@@ -33,6 +35,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
     {
         _repository = repository;
         _responseRepository = responseRepository;
+        _outcomeRepository = outcomeRepository;
         _employeeRepository = employeeRepository;
         _cycleRepository = cycleRepository;
         _departmentRepository = departmentRepository;
@@ -205,7 +208,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             }
         }
 
-        // Notify if Finalized
+        // Notify if Finalized and Generate Auto-Outcome
         if (updated != null && updated.Status == PerformanceEvaluationStatus.Finalized && updated.EmployeeId.HasValue)
         {
             var employeeUser = await _userRepository.GetByEmployeeIdAsync(updated.EmployeeId.Value);
@@ -216,6 +219,35 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                     "Your Performance Appraisal has been finalized",
                     "PerformanceEvaluation",
                     evalId);
+            }
+
+            // Auto-Outcome Logic
+            var existingOutcomes = await _outcomeRepository.GetByEmployeeIdAsync(updated.EmployeeId.Value);
+            if (!existingOutcomes.Any(o => o.EvalId == evalId))
+            {
+                var employee = await _employeeRepository.GetByIdAsync(updated.EmployeeId.Value);
+                var score = updated.FinalRatingScore ?? 0;
+                
+                string recommendation = score switch
+                {
+                    >= 90 => "Promotion",
+                    >= 75 => "Salary Increment",
+                    >= 50 => "No Change",
+                    _ => "PIP"
+                };
+
+                var outcome = new PerformanceOutcome
+                {
+                    EvalId = evalId,
+                    EmployeeId = updated.EmployeeId,
+                    CycleId = updated.CycleId,
+                    RecommendationType = recommendation,
+                    OldPositionId = employee?.PositionId,
+                    ApprovalStatus = "Pending",
+                    EffectiveDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(1)) // Default to next month
+                };
+
+                await _outcomeRepository.CreateAsync(outcome);
             }
         }
 

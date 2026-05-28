@@ -10,11 +10,13 @@ namespace EPMS.Application.Services;
 public class PerformanceOutcomeService : IPerformanceOutcomeService
 {
     private readonly IPerformanceOutcomeRepository _repository;
+    private readonly IEmployeeRepository _employeeRepository;
     private readonly IMapper _mapper;
 
-    public PerformanceOutcomeService(IPerformanceOutcomeRepository repository, IMapper mapper)
+    public PerformanceOutcomeService(IPerformanceOutcomeRepository repository, IEmployeeRepository employeeRepository, IMapper mapper)
     {
         _repository = repository;
+        _employeeRepository = employeeRepository;
         _mapper = mapper;
     }
 
@@ -51,10 +53,37 @@ public class PerformanceOutcomeService : IPerformanceOutcomeService
 
     public async Task<PerformanceOutcomeDto?> UpdateAsync(int outcomeId, UpdatePerformanceOutcomeRequest request)
     {
-        var entity = _mapper.Map<PerformanceOutcome>(request);
-        entity.OutcomeId = outcomeId;
+        var existing = await _repository.GetByIdAsync(outcomeId);
+        if (existing == null) return null;
 
-        var updated = await _repository.UpdateAsync(entity);
+        _mapper.Map(request, existing);
+        existing.OutcomeId = outcomeId;
+
+        var updated = await _repository.UpdateAsync(existing);
+
+        // Automated Profile Update Logic
+        if (updated != null && 
+            updated.ApprovalStatus == "Approved" && 
+            updated.EmployeeId.HasValue &&
+            updated.EffectiveDate <= DateOnly.FromDateTime(DateTime.Now))
+        {
+            var employee = await _employeeRepository.GetByIdAsync(updated.EmployeeId.Value);
+            if (employee != null)
+            {
+                bool changed = false;
+                if (updated.NewPositionId.HasValue && employee.PositionId != updated.NewPositionId)
+                {
+                    employee.PositionId = updated.NewPositionId.Value;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    await _employeeRepository.UpdateAsync(employee);
+                }
+            }
+        }
+
         return _mapper.Map<PerformanceOutcomeDto?>(updated);
     }
 

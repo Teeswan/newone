@@ -1,0 +1,224 @@
+@page "/performance-hub"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Dialogs
+@using EPMS.Domain.Enums
+@inject IPerformanceEvaluationBlazorService EvaluationService
+@inject IPerformanceOutcomeBlazorService OutcomeService
+@inject IAppraisalCycleBlazorService CycleService
+@inject IEmployeeBlazorService EmployeeService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Performance Management Hub</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudTabs Elevation="4" Rounded="true" Color="Color.Primary" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        @* Evaluations Tab *@
+        <MudTabPanel Text="Evaluations" Icon="@Icons.Material.Filled.Assessment">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Performance Evaluations</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenEvaluationAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    New Evaluation
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_evalSearch" Placeholder="Search evaluations (Employee, Cycle)..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_evaluations" T="PerformanceEvaluationDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<PerformanceEvaluationDto,bool>(FilterEvaluations)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Employee</MudTh>
+                    <MudTh>Cycle</MudTh>
+                    <MudTh>Score</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+                    <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
+                    <MudTd DataLabel="Score">@(context.FinalRatingScore?.ToString("N2") ?? "N/A")%</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="GetEvalStatusColor(context.Status)" Variant="Variant.Filled" Size="Size.Small">
+                            @context.Status
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEvaluation(context.EvalId))" Title="View Details" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEvaluationEditDialog(context))" Title="Edit" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEvaluation(context.EvalId))" Title="Delete" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+
+        @* Outcomes Tab *@
+        <MudTabPanel Text="Outcomes" Icon="@Icons.Material.Filled.TaskAlt">
+            <div class="d-flex justify-space-between align-center mb-6">
+                <MudText Typo="Typo.h5" Style="font-weight: 700;">Performance Outcomes</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenOutcomeAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
+                    New Outcome
+                </MudButton>
+            </div>
+            <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                <MudTextField @bind-Value="_outcomeSearch" Placeholder="Search outcomes..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudPaper>
+            <MudTable Items="_outcomes" T="PerformanceOutcomeDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<PerformanceOutcomeDto,bool>(FilterOutcomes)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Employee</MudTh>
+                    <MudTh>Recommendation</MudTh>
+                    <MudTh>Effective Date</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+                    <MudTd DataLabel="Recommendation">@context.RecommendationType</MudTd>
+                    <MudTd DataLabel="Effective Date">@context.EffectiveDate?.ToString("dd MMM yyyy")</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="GetOutcomeStatusColor(context.ApprovalStatus)" Variant="Variant.Filled" Size="Size.Small">
+                            @context.ApprovalStatus
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenOutcomeEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteOutcome(context.OutcomeId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private List<PerformanceEvaluationDto> _evaluations = new();
+    private List<PerformanceOutcomeDto> _outcomes = new();
+
+    private string _evalSearch = "";
+    private string _outcomeSearch = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllData();
+    }
+
+    private async Task LoadAllData()
+    {
+        try
+        {
+            var evalTask = EvaluationService.GetAllPerformanceEvaluationsAsync();
+            var outcomeTask = OutcomeService.GetAllPerformanceOutcomesAsync();
+
+            await Task.WhenAll(evalTask, outcomeTask);
+
+            _evaluations = (await evalTask).ToList();
+            _outcomes = (await outcomeTask).ToList();
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private bool FilterEvaluations(PerformanceEvaluationDto eval) => 
+        string.IsNullOrWhiteSpace(_evalSearch) || 
+        eval.EmployeeName.Contains(_evalSearch, StringComparison.OrdinalIgnoreCase) ||
+        eval.CycleName.Contains(_evalSearch, StringComparison.OrdinalIgnoreCase) ||
+        eval.Status.ToString().Contains(_evalSearch, StringComparison.OrdinalIgnoreCase);
+
+    private bool FilterOutcomes(PerformanceOutcomeDto outcome) => 
+        string.IsNullOrWhiteSpace(_outcomeSearch) || 
+        outcome.EmployeeName.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) ||
+        outcome.RecommendationType?.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) == true ||
+        outcome.ApprovalStatus?.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) == true;
+
+    private Color GetEvalStatusColor(PerformanceEvaluationStatus status) => status switch
+    {
+        PerformanceEvaluationStatus.Draft => Color.Default,
+        PerformanceEvaluationStatus.SelfSubmitted => Color.Info,
+        PerformanceEvaluationStatus.ManagerReviewed => Color.Primary,
+        PerformanceEvaluationStatus.Finalized => Color.Success,
+        _ => Color.Default
+    };
+
+    private Color GetOutcomeStatusColor(string? status) => status?.ToLower() switch
+    {
+        "pending" => Color.Warning,
+        "approved" => Color.Success,
+        "rejected" => Color.Error,
+        _ => Color.Default
+    };
+
+    // CRUD Handlers
+    private async Task OpenEvaluationAddDialog() => NavigationManager.NavigateTo("/performanceevaluations/create");
+    private async Task OpenEvaluationEditDialog(PerformanceEvaluationDto eval) => NavigationManager.NavigateTo($"/performanceevaluations/edit/{eval.EvalId}");
+    private void ViewEvaluation(int id) => NavigationManager.NavigateTo($"/performanceevaluations/details/{id}");
+    private async Task DeleteEvaluation(int id) => await ConfirmAndDelete(() => EvaluationService.DeletePerformanceEvaluationAsync(id), "Evaluation");
+
+    private async Task OpenOutcomeAddDialog() => NavigationManager.NavigateTo("/performanceoutcomes/create");
+    private async Task OpenOutcomeEditDialog(PerformanceOutcomeDto outcome) => NavigationManager.NavigateTo($"/performanceoutcomes/edit/{outcome.OutcomeId}");
+    private async Task DeleteOutcome(int id) => await ConfirmAndDelete(() => OutcomeService.DeletePerformanceOutcomeAsync(id), "Outcome");
+
+    private async Task ShowDialog<T>(string title, DialogParameters parameters = null) where T : ComponentBase
+    {
+        try
+        {
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = DialogService.Show<T>(title, parameters ?? new DialogParameters(), options);
+            var result = await dialog.Result;
+            
+            if (result != null && !result.Canceled)
+            {
+                await Task.Delay(200);
+                await LoadAllData();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmAndDelete(Func<Task<bool>> deleteAction, string entityName)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete this {entityName}?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await deleteAction();
+                if (success)
+                {
+                    Snackbar.Add($"{entityName} deleted successfully!", Severity.Success);
+                    await Task.Delay(200);
+                    await LoadAllData();
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}
