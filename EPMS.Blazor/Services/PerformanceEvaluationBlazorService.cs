@@ -54,6 +54,12 @@ namespace EPMS.Blazor.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<bool> FinalizePerformanceEvaluationAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/{id}/finalize", null);
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<bool> CompletePerformanceEvaluationAsync(int id)
         {
             var response = await _httpClient.PostAsync($"{BaseUrl}/{id}/complete", null);
@@ -70,6 +76,11 @@ namespace EPMS.Blazor.Services
         {
             var response = await _httpClient.DeleteAsync($"{BaseUrl}/{id}");
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<IEnumerable<CalibrationTrendDto>> GetCalibrationTrendAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<CalibrationTrendDto>>($"{BaseUrl}/calibration-trend") ?? new List<CalibrationTrendDto>();
         }
     }
 }

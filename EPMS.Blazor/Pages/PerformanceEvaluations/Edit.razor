@@ -171,26 +171,43 @@
 
                     <MudItem xs="12">
                         <MudExpansionPanels>
-                            <MudExpansionPanel Text="Final Summary & Comments">
+                            <MudExpansionPanel Text="Final Summary & Comments" IsExpanded="true">
                                 <MudGrid>
+                                    @* Always show scores for transparency, but keep them Read-Only *@
                                     <MudItem xs="12" sm="3">
                                         <MudNumericField @bind-Value="updateRequest.SelfRating" Label="Total Self Rating" ReadOnly="true" Variant="Variant.Outlined" />
                                     </MudItem>
-                                    <MudItem xs="12" sm="3">
-                                        <MudNumericField @bind-Value="updateRequest.ManagerRating" Label="Total Manager Rating" ReadOnly="true" Variant="Variant.Outlined" />
+
+                                    @* Only show Manager Rating to the Creator or if already submitted *@
+                                    @if (currentEmployeeId != updateRequest.EmployeeId || updateRequest.Status != PerformanceEvaluationStatus.Draft)
+                                    {
+                                        <MudItem xs="12" sm="3">
+                                            <MudNumericField @bind-Value="updateRequest.ManagerRating" Label="Total Manager Rating" ReadOnly="true" Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudNumericField @bind-Value="updateRequest.FinalRatingScore" Label="Final Score (%)" ReadOnly="true" Variant="Variant.Outlined" />
+                                        </MudItem>
+                                    }
+
+                                    @* Employee Remarks: Editable only by the subject during Draft *@
+                                    <MudItem xs="12" sm="12">
+                                        <MudTextField @bind-Value="updateRequest.SelfComments" 
+                                                      Label="Employee Overall Remarks" 
+                                                      Lines="3" 
+                                                      Variant="Variant.Outlined" 
+                                                      ReadOnly="@(currentEmployeeId != updateRequest.EmployeeId || updateRequest.Status != PerformanceEvaluationStatus.Draft)" />
                                     </MudItem>
-                                    <MudItem xs="12" sm="3">
-                                        <MudNumericField @bind-Value="updateRequest.FinalRatingScore" Label="Final Score (%)" ReadOnly="true" Variant="Variant.Outlined" />
-                                    </MudItem>
-                                    <MudItem xs="12" sm="3">
-                                        <MudCheckBox @bind-Value="isFinalizedValue" Label="Finalize & Lock?" Color="Color.Primary" ReadOnly="@isReadOnlyForUser" />
-                                    </MudItem>
-                                    <MudItem xs="12" sm="6">
-                                        <MudTextField @bind-Value="updateRequest.SelfComments" Label="Employee Overall Remarks" Lines="3" Variant="Variant.Outlined" ReadOnly="@isReadOnlyForUser" />
-                                    </MudItem>
-                                    <MudItem xs="12" sm="6">
-                                        <MudTextField @bind-Value="updateRequest.ManagerComments" Label="Appraiser Overall Remarks" Lines="3" Variant="Variant.Outlined" ReadOnly="@isReadOnlyForUser" />
-                                    </MudItem>
+
+                                    @* Appraiser Remarks & Finalize: Visible only to the Form Creator *@
+                                    @if (currentEmployeeId == updateRequest.CreatedByEmployeeId)
+                                    {
+                                        <MudItem xs="12" sm="12">
+                                            <MudTextField @bind-Value="updateRequest.ManagerComments" Label="Appraiser Overall Remarks" Lines="3" Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudCheckBox @bind-Value="isFinalizedValue" Label="Finalize & Lock this Evaluation?" Color="Color.Primary" />
+                                        </MudItem>
+                                    }
                                     
                                     @if (updateRequest.Status == PerformanceEvaluationStatus.AwaitingCalibration || updateRequest.Status == PerformanceEvaluationStatus.Finalized || currentUserLevel <= 4)
                                     {
@@ -288,6 +305,7 @@
                     SelfComments = eval.SelfComments,
                     ManagerComments = eval.ManagerComments,
                     CalibrationComments = eval.CalibrationComments,
+                    CreatedByEmployeeId = eval.CreatedByEmployeeId,
                     FinalRatingScore = eval.FinalRatingScore,
                     IsFinalized = eval.IsFinalized,
                     FinalizedAt = eval.FinalizedAt

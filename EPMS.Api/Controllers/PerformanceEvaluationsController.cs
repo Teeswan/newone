@@ -61,7 +61,7 @@ public class PerformanceEvaluationsController : ControllerBase
     [HasPermission(Permissions.PerformanceEvaluations.Manage)]
     public async Task<ActionResult<PerformanceEvaluationDto>> Create(CreatePerformanceEvaluationRequest request)
     {
-        var result = await _service.CreateAsync(request);
+        var result = await _service.CreateAsync(request, GetCurrentEmployeeId());
         return CreatedAtAction(nameof(GetById), new { id = result.EvalId }, result);
     }
 

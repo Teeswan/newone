@@ -152,8 +152,9 @@
                     <MudTd DataLabel="Title">@context.PositionTitle</MudTd>
                     <MudTd DataLabel="Level">@context.LevelName</MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenPositionEditDialog(context))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeletePosition(context.PositionId))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewPositionDetails(context.PositionId))" Title="View Details & Permissions" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenPositionEditDialog(context))" Title="Edit Position" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeletePosition(context.PositionId))" Title="Delete Position" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -338,6 +339,7 @@
 
     private async Task OpenPositionAddDialog() => await ShowDialog<PositionDialog>("Add Position");
     private async Task OpenPositionEditDialog(PositionDto pos) => await ShowDialog<PositionDialog>("Edit Position", new DialogParameters { ["Id"] = pos.PositionId });
+    private void ViewPositionDetails(int id) => Navigation.NavigateTo($"/positions/details/{id}");
     private async Task DeletePosition(int id) => await ConfirmAndDelete(() => PositionService.DeletePositionAsync(id), "Position");
 
     private async Task OpenLevelAddDialog() => await ShowDialog<LevelDialog>("Add Level");

@@ -1,4 +1,4 @@
-﻿using Blazored.LocalStorage;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Net.Http.Headers;
@@ -91,16 +91,25 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             {
                 foreach (var kvp in keyValuePairs)
                 {
+                    var key = kvp.Key;
+                    // Map common JWT claims to standard types if needed
+                    if (key == "unique_name" || key == "name") key = "name";
+                    if (key == "role" || key == "roles") key = "role";
+                    if (key == "sub" || key == "nameid" || key == "EmployeeId") 
+                    {
+                        claims.Add(new Claim("EmployeeId", kvp.Value.ToString()));
+                    }
+
                     if (kvp.Value.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var element in kvp.Value.EnumerateArray())
                         {
-                            claims.Add(new Claim(kvp.Key, element.ToString()));
+                            claims.Add(new Claim(key, element.ToString()));
                         }
                     }
                     else
                     {
-                        claims.Add(new Claim(kvp.Key, kvp.Value.ToString()));
+                        claims.Add(new Claim(key, kvp.Value.ToString()));
                     }
                 }
             }

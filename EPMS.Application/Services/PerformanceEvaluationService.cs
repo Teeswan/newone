@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AutoMapper;
 using EPMS.Application.Interfaces;
 using EPMS.Domain.Interfaces;
@@ -20,6 +21,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
     private readonly INotificationService _notificationService;
     private readonly IUserRepository _userRepository;
     private readonly IAuditLogService _auditLogService;
+    private readonly IAppraisalFormRepository _formRepository;
     private readonly IMapper _mapper;
 
     public PerformanceEvaluationService(
@@ -33,6 +35,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         INotificationService notificationService,
         IUserRepository userRepository,
         IAuditLogService auditLogService,
+        IAppraisalFormRepository formRepository,
         IMapper mapper)
     {
         _repository = repository;
@@ -45,6 +48,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         _notificationService = notificationService;
         _userRepository = userRepository;
         _auditLogService = auditLogService;
+        _formRepository = formRepository;
         _mapper = mapper;
     }
 
@@ -72,9 +76,56 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         return _mapper.Map<IEnumerable<PerformanceEvaluationDto>>(entities);
     }
 
-    public async Task<PerformanceEvaluationDto> CreateAsync(CreatePerformanceEvaluationRequest request)
+    public async Task<PerformanceEvaluationDto> CreateAsync(CreatePerformanceEvaluationRequest request, int? currentEmployeeId = null)
     {
+        // Server-side Security Validation
+        if (currentEmployeeId.HasValue)
+        {
+            var creator = await _employeeRepository.GetByIdAsync(currentEmployeeId.Value);
+            var subject = request.EmployeeId.HasValue ? await _employeeRepository.GetByIdAsync(request.EmployeeId.Value) : null;
+            var form = await _formRepository.GetByIdAsync(request.FormId);
+            
+            if (creator != null && subject != null && form != null)
+            {
+                var creatorLevel = ParseLevel(creator.Position?.LevelId);
+                var subjectLevel = ParseLevel(subject.Position?.LevelId);
+                
+                // 1. Self-Assessment: Only for self (L02-L09)
+                if (form.FormType == AppraisalFormType.SelfAssessment)
+                {
+                    if (creator.EmployeeId != subject.EmployeeId)
+                        throw new UnauthorizedAccessException("Self-assessment can only be initiated for yourself.");
+                    if (creatorLevel < 2 || creatorLevel > 9)
+                        throw new UnauthorizedAccessException("You are not eligible for self-assessment based on your level.");
+                }
+                
+                // 2. Performance Appraisal: Only for direct reports (L02-L06)
+                else if (form.FormType == AppraisalFormType.PerformanceAppraisal)
+                {
+                    if (creatorLevel < 2 || creatorLevel > 6)
+                        throw new UnauthorizedAccessException("Only levels 02-06 can initiate performance appraisals.");
+                    if (subject.ReportsTo != creator.EmployeeId && creatorLevel > 4) // Senior management (L01-L04) can oversee
+                        throw new UnauthorizedAccessException("You can only initiate appraisals for your direct reports.");
+                }
+                
+                // 3. 360-Feedback: L02-L08
+                else if (form.FormType == AppraisalFormType.Feedback360)
+                {
+                    if (creatorLevel < 2 || creatorLevel > 8)
+                        throw new UnauthorizedAccessException("Only levels 02-08 can initiate 360-feedback.");
+                }
+                
+                // 4. Calibration: L01-L04
+                else if (form.FormType == AppraisalFormType.CalibrationReview)
+                {
+                    if (creatorLevel < 1 || creatorLevel > 4)
+                        throw new UnauthorizedAccessException("Only Senior Management (L01-L04) can initiate calibration reviews.");
+                }
+            }
+        }
+
         var entity = _mapper.Map<PerformanceEvaluation>(request);
+        entity.CreatedByEmployeeId = currentEmployeeId;
         var created = await _repository.CreateAsync(entity);
 
         if (request.Responses != null && request.Responses.Any())
@@ -90,7 +141,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         }
 
         // Send notifications
-        await SendCreationNotificationsAsync(created, request.Responses);
+        await SendCreationNotificationsAsync(created, request.Responses, currentEmployeeId);
 
         return _mapper.Map<PerformanceEvaluationDto>(created);
     }
@@ -99,6 +150,33 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
     {
         var existingEval = await _repository.GetByIdAsync(evalId);
         if (existingEval == null) return null;
+
+        // Server-side Security Validation
+        if (currentEmployeeId.HasValue)
+        {
+            var user = await _employeeRepository.GetByIdAsync(currentEmployeeId.Value);
+            if (user != null)
+            {
+                var userLevel = ParseLevel(user.Position?.LevelId);
+                bool isSubject = existingEval.EmployeeId == user.EmployeeId;
+                
+                // Finalized evaluations cannot be edited
+                if (existingEval.Status == PerformanceEvaluationStatus.Finalized)
+                    throw new InvalidOperationException("Finalized evaluations cannot be edited.");
+
+                // Subject can only edit their own evaluation if it's in Draft status
+                if (isSubject && existingEval.Status != PerformanceEvaluationStatus.Draft)
+                    throw new UnauthorizedAccessException("You can only edit your own evaluation while it is in Draft status.");
+
+                // If not the subject, must have appropriate level or be the manager
+                if (!isSubject)
+                {
+                    bool isManager = existingEval.Employee?.ReportsTo == user.EmployeeId;
+                    if (!isManager && userLevel > 4) // Only managers or Senior Mgmt (L01-L04)
+                        throw new UnauthorizedAccessException("You do not have permission to edit this evaluation.");
+                }
+            }
+        }
 
         _mapper.Map(request, existingEval);
         existingEval.EvalId = evalId;
@@ -145,6 +223,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
 
     private async Task RecalculateScoresAsync(int evalId)
     {
+        var sw = Stopwatch.StartNew();
         var evaluation = await _repository.GetByIdAsync(evalId);
         if (evaluation == null) return;
 
@@ -152,7 +231,6 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         if (!responses.Any()) return;
 
         var form = evaluation.Form;
-        var formType = (AppraisalFormType)evaluation.FormId; // Assuming FormId matches enum for simplicity, or fetch from evaluation.Form.FormType
 
         // 1. Calculate Totals by Role
         var selfRatings = responses.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
@@ -210,10 +288,18 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                     finalScore = CalculateAverageScore(allOtherRatings);
                 }
                 break;
+
+            case AppraisalFormType.CalibrationReview:
+                // 100% Manager/Senior Management review
+                finalScore = CalculateAverageScore(managerRatings);
+                break;
         }
 
         evaluation.FinalRatingScore = finalScore;
         await _repository.UpdateAsync(evaluation);
+
+        sw.Stop();
+        await _auditLogService.LogAsync("PerformanceEvaluation", "RecalculateScores", evalId, $"Recalculated scores in {sw.ElapsedMilliseconds}ms. Final Score: {finalScore}", null);
     }
 
     private decimal CalculateAverageScore(List<AppraisalResponse> ratings)
@@ -222,20 +308,34 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         return (decimal)ratings.Average(r => r.RatingValue ?? 0) / 5 * 100;
     }
 
-    private async Task SendCreationNotificationsAsync(PerformanceEvaluation created, List<CreateAppraisalResponseRequest>? responses)
+    private async Task SendCreationNotificationsAsync(PerformanceEvaluation created, List<CreateAppraisalResponseRequest>? responses, int? creatorEmployeeId)
     {
         if (!created.EmployeeId.HasValue) return;
 
-        var employeeUser = await _userRepository.GetByEmployeeIdAsync(created.EmployeeId.Value);
-        if (employeeUser != null)
+        var subject = await _employeeRepository.GetByIdAsync(created.EmployeeId.Value);
+        var form = await _formRepository.GetByIdAsync(created.FormId);
+        
+        if (subject == null || form == null) return;
+
+        // 1. Notify Subject (Employee)
+        var subjectUser = await _userRepository.GetByEmployeeIdAsync(subject.EmployeeId);
+        if (subjectUser != null && subjectUser.EmployeeId != creatorEmployeeId)
         {
+            var creator = creatorEmployeeId.HasValue ? await _employeeRepository.GetByIdAsync(creatorEmployeeId.Value) : null;
+            string creatorName = creator?.FullName ?? "your manager";
+
+            string subjectMessage = form.FormType == AppraisalFormType.SelfAssessment 
+                ? $"Action Required: Please submit your {form.FormName} to {creatorName}."
+                : $"A new {form.FormName} has been initiated for you by {creatorName}.";
+
             await _notificationService.CreateNotificationAsync(
-                employeeUser.UserId,
-                $"New {created.Form?.FormName ?? "Performance Evaluation"} Assigned",
+                subjectUser.UserId,
+                subjectMessage,
                 "PerformanceEvaluation",
                 created.EvalId);
         }
 
+        // 2. Notify Evaluators (Managers, Peers, etc.)
         if (responses != null)
         {
             var uniqueEvaluators = responses
@@ -245,13 +345,18 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
 
             foreach (var evaluatorId in uniqueEvaluators)
             {
+                // Skip notifying the person who created the form
+                if (evaluatorId == creatorEmployeeId) continue;
+
                 var evaluatorUser = await _userRepository.GetByEmployeeIdAsync(evaluatorId);
                 if (evaluatorUser != null)
                 {
+                    string evaluatorMessage = $"Action Required: Please provide {form.FormName} feedback for {subject.FullName}.";
+                    
                     await _notificationService.CreateNotificationAsync(
                         evaluatorUser.UserId,
-                        $"Requested to provide feedback for {created.Employee?.FullName ?? "an employee"}",
-                        "360Feedback",
+                        evaluatorMessage,
+                        form.FormType == AppraisalFormType.Feedback360 ? "360Feedback" : "PerformanceEvaluation",
                         created.EvalId);
                 }
             }
@@ -267,7 +372,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         {
             await _notificationService.CreateNotificationAsync(
                 employeeUser.UserId,
-                "Your Performance Appraisal has been finalized",
+                "Your Performance Evaluation has been checked and finalized by the creator.",
                 "PerformanceEvaluation",
                 updated.EvalId);
         }
@@ -319,21 +424,19 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
 
         await _auditLogService.LogAsync("PerformanceEvaluation", "SubmitSelf", evalId, "Employee submitted self-assessment", currentEmployeeId);
 
-        // Notify Manager
-        if (evaluation.EmployeeId.HasValue)
+        // Notify Creator
+        if (evaluation.CreatedByEmployeeId.HasValue)
         {
-            var employee = await _employeeRepository.GetByIdAsync(evaluation.EmployeeId.Value);
-            if (employee?.ReportsTo != null)
+            var creatorUser = await _userRepository.GetByEmployeeIdAsync(evaluation.CreatedByEmployeeId.Value);
+            var employee = await _employeeRepository.GetByIdAsync(evaluation.EmployeeId ?? 0);
+            
+            if (creatorUser != null && employee != null)
             {
-                var managerUser = await _userRepository.GetByEmployeeIdAsync(employee.ReportsTo.Value);
-                if (managerUser != null)
-                {
-                    await _notificationService.CreateNotificationAsync(
-                        managerUser.UserId,
-                        $"{employee.FullName} has submitted their self-assessment. You can now start the appraisal.",
-                        "PerformanceEvaluation",
-                        evalId);
-                }
+                await _notificationService.CreateNotificationAsync(
+                    creatorUser.UserId,
+                    $"{employee.FullName} has submitted their self-assessment. Please check, lock and finalize the form.",
+                    "PerformanceEvaluation",
+                    evalId);
             }
         }
 
@@ -392,6 +495,30 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                     evalId);
             }
         }
+
+        return true;
+    }
+
+    public async Task<bool> FinalizeAsync(int evalId, int? currentEmployeeId = null)
+    {
+        var evaluation = await _repository.GetByIdAsync(evalId);
+        if (evaluation == null) return false;
+
+        // Only the creator can finalize
+        if (currentEmployeeId.HasValue && evaluation.CreatedByEmployeeId != currentEmployeeId)
+        {
+            throw new UnauthorizedAccessException("Only the form creator can finalize this evaluation.");
+        }
+
+        evaluation.Status = PerformanceEvaluationStatus.Finalized;
+        evaluation.IsFinalized = true;
+        evaluation.FinalizedAt = DateTime.Now;
+
+        await _repository.UpdateAsync(evaluation);
+
+        await _auditLogService.LogAsync("PerformanceEvaluation", "Finalize", evalId, "Form creator finalized and locked the form", currentEmployeeId);
+
+        await HandleFinalizationAsync(evaluation);
 
         return true;
     }
@@ -478,6 +605,38 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             MaxPoints = questionsCount * 5,
             Responses = _mapper.Map<List<AppraisalResponseDto>>(responsesList)
         };
+    }
+
+    public async Task<IEnumerable<CalibrationTrendDto>> GetCalibrationTrendAsync()
+    {
+        var evals = await _repository.GetAllAsync();
+        var finalizedEvals = evals.Where(e => e.IsFinalized == true && !string.IsNullOrEmpty(e.CalibrationComments)).ToList();
+        
+        var employees = await _employeeRepository.GetAllAsync();
+        var employeeList = employees.ToList();
+
+        var trends = finalizedEvals
+            .GroupBy(e => e.Employee?.ReportsTo)
+            .Where(g => g.Key.HasValue)
+            .Select(g => 
+            {
+                var manager = employeeList.FirstOrDefault(e => e.EmployeeId == g.Key.Value);
+                var total = g.Count();
+                var adjusted = g.Count(e => !string.IsNullOrEmpty(e.CalibrationComments));
+                
+                return new CalibrationTrendDto
+                {
+                    ManagerId = g.Key.Value,
+                    ManagerName = manager?.FullName ?? "Unknown",
+                    TotalEvaluations = total,
+                    AdjustedCount = adjusted,
+                    AverageAdjustment = total > 0 ? (decimal)adjusted / total * 100 : 0,
+                    TrendStatus = (adjusted > total * 0.5) ? "High-Bias" : "Consistent"
+                };
+            })
+            .OrderByDescending(t => t.AverageAdjustment);
+
+        return trends;
     }
 
     private int ParseLevel(string? levelId)

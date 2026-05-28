@@ -16,6 +16,8 @@ public partial class PerformanceEvaluation
     public string? ManagerComments { get; set; }
     public string? CalibrationComments { get; set; }
 
+    public int? CreatedByEmployeeId { get; set; }
+
     public decimal? FinalRatingScore { get; set; }
     public bool? IsFinalized { get; set; }
     public DateTime? FinalizedAt { get; set; }
@@ -27,4 +29,5 @@ public partial class PerformanceEvaluation
     public virtual ICollection<AppraisalResponse> AppraisalResponses { get; set; } = new List<AppraisalResponse>();
     public virtual AppraisalCycle? Cycle { get; set; }
     public virtual Employee? Employee { get; set; }
+    public virtual Employee? CreatedByEmployee { get; set; }
 }

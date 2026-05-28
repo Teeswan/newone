@@ -11,7 +11,9 @@ namespace EPMS.Blazor.Services
         Task<PerformanceEvaluationDto> UpdatePerformanceEvaluationAsync(int id, UpdatePerformanceEvaluationRequest request);
         Task<bool> SubmitSelfAssessmentAsync(int id);
         Task<bool> SubmitManagerReviewAsync(int id);
+        Task<bool> FinalizePerformanceEvaluationAsync(int id);
         Task<bool> ReopenPerformanceEvaluationAsync(int id);
         Task<bool> DeletePerformanceEvaluationAsync(int id);
+        Task<IEnumerable<CalibrationTrendDto>> GetCalibrationTrendAsync();
     }
 }
