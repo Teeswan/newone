@@ -18,6 +18,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
+builder.Services.AddScoped<ICurrentEmployeeStateService, CurrentEmployeeStateService>();
 
 // Register the Authentication Handler
 builder.Services.AddScoped<AuthenticationHeaderHandler>();

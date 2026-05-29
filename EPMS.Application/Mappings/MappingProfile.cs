@@ -105,10 +105,13 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.TeamsNavigation != null && src.TeamsNavigation.Any() ? src.TeamsNavigation.First().TeamName : null));
         
         CreateMap<Employee, EmployeeDetailDto>()
-            .IncludeBase<Employee, EmployeeDto>();
+            .IncludeBase<Employee, EmployeeDto>()
+            .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture));
         
-        CreateMap<CreateEmployeeRequest, Employee>();
-        CreateMap<UpdateEmployeeRequest, Employee>();
+        CreateMap<CreateEmployeeRequest, Employee>()
+            .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture));
+        CreateMap<UpdateEmployeeRequest, Employee>()
+            .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture));
 
         CreateMap<Level, LevelDto>();
         CreateMap<CreateLevelRequest, Level>();

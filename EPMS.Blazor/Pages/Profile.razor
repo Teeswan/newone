@@ -1,0 +1,247 @@
+@page "/profile"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@using EPMS.Blazor.Services
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject IEmployeeBlazorService EmployeeService
+@inject ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject ICurrentEmployeeStateService CurrentEmployeeState
+
+<PageTitle>My Profile</PageTitle>
+
+<MudCard Class="max-w-2xl mx-auto mt-8">
+    <MudCardContent>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">My Profile</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        @if (isLoading)
+        {
+            <div class="flex justify-center py-8">
+                <MudProgressCircular Indeterminate="true" />
+            </div>
+        }
+        else if (CurrentEmployeeState.CurrentEmployee == null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">Failed to load profile. Please try again later.</MudAlert>
+        }
+        else
+        {
+            var emp = CurrentEmployeeState.CurrentEmployee;
+            <div class="flex flex-col items-center mb-6">
+                <div @onclick="OpenUploadDialog" class="cursor-pointer">
+                    <MudAvatar Color="Color.Primary" Size="Size.Large" Class="overflow-hidden">
+                        @if (emp.ProfilePicture != null && emp.ProfilePicture.Length > 0)
+                        {
+                            <img src="data:image/jpeg;base64,@Convert.ToBase64String(emp.ProfilePicture)"
+                                 alt="Profile"
+                                 style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block;" />
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.h3" Style="color: var(--mud-palette-primary-text);">
+                                @GetFirstLetter(emp.FullName)
+                            </MudText>
+                        }
+                    </MudAvatar>
+                </div>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="OpenUploadDialog" Class="mt-2">
+                    <MudIcon Icon="@Icons.Material.Filled.CameraAlt" Class="mr-2" />
+                    Change Profile Picture
+                </MudButton>
+                <MudText Typo="Typo.h6" Class="fw-bold mt-4">@emp.FullName</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@emp.Email</MudText>
+            </div>
+
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Employee Code" Value="@emp.EmployeeCode" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="NRC Number" Value="@emp.NrcNumber" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Position" Value="@emp.PositionTitle" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Department" Value="@emp.DepartmentName" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Team" Value="@emp.TeamName" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Join Date" Date="@emp.JoinDate" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Full Name" Value="@emp.FullName" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Email" Value="@emp.Email" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" InputType="InputType.Email" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Phone" Value="@emp.Phone" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Employment Status" Value="@emp.EmploymentStatus" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Date of Birth" Date="@emp.DateOfBirth" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Gender" Value="@emp.Gender" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Emergency Contact" Value="@emp.EmergencyContact" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Emergency Phone" Value="@emp.EmergencyPhone" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Bank Name" Value="@emp.BankName" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Bank Account" Value="@emp.BankAccountNumber" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Address" Value="@emp.Address" ReadOnly="true" Variant="Variant.Outlined" FullWidth="true" Lines="3" />
+                </MudItem>
+            </MudGrid>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private bool isLoading = true;
+    private int currentEmployeeId;
+
+    private string GetFirstLetter(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            return "?";
+        }
+        return fullName.TrimStart().Substring(0, 1).ToUpper();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var loginResponse = await LocalStorage.GetItemAsync<LoginResponseDto>("loginResponse");
+            if (loginResponse != null)
+            {
+                currentEmployeeId = loginResponse.EmployeeId;
+                
+                // If we don't have employee in shared state OR the employee's ID doesn't match, load fresh!
+                if (CurrentEmployeeState.CurrentEmployee == null || CurrentEmployeeState.CurrentEmployee.EmployeeId != currentEmployeeId)
+                {
+                    var emp = await EmployeeService.GetEmployeeDetailsAsync(currentEmployeeId);
+                    if (emp != null)
+                    {
+                        CurrentEmployeeState.SetCurrentEmployee(emp);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading profile: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OpenUploadDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+        
+        var dialog = await DialogService.ShowAsync<UploadProfilePictureDialog>("Upload Profile Picture", parameters, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled && result.Data is byte[] newImageBytes)
+        {
+            await SaveProfilePicture(newImageBytes);
+        }
+    }
+
+    private async Task SaveProfilePicture(byte[] profilePictureBytes)
+    {
+        var emp = CurrentEmployeeState.CurrentEmployee;
+        if (emp == null) return;
+
+        // INSTANT UPDATE: Update shared state right away for both Profile & MainLayout!
+        CurrentEmployeeState.UpdateProfilePicture(profilePictureBytes);
+
+        try
+        {
+            var updateRequest = new UpdateEmployeeRequest
+            {
+                EmployeeCode = emp.EmployeeCode,
+                FullName = emp.FullName,
+                Email = emp.Email,
+                DepartmentId = emp.DepartmentId,
+                PositionId = emp.PositionId,
+                TeamId = emp.TeamId,
+                ReportsTo = emp.ReportsTo,
+                JoinDate = emp.JoinDate,
+                Phone = emp.Phone,
+                Address = emp.Address,
+                EmploymentStatus = emp.EmploymentStatus,
+                NrcNumber = emp.NrcNumber,
+                Gender = emp.Gender,
+                EmergencyContact = emp.EmergencyContact,
+                EmergencyPhone = emp.EmergencyPhone,
+                BankName = emp.BankName,
+                BankAccountNumber = emp.BankAccountNumber,
+                DateOfBirth = emp.DateOfBirth,
+                CurrentSalary = emp.CurrentSalary,
+                IsActive = emp.IsActive,
+                ProfilePicture = profilePictureBytes
+            };
+
+            var success = await EmployeeService.UpdateEmployeeAsync(currentEmployeeId, updateRequest);
+            if (success)
+            {
+                // SUCCESS: Don't call GetEmployeeDetailsAsync again! Just show snackbar!
+                Snackbar.Add("Profile picture updated successfully!", Severity.Success);
+            }
+            else
+            {
+                // FAIL: Revert to original from server
+                var originalEmployee = await EmployeeService.GetEmployeeDetailsAsync(currentEmployeeId);
+                if (originalEmployee != null)
+                {
+                    CurrentEmployeeState.SetCurrentEmployee(originalEmployee);
+                }
+                Snackbar.Add("Failed to update profile picture", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // ERROR: Revert to original from server
+            var originalEmployee = await EmployeeService.GetEmployeeDetailsAsync(currentEmployeeId);
+            if (originalEmployee != null)
+            {
+                CurrentEmployeeState.SetCurrentEmployee(originalEmployee);
+            }
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}
