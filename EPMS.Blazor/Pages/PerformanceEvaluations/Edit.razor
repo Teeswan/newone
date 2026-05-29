@@ -24,7 +24,12 @@
         }
         else
         {
-            <MudForm Model="@updateRequest" @ref="@form" ValidationDelay="0">
+            @if (isReadOnlyForUser)
+            {
+                <MudAlert Severity="Severity.Info" Class="mb-6">This evaluation is currently in the <b>@updateRequest.Status</b> phase and is read-only for your role.</MudAlert>
+            }
+
+            <MudForm Model="@updateRequest" @ref="@form" ValidationDelay="0" ReadOnly="@isReadOnlyForUser">
                 <MudGrid>
                     <!-- Header Info Section (Matches RDLC Layout) -->
                     <MudItem xs="12">
@@ -121,78 +126,118 @@
                                                 <MudTd>@resp.QuestionCategory</MudTd>
                                                 <MudTd>@resp.QuestionText</MudTd>
                                                 <MudTd>
-                                                    <MudRating SelectedValue="@(resp.RatingValue ?? 0)" SelectedValueChanged="@(v => resp.RatingValue = v)" MaxValue="5" />
+                                                    <MudRating SelectedValue="@(resp.RatingValue ?? 0)" SelectedValueChanged="@(v => resp.RatingValue = v)" MaxValue="5" ReadOnly="@isReadOnlyForUser" />
                                                     <MudText Typo="Typo.caption" Class="ml-2">@(resp.RatingValue > 0 ? resp.RatingValue.ToString() : "None")</MudText>
                                                 </MudTd>
                                                 <MudTd>
-                                                    <MudTextField @bind-Value="resp.AnswerText" Placeholder="Comments..." Variant="Variant.Text" />
+                                                    <MudTextField @bind-Value="resp.AnswerText" Placeholder="Comments..." Variant="Variant.Text" ReadOnly="@isReadOnlyForUser" />
                                                 </MudTd>
                                             </RowTemplate>
                                         </MudTable>
-                                        <div class="d-flex justify-end mt-2">
-                                            <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveEvaluator(evaluator.Id, evaluator.Role))">Remove Evaluator</MudButton>
-                                        </div>
+                                        @if (!isReadOnlyForUser)
+                                        {
+                                            <div class="d-flex justify-end mt-2">
+                                                <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveEvaluator(evaluator.Id, evaluator.Role))">Remove Evaluator</MudButton>
+                                            </div>
+                                        }
                                     </MudTabPage>
                                 }
                             </MudTabs>
                         }
-                        else
-                        {
-                            <MudAlert Severity="Severity.Info">No feedback responses recorded for this evaluation.</MudAlert>
-                        }
 
-                        <div class="mt-4 d-flex align-center gap-4">
-                            <MudSelect T="int?" Label="Select Evaluator" @bind-Value="newEvaluatorId" Variant="Variant.Outlined" Dense="true" Style="max-width: 300px">
-                                @if (employees != null)
-                                {
-                                    @foreach (var emp in employees)
+                        @if (!isReadOnlyForUser)
+                        {
+                            <div class="mt-4 d-flex align-center gap-4">
+                                <MudSelect T="int?" Label="Select Evaluator" @bind-Value="newEvaluatorId" Variant="Variant.Outlined" Dense="true" Style="max-width: 300px">
+                                    @if (employees != null)
                                     {
-                                        <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName</MudSelectItem>
+                                        @foreach (var emp in employees)
+                                        {
+                                            <MudSelectItem T="int?" Value="@emp.EmployeeId">@emp.FullName</MudSelectItem>
+                                        }
                                     }
-                                }
-                            </MudSelect>
-                            <MudSelect T="string" Label="Role" @bind-Value="newEvaluatorRole" Variant="Variant.Outlined" Dense="true" Style="max-width: 150px">
-                                <MudSelectItem Value="@("Self")">Self</MudSelectItem>
-                                <MudSelectItem Value="@("Manager")">Manager</MudSelectItem>
-                                <MudSelectItem Value="@("Peer")">Peer</MudSelectItem>
-                                <MudSelectItem Value="@("Subordinate")">Subordinate</MudSelectItem>
-                                <MudSelectItem Value="@("External")">External</MudSelectItem>
-                            </MudSelect>
-                            <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddNewEvaluator">Add Evaluator</MudButton>
-                        </div>
+                                </MudSelect>
+                                <MudSelect T="string" Label="Role" @bind-Value="newEvaluatorRole" Variant="Variant.Outlined" Dense="true" Style="max-width: 150px">
+                                    <MudSelectItem Value="@("Self")">Self</MudSelectItem>
+                                    <MudSelectItem Value="@("Manager")">Manager</MudSelectItem>
+                                    <MudSelectItem Value="@("Peer")">Peer</MudSelectItem>
+                                    <MudSelectItem Value="@("Subordinate")">Subordinate</MudSelectItem>
+                                    <MudSelectItem Value="@("External")">External</MudSelectItem>
+                                </MudSelect>
+                                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddNewEvaluator">Add Evaluator</MudButton>
+                            </div>
+                        }
                     </MudItem>
 
                     <MudItem xs="12">
                         <MudExpansionPanels>
-                            <MudExpansionPanel Text="Final Summary & Comments">
+                            <MudExpansionPanel Text="Final Summary & Comments" IsExpanded="true">
                                 <MudGrid>
+                                    @* Always show scores for transparency, but keep them Read-Only *@
                                     <MudItem xs="12" sm="3">
-                                        <MudNumericField @bind-Value="updateRequest.SelfRating" Label="Total Self Rating" ReadOnly="true" Variant="Variant.Outlined" HelperText="Auto-calculated from ratings" />
+                                        <MudNumericField @bind-Value="updateRequest.SelfRating" Label="Total Self Rating" ReadOnly="true" Variant="Variant.Outlined" />
                                     </MudItem>
-                                    <MudItem xs="12" sm="3">
-                                        <MudNumericField @bind-Value="updateRequest.ManagerRating" Label="Total Manager Rating" ReadOnly="true" Variant="Variant.Outlined" HelperText="Auto-calculated from ratings" />
+
+                                    @* Only show Manager Rating to the Creator or if already submitted *@
+                                    @if (currentEmployeeId != updateRequest.EmployeeId || updateRequest.Status != PerformanceEvaluationStatus.Draft)
+                                    {
+                                        <MudItem xs="12" sm="3">
+                                            <MudNumericField @bind-Value="updateRequest.ManagerRating" Label="Total Manager Rating" ReadOnly="true" Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudNumericField @bind-Value="updateRequest.FinalRatingScore" Label="Final Score (%)" ReadOnly="true" Variant="Variant.Outlined" />
+                                        </MudItem>
+                                    }
+
+                                    @* Employee Remarks: Editable only by the subject during Draft *@
+                                    <MudItem xs="12" sm="12">
+                                        <MudTextField @bind-Value="updateRequest.SelfComments" 
+                                                      Label="Employee Overall Remarks" 
+                                                      Lines="3" 
+                                                      Variant="Variant.Outlined" 
+                                                      ReadOnly="@(currentEmployeeId != updateRequest.EmployeeId || updateRequest.Status != PerformanceEvaluationStatus.Draft)" />
                                     </MudItem>
-                                    <MudItem xs="12" sm="3">
-                                        <MudNumericField @bind-Value="updateRequest.FinalRatingScore" Label="Final Score (%)" ReadOnly="true" Variant="Variant.Outlined" HelperText="Auto-calculated (Manager total / Max)" />
-                                    </MudItem>
-                                    <MudItem xs="12" sm="3">
-                                        <MudCheckBox @bind-Value="isFinalizedValue" Label="Finalize & Lock?" Color="Color.Primary" />
-                                    </MudItem>
-                                    <MudItem xs="12" sm="6">
-                                        <MudTextField @bind-Value="updateRequest.SelfComments" Label="Employee Overall Remarks" Lines="3" Variant="Variant.Outlined" />
-                                    </MudItem>
-                                    <MudItem xs="12" sm="6">
-                                        <MudTextField @bind-Value="updateRequest.ManagerComments" Label="Appraiser Overall Remarks" Lines="3" Variant="Variant.Outlined" />
-                                    </MudItem>
+
+                                    @* Appraiser Remarks & Finalize: Visible only to the Form Creator *@
+                                    @if (currentEmployeeId == updateRequest.CreatedByEmployeeId)
+                                    {
+                                        <MudItem xs="12" sm="12">
+                                            <MudTextField @bind-Value="updateRequest.ManagerComments" Label="Appraiser Overall Remarks" Lines="3" Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudCheckBox @bind-Value="isFinalizedValue" Label="Finalize & Lock this Evaluation?" Color="Color.Primary" />
+                                        </MudItem>
+                                    }
+                                    
+                                    @if (updateRequest.Status == PerformanceEvaluationStatus.AwaitingCalibration || updateRequest.Status == PerformanceEvaluationStatus.Finalized || currentUserLevel <= 4)
+                                    {
+                                        <MudItem xs="12">
+                                            <MudTextField @bind-Value="updateRequest.CalibrationComments" 
+                                                          Label="Senior Management Calibration Comments" 
+                                                          Lines="3" 
+                                                          Variant="Variant.Outlined" 
+                                                          ReadOnly="@(currentUserLevel > 4)" 
+                                                          HelperText="Document rationale for score adjustments or normalization." />
+                                        </MudItem>
+                                    }
                                 </MudGrid>
                             </MudExpansionPanel>
                         </MudExpansionPanels>
                     </MudItem>
 
-                    <MudItem xs="12" Class="d-flex justify-end mt-4">
-                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Save Changes</MudButton>
-                    </MudItem>
+                    @if (!isReadOnlyForUser)
+                    {
+                        <MudItem xs="12" Class="d-flex justify-end mt-4">
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Save Changes</MudButton>
+                        </MudItem>
+                    }
+                    else
+                    {
+                        <MudItem xs="12" Class="d-flex justify-end mt-4">
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Back to List</MudButton>
+                        </MudItem>
+                    }
                 </MudGrid>
             </MudForm>
         }
@@ -205,7 +250,7 @@
 
     private MudForm? form;
     private UpdatePerformanceEvaluationRequest? updateRequest;
-    private bool isFinalizedValue { get; set; }
+    private bool isFinalizedValue { get; set; } = false;
     private List<AppraisalResponseDto>? evalResponses;
 
     private List<EmployeeDto>? employees;
@@ -219,11 +264,28 @@
     private int? newEvaluatorId;
     private string newEvaluatorRole = "Peer";
 
+    private int currentUserLevel = 99;
+    private int currentEmployeeId = 0;
+    private bool isReadOnlyForUser = false;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Get current user info
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var empIdClaim = user.FindFirst("EmployeeId")?.Value;
+            
             employees = await EmployeeService.GetEmployeesAsync();
+            
+            if (int.TryParse(empIdClaim, out int empId))
+            {
+                currentEmployeeId = empId;
+                var currentEmp = employees.FirstOrDefault(e => e.EmployeeId == empId);
+                currentUserLevel = ParseLevel(currentEmp?.LevelId);
+            }
+
             var cyclesEnumerable = await CycleService.GetAllAppraisalCyclesAsync();
             cycles = cyclesEnumerable.ToList();
             var formsEnumerable = await FormService.GetAllAppraisalFormsAsync();
@@ -242,6 +304,8 @@
                     ManagerRating = eval.ManagerRating,
                     SelfComments = eval.SelfComments,
                     ManagerComments = eval.ManagerComments,
+                    CalibrationComments = eval.CalibrationComments,
+                    CreatedByEmployeeId = eval.CreatedByEmployeeId,
                     FinalRatingScore = eval.FinalRatingScore,
                     IsFinalized = eval.IsFinalized,
                     FinalizedAt = eval.FinalizedAt
@@ -254,6 +318,23 @@
                 var cycle = cycles?.FirstOrDefault(c => c.CycleId == eval.CycleId);
                 effectiveDateDisplay = cycle?.EndDate.ToString("yyyy-MM-dd") ?? "N/A";
                 
+                // Determine Read-Only state
+                // 1. Finalized is read-only for everyone except maybe Re-open logic (handled in Details)
+                if (eval.Status == PerformanceEvaluationStatus.Finalized)
+                {
+                    isReadOnlyForUser = true;
+                }
+                // 2. Awaiting Calibration is read-only for Managers (L05-L19) but editable for Senior Managers (L02-L04)
+                else if (eval.Status == PerformanceEvaluationStatus.AwaitingCalibration && currentUserLevel > 4)
+                {
+                    isReadOnlyForUser = true;
+                }
+                // 3. Self-Submitted is read-only for the Subject
+                else if (eval.Status == PerformanceEvaluationStatus.SelfSubmitted && eval.EmployeeId == currentEmployeeId)
+                {
+                    isReadOnlyForUser = true;
+                }
+
                 // Load form questions for reference
                 var questions = await FormQuestionService.GetByFormIdAsync(eval.FormId);
                 formQuestions = questions.OrderBy(q => q.Category).ThenBy(q => q.SortOrder).ToList();
@@ -385,6 +466,7 @@
                 if (isFinalizedValue && updateRequest.FinalizedAt == null)
                 {
                     updateRequest.FinalizedAt = DateTime.Now;
+                    updateRequest.Status = PerformanceEvaluationStatus.Finalized;
                 }
 
                 // Map updated ratings back to the request

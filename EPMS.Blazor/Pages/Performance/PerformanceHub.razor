@@ -18,6 +18,28 @@
 <PageTitle>Performance Management Hub</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    @* Action Needed Section *@
+    @if (GetActionItems().Any())
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-6 rounded-lg shadow-md" Icon="@Icons.Material.Filled.NotificationImportant">
+            <MudText Typo="Typo.h6"><b>Action Required:</b> You have @GetActionItems().Count() pending performance tasks.</MudText>
+            <MudList T="PerformanceEvaluationDto" Class="mt-2" Dense="true">
+                @foreach (var item in GetActionItems().Take(3))
+                {
+                    <MudListItem Icon="@Icons.Material.Filled.ArrowForward" OnClick="@(() => ViewEvaluation(item.EvalId))">
+                        @GetActionMessage(item)
+                    </MudListItem>
+                }
+            </MudList>
+        </MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Class="mb-6 rounded-lg border-2" Icon="@Icons.Material.Filled.CheckCircle">
+            <MudText Typo="Typo.h6"><b>All caught up!</b> You have no pending performance tasks at this time.</MudText>
+        </MudAlert>
+    }
+
     <MudTabs Elevation="4" Rounded="true" Color="Color.Primary" ApplyEffectsToContainer="true" PanelClass="pa-6">
         @* Evaluations Tab *@
         <MudTabPanel Text="Evaluations" Icon="@Icons.Material.Filled.Assessment">
@@ -29,7 +51,7 @@
                     }
                     else
                     {
-                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Managers (Level 02-19) can initiate Performance Appraisals.</MudAlert>
+                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Managers (Level 02-06) can initiate Performance Appraisals.</MudAlert>
                         @RenderEvaluationsTable(AppraisalFormType.PerformanceAppraisal, true)
                     }
                 </MudTabPanel>
@@ -40,12 +62,31 @@
                     }
                     else
                     {
-                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Employees (Level 02-34) can initiate Self-Assessments.</MudAlert>
+                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Employees (Level 02-09) can initiate Self-Assessments.</MudAlert>
                         @RenderEvaluationsTable(AppraisalFormType.SelfAssessment, true)
                     }
                 </MudTabPanel>
                 <MudTabPanel Text="360 Feedback" Icon="@Icons.Material.Filled.Groups">
-                    @RenderEvaluationsTable(AppraisalFormType.Feedback360)
+                    @if (CanCreateEvaluation(AppraisalFormType.Feedback360))
+                    {
+                        @RenderEvaluationsTable(AppraisalFormType.Feedback360)
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-4">Eligible Positions for 360 Feedback are Level 02-08.</MudAlert>
+                        @RenderEvaluationsTable(AppraisalFormType.Feedback360, true)
+                    }
+                </MudTabPanel>
+                <MudTabPanel Text="Calibration & Review" Icon="@Icons.Material.Filled.FactCheck">
+                    @if (CanCreateEvaluation(AppraisalFormType.CalibrationReview))
+                    {
+                        @RenderEvaluationsTable(AppraisalFormType.CalibrationReview)
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Senior Management (Level 01-04) can access Calibration & Review.</MudAlert>
+                        @RenderEvaluationsTable(AppraisalFormType.CalibrationReview, true)
+                    }
                 </MudTabPanel>
             </MudTabs>
         </MudTabPanel>
@@ -83,6 +124,12 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteOutcome(context.OutcomeId))" />
                     </MudTd>
                 </RowTemplate>
+                <NoRecordsContent>
+                    <div class="pa-8 d-flex flex-column align-center justify-center">
+                        <MudIcon Icon="@Icons.Material.Filled.AssignmentTurnedIn" Size="Size.Large" Color="Color.Default" Class="mb-2" />
+                        <MudText Typo="Typo.body1" Color="Color.Secondary">No performance outcomes recorded yet.</MudText>
+                    </div>
+                </NoRecordsContent>
                 <PagerContent>
                     <MudTablePager />
                 </PagerContent>
@@ -114,31 +161,38 @@
                 <MudTh Style="text-align: right;">Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
-                <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
-                <MudTd DataLabel="Score">@(context.FinalRatingScore?.ToString("N2") ?? "N/A")%</MudTd>
-                <MudTd DataLabel="Status">
-                    <MudChip T="string" Color="GetEvalStatusColor(context.Status)" Variant="Variant.Filled" Size="Size.Small">
-                        @context.Status
-                    </MudChip>
-                </MudTd>
-                <MudTd DataLabel="Actions" Style="text-align: right;">
-                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEvaluation(context.EvalId))" Title="View Details" />
-                    @if (CanEditEvaluation(context))
-                    {
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEvaluationEditDialog(context))" Title="Edit" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEvaluation(context.EvalId))" Title="Delete" />
-                    }
-                </MudTd>
-            </RowTemplate>
-            <PagerContent>
-                <MudTablePager />
-            </PagerContent>
+                    <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+                    <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
+                    <MudTd DataLabel="Score">@(context.FinalRatingScore?.ToString("N2") ?? "N/A")%</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="GetEvalStatusColor(context.Status)" Variant="Variant.Filled" Size="Size.Small">
+                            @context.Status
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEvaluation(context.EvalId))" Title="View Details" />
+                        @if (CanEditEvaluation(context))
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEvaluationEditDialog(context))" Title="Edit" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEvaluation(context.EvalId))" Title="Delete" />
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <div class="pa-8 d-flex flex-column align-center justify-center">
+                        <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" Class="mb-2" />
+                        <MudText Typo="Typo.body1" Color="Color.Secondary">No evaluations found in this category.</MudText>
+                    </div>
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
         </MudTable>
     };
 
     private List<PerformanceEvaluationDto> _evaluations = new();
     private List<PerformanceOutcomeDto> _outcomes = new();
+    private List<EmployeeDto> _employees = new();
     private EmployeeDto? currentUserEmployee;
 
     private string _evalSearch = "";
@@ -157,10 +211,10 @@
             var user = authState.User;
             var empIdClaim = user.FindFirst("EmployeeId")?.Value;
 
-            var employees = await EmployeeService.GetEmployeesAsync();
+            _employees = (await EmployeeService.GetEmployeesAsync()).ToList();
             if (int.TryParse(empIdClaim, out int empId))
             {
-                currentUserEmployee = employees.FirstOrDefault(e => e.EmployeeId == empId);
+                currentUserEmployee = _employees.FirstOrDefault(e => e.EmployeeId == empId);
             }
 
             var evalTask = EvaluationService.GetAllPerformanceEvaluationsAsync();
@@ -187,23 +241,27 @@
         var baseList = _evaluations.Where(e => e.FormType == type);
 
         // Logic based on requirements:
-        // 1. Everyone sees their own evaluations (where they are the subject)
-        // 2. Managers (L02-L19) see evaluations they are part of (evaluators) or evaluations for their direct reports
-        // 3. Senior Management (L02-L04) see evaluations for executive review
+        // Self-Assessment: L02 – L09
+        // Performance Appraisal: L02 – L06
+        // 360-Feedback: L02 – L08
+        // Calibration/Review: L01 – L04
 
         return baseList.Where(e => 
             e.EmployeeId == currentUserEmployee.EmployeeId || // I am the subject
             e.Responses.Any(r => r.RespondentId == currentUserEmployee.EmployeeId) || // I am an evaluator
-            (userLevel <= 19 && IsDirectReport(e.EmployeeId)) || // I am the manager of the subject
-            (userLevel <= 4) // Senior management sees all (for review)
+            (type == AppraisalFormType.PerformanceAppraisal && userLevel <= 6 && IsDirectReport(e.EmployeeId)) || // Manager review (L02-L06)
+            (type == AppraisalFormType.CalibrationReview && userLevel <= 4) || // Senior management calibration (L01-L04)
+            (userLevel <= 4) // Senior management sees all
         );
     }
 
     private bool IsDirectReport(int? employeeId)
     {
         if (!employeeId.HasValue || currentUserEmployee == null) return false;
-        // This is a simple check, might need more robust hierarchy check if needed
-        return _evaluations.Any(e => e.EmployeeId == employeeId && e.ManagerName == currentUserEmployee.FullName);
+        
+        // Find the employee being evaluated and check their ReportsTo property using the employee list
+        var subject = _employees.FirstOrDefault(e => e.EmployeeId == employeeId);
+        return subject?.ReportsTo == currentUserEmployee.EmployeeId;
     }
 
     private bool CanCreateEvaluation(AppraisalFormType type)
@@ -213,16 +271,17 @@
 
         return type switch
         {
-            AppraisalFormType.SelfAssessment => (level >= 2 && level <= 34),
-            AppraisalFormType.PerformanceAppraisal => (level >= 2 && level <= 19),
-            AppraisalFormType.Feedback360 => true, // Multi-directional
+            AppraisalFormType.SelfAssessment => (level >= 2 && level <= 9),
+            AppraisalFormType.PerformanceAppraisal => (level >= 2 && level <= 6),
+            AppraisalFormType.Feedback360 => (level >= 2 && level <= 8),
+            AppraisalFormType.CalibrationReview => (level >= 1 && level <= 4),
             _ => false
         };
     }
 
     private bool CanEditEvaluation(PerformanceEvaluationDto eval)
     {
-        if (currentUserEmployee == null || eval.IsFinalized == true) return false;
+        if (currentUserEmployee == null || eval.Status == PerformanceEvaluationStatus.Finalized) return false;
         
         var level = ParseLevel(currentUserEmployee.LevelId);
 
@@ -230,8 +289,11 @@
         if (eval.EmployeeId == currentUserEmployee.EmployeeId && eval.Status == PerformanceEvaluationStatus.Draft) 
             return true;
 
-        // Managers can edit if they are an evaluator or the subject's manager
-        if (level <= 19) return true;
+        // Managers (L02-L06) can edit if they are an evaluator or the subject's manager
+        if (level <= 6) return true;
+
+        // Senior Management (L01-L04) can edit for calibration
+        if (level <= 4 && eval.Status == PerformanceEvaluationStatus.AwaitingCalibration) return true;
 
         return false;
     }
@@ -255,11 +317,44 @@
         outcome.RecommendationType?.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) == true ||
         outcome.ApprovalStatus?.Contains(_outcomeSearch, StringComparison.OrdinalIgnoreCase) == true;
 
+    private IEnumerable<PerformanceEvaluationDto> GetActionItems()
+    {
+        if (currentUserEmployee == null) return Enumerable.Empty<PerformanceEvaluationDto>();
+
+        var userLevel = ParseLevel(currentUserEmployee.LevelId);
+
+        return _evaluations.Where(e => 
+            (e.EmployeeId == currentUserEmployee.EmployeeId && e.Status == PerformanceEvaluationStatus.Draft) || // My self-assessment to do
+            (e.CreatedByEmployeeId == currentUserEmployee.EmployeeId && e.Status == PerformanceEvaluationStatus.SelfSubmitted) || // I created this, employee submitted, I need to check/lock
+            (IsDirectReport(e.EmployeeId) && e.Status == PerformanceEvaluationStatus.SelfSubmitted && userLevel <= 6) || // Manager review (L02-L06)
+            (userLevel <= 4 && e.Status == PerformanceEvaluationStatus.AwaitingCalibration) || // Senior Management needs to calibrate (L01-L04)
+            (e.Responses.Any(r => r.RespondentId == currentUserEmployee.EmployeeId && r.RatingValue == null)) // I am an evaluator but haven't rated yet
+        );
+    }
+
+    private string GetActionMessage(PerformanceEvaluationDto item)
+    {
+        if (item.EmployeeId == currentUserEmployee?.EmployeeId && item.Status == PerformanceEvaluationStatus.Draft)
+            return $"Complete your Self-Assessment for {item.CycleName}";
+        
+        if (item.CreatedByEmployeeId == currentUserEmployee?.EmployeeId && item.Status == PerformanceEvaluationStatus.SelfSubmitted)
+            return $"Check and Finalize {item.EmployeeName}'s Evaluation";
+
+        if (IsDirectReport(item.EmployeeId) && item.Status == PerformanceEvaluationStatus.SelfSubmitted)
+            return $"Review and Appraise {item.EmployeeName}'s Performance";
+
+        if (item.Status == PerformanceEvaluationStatus.AwaitingCalibration)
+            return $"Calibrate Performance Score for {item.EmployeeName}";
+
+        return $"Provide feedback for {item.EmployeeName} ({item.FormName})";
+    }
+
     private Color GetEvalStatusColor(PerformanceEvaluationStatus status) => status switch
     {
         PerformanceEvaluationStatus.Draft => Color.Default,
         PerformanceEvaluationStatus.SelfSubmitted => Color.Info,
         PerformanceEvaluationStatus.ManagerReviewed => Color.Primary,
+        PerformanceEvaluationStatus.AwaitingCalibration => Color.Warning,
         PerformanceEvaluationStatus.Finalized => Color.Success,
         _ => Color.Default
     };
@@ -267,6 +362,7 @@
     private Color GetOutcomeStatusColor(string? status) => status?.ToLower() switch
     {
         "pending" => Color.Warning,
+        "requires hr review" => Color.Error,
         "approved" => Color.Success,
         "rejected" => Color.Error,
         _ => Color.Default
@@ -277,6 +373,7 @@
         AppraisalFormType.PerformanceAppraisal => "Performance Appraisal",
         AppraisalFormType.SelfAssessment => "Self Assessment",
         AppraisalFormType.Feedback360 => "360 Feedback",
+        AppraisalFormType.CalibrationReview => "Calibration & Review",
         _ => "Unknown"
     };
 

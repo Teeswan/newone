@@ -264,20 +264,28 @@
         return evaluationType switch
         {
             AppraisalFormType.SelfAssessment => 
-                // Every employee (02-34) submits for themselves
-                (userLevel >= 2 && userLevel <= 34) 
+                // Self-Assessment: L02 – L09
+                (userLevel >= 2 && userLevel <= 9) 
                     ? employees.Where(e => e.EmployeeId == currentUserEmployee.EmployeeId) 
                     : Enumerable.Empty<EmployeeDto>(),
 
             AppraisalFormType.PerformanceAppraisal => 
-                // Managers (02-19) submit for direct reports
-                (userLevel >= 2 && userLevel <= 19) 
+                // Performance Appraisal: L02 – L06 (Managers submit for direct reports)
+                (userLevel >= 2 && userLevel <= 6) 
                     ? employees.Where(e => e.ReportsTo == currentUserEmployee.EmployeeId) 
                     : Enumerable.Empty<EmployeeDto>(),
 
             AppraisalFormType.Feedback360 => 
-                // 360 Feedback can be for anyone, but multi-directional rules apply later
-                employees,
+                // 360-Feedback: L02 – L08
+                (userLevel >= 2 && userLevel <= 8)
+                    ? employees
+                    : Enumerable.Empty<EmployeeDto>(),
+
+            AppraisalFormType.CalibrationReview =>
+                // Calibration/Review: L01 – L04
+                (userLevel >= 1 && userLevel <= 4)
+                    ? employees
+                    : Enumerable.Empty<EmployeeDto>(),
 
             _ => employees
         };
@@ -343,6 +351,14 @@
                     }
                 }
             }
+            else if (evaluationType == AppraisalFormType.CalibrationReview)
+            {
+                // Calibration: Senior Manager (current user) is the evaluator
+                if (currentUserEmployee != null)
+                {
+                    AddEvaluatorFeedback(currentUserEmployee.EmployeeId, "Manager");
+                }
+            }
         }
         StateHasChanged();
     }
@@ -359,6 +375,7 @@
         AppraisalFormType.PerformanceAppraisal => "Performance Appraisal",
         AppraisalFormType.SelfAssessment => "Self Assessment",
         AppraisalFormType.Feedback360 => "360 Feedback",
+        AppraisalFormType.CalibrationReview => "Calibration & Review",
         _ => "Performance Evaluation"
     };
 
