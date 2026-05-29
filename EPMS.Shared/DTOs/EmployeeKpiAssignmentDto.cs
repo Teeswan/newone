@@ -19,4 +19,5 @@ public class EmployeeKpiAssignmentDto
     public KpiAssignmentStatus Status { get; set; }
     public bool IsAdHoc { get; set; }
     public decimal CategoryWeightSubtotal { get; set; }
+    public int VersionNo { get; set; }
 }

@@ -33,7 +33,7 @@ public class BulkImportEmployeeKpiCommandHandler : IRequestHandler<BulkImportEmp
         {
             try
             {
-                var adHocKpi = EmployeeKpiAssignment.CreateAdHoc(
+                var adHocKpi = EmployeeKpi.CreateAdHoc(
                     importDto.EmployeeId,
                     importDto.CycleId,
                     importDto.KpiName,
@@ -45,7 +45,7 @@ public class BulkImportEmployeeKpiCommandHandler : IRequestHandler<BulkImportEmp
 
                 await _repository.AddAsync(adHocKpi);
                 result.Imported++;
-                await _auditLogService.LogAsync("EmployeeKpiAssignment", "Import", adHocKpi.AssignmentId, $"Imported Ad-hoc KPI for Employee {importDto.EmployeeId}: {importDto.KpiName}", request.EmployeeId);
+                await _auditLogService.LogAsync("EmployeeKpiAssignment", "Import", adHocKpi.EmployeeKpiId, $"Imported Ad-hoc KPI for Employee {importDto.EmployeeId}: {importDto.KpiName}", request.EmployeeId);
             }
             catch (System.Exception ex)
             {

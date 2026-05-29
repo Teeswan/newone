@@ -2,6 +2,8 @@
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
 @inject IEmployeeBlazorService EmployeeService
+@inject IEmployeeKpiBlazorService EmpKpiService
+@inject IAppraisalCycleBlazorService CycleService
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -20,6 +22,14 @@
             </MudText>
         </div>
         <div class="d-flex gap-3">
+            <MudTooltip Text="Calculate KPI performance" Arrow="true">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Calculate"
+                           OnClick="OpenCalculateKpiDialog"
+                           Class="rounded-lg">
+                    Calculate KPI
+                </MudButton>
+            </MudTooltip>
             <MudTooltip Text="Edit employee" Arrow="true">
                 <MudButton Variant="Variant.Outlined" Color="Color.Warning"
                            StartIcon="@Icons.Material.Filled.Edit"
@@ -278,6 +288,16 @@
     }
 
     private void GoBack() => Navigation.NavigateTo("/employees");
+
+    private async Task OpenCalculateKpiDialog()
+    {
+        if (detail == null) return;
+
+        var parameters = new DialogParameters { ["EmployeeId"] = detail.EmployeeId };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        await DialogService.ShowAsync<EPMS.Blazor.Dialogs.EmployeeKpiSummaryDialog>("KPI Calculation", parameters, options);
+    }
 
     private async Task OpenEditDialog()
     {

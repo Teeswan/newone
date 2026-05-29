@@ -24,12 +24,12 @@ public class PositionKpiConfiguration : IEntityTypeConfiguration<PositionKpi>
             .HasDefaultValue(true);
 
         builder.HasOne(k => k.Position)
-            .WithMany()
+            .WithMany(p => p.PositionKpis)
             .HasForeignKey(k => k.PositionId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(k => k.Kpi)
-            .WithMany()
+            .WithMany(p => p.PositionKpis)
             .HasForeignKey(k => k.KpiId)
             .OnDelete(DeleteBehavior.Restrict);
     }

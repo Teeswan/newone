@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace EPMS.Domain.Entities
 {
@@ -14,6 +15,8 @@ namespace EPMS.Domain.Entities
 
         public virtual Team Team { get; private set; } = null!;
         public virtual DepartmentKpi DepartmentKpi { get; private set; } = null!;
+
+        public virtual ICollection<EmployeeKpi> EmployeeKpis { get; private set; } = new List<EmployeeKpi>();
 
         private TeamKpi() { }
 

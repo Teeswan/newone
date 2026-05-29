@@ -53,12 +53,19 @@
                         <MudNumericField @bind-Value="_model.WeightPercent" Label="Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_model.TargetValue" Label="Target Value" Variant="Variant.Outlined" />
+                        <MudNumericField @bind-Value="_model.TargetValue" Label="Target Value" Variant="Variant.Outlined" Immediate="true" />
                     </MudItem>
                     @if (IsEdit)
                     {
                         <MudItem xs="12" sm="6">
-                            <MudNumericField @bind-Value="_model.ActualValue" Label="Actual Value" Variant="Variant.Outlined" Clearable="true" />
+                            <MudNumericField @bind-Value="_model.ActualValue" Label="Actual Value" Variant="Variant.Outlined" Clearable="true" Immediate="true" />
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Calculated Score (%)" Value="@(CalculateScore().HasValue ? CalculateScore().Value.ToString("N2") + "%" : "N/A")" ReadOnly="true" Variant="Variant.Filled" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Calculate" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Calculated Weighted Score" Value="@(CalculateWeightedScore().HasValue ? CalculateWeightedScore().Value.ToString("N4") : "N/A")" ReadOnly="true" Variant="Variant.Filled" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Score" />
                         </MudItem>
                     }
                 }
@@ -104,6 +111,33 @@
             };
             _isAdHoc = Assignment.IsAdHoc;
         }
+    }
+
+    private decimal? CalculateScore()
+    {
+        if (!_model.ActualValue.HasValue || _model.TargetValue == 0) return null;
+
+        decimal score;
+        if (_model.Direction == KpiDirection.HigherIsBetter)
+        {
+            score = (_model.ActualValue.Value / _model.TargetValue) * 100;
+        }
+        else
+        {
+            if (_model.ActualValue.Value == 0) return 100;
+            score = (_model.TargetValue / _model.ActualValue.Value) * 100;
+            if (score > 100) score = 100;
+        }
+
+        return Math.Round(score, 4);
+    }
+
+    private decimal? CalculateWeightedScore()
+    {
+        var score = CalculateScore();
+        if (!score.HasValue) return null;
+
+        return Math.Round(score.Value * (_model.WeightPercent / 100), 4);
     }
 
     private async Task Submit()

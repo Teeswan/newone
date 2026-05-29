@@ -53,7 +53,12 @@ namespace EPMS.Shared.DTOs
         public decimal EmployeeTarget { get; set; }
         public decimal ParentTarget { get; set; }
         public decimal Weight { get; set; }
+        public decimal? ActualValue { get; set; }
+        public decimal? KpiScore { get; set; }
+        public decimal? WeightedScore { get; set; }
+        public KpiDirection Direction { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int VersionNo { get; set; }
     }
 }

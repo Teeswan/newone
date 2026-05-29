@@ -120,5 +120,13 @@ namespace EPMS.Api.Controllers
             var result = await _empKpiService.CreateAsync(request);
             return Ok(result);
         }
+
+        [HttpPut("employee/{id}")]
+        [HasPermission(Permissions.Kpis.Manage)]
+        public async Task<ActionResult<EmployeeKpiDto>> UpdateEmp(int id, EmployeeKpiRequest request)
+        {
+            var result = await _empKpiService.UpdateAsync(id, request);
+            return result == null ? NotFound() : Ok(result);
+        }
     }
 }

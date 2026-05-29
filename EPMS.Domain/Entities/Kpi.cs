@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using EPMS.Domain.Enums;
 using EPMS.Domain.Exceptions;
 
@@ -14,6 +15,9 @@ namespace EPMS.Domain.Entities
         public KpiDirection Direction { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public int? CreatedByEmployeeId { get; private set; }
+
+        public virtual ICollection<PositionKpi> PositionKpis { get; private set; } = new List<PositionKpi>();
+        public virtual ICollection<DepartmentKpi> DepartmentKpis { get; private set; } = new List<DepartmentKpi>();
 
         private Kpi() { }
 

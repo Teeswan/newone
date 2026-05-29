@@ -8,6 +8,6 @@ public interface IKpiScoreCalculator
 {
     decimal CalculateKpiScore(decimal actual, decimal target, KpiDirection direction);
     decimal CalculateWeightedScore(decimal kpiScore, decimal weightPercent);
-    decimal CalculateTotalScore(IEnumerable<EmployeeKpiAssignment> assignments);
+    decimal CalculateTotalScore(IEnumerable<EmployeeKpi> assignments);
     (int rating, string label, string promotion) MapToRating(decimal totalScore);
 }

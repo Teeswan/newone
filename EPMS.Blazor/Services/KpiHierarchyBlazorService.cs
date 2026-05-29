@@ -94,5 +94,12 @@ namespace EPMS.Blazor.Services
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<EmployeeKpiDto>() ?? throw new InvalidOperationException();
         }
+
+        public async Task<EmployeeKpiDto?> UpdateEmpAsync(int id, EmployeeKpiRequest request)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/employee/{id}", request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<EmployeeKpiDto>();
+        }
     }
 }

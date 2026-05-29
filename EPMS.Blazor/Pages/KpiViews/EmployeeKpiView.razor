@@ -39,7 +39,7 @@
 }
 else if (_assignments != null && _assignments.Any())
 {
-    <MudTable Items="@_assignments" Hover="true" Bordered="true" Striped="true" Class="mb-4" T="EmployeeKpiAssignmentDto">
+    <MudTable Items="@_assignments" Hover="true" Bordered="true" Striped="true" Class="mb-4" T="EmployeeKpiAssignmentDto" MultiSelection="true" @bind-SelectedItems="_selectedItems">
         <HeaderContent>
             <MudTh>KPI Name</MudTh>
             <MudTh>Category</MudTh>
@@ -57,8 +57,10 @@ else if (_assignments != null && _assignments.Any())
             <MudTd DataLabel="Weight (%)">@item.WeightPercent%</MudTd>
             <MudTd DataLabel="Target">@item.TargetValue @item.UnitSnapshot</MudTd>
             <MudTd DataLabel="Actual">@item.ActualValue</MudTd>
-            <MudTd DataLabel="Score (%)">@item.KpiScore%</MudTd>
-            <MudTd DataLabel="Weighted Score">@item.WeightedScore</MudTd>
+            <MudTd DataLabel="Score (%)">
+                <MudText Color="@GetScoreColor(item.KpiScore ?? 0)">@(item.KpiScore?.ToString("N2") ?? "0.00")%</MudText>
+            </MudTd>
+            <MudTd DataLabel="Weighted Score">@item.WeightedScore?.ToString("N4")</MudTd>
             <MudTd DataLabel="Status">
                 <MudChip T="string" Color="@GetStatusColor(item.Status)" Size="Size.Small">@item.Status.ToString()</MudChip>
             </MudTd>
@@ -71,26 +73,61 @@ else if (_assignments != null && _assignments.Any())
         </RowTemplate>
     </MudTable>
 
-    @if (_summary != null)
-    {
-        <MudPaper Class="pa-4" Style="background-color: var(--mud-palette-background-grey)">
-            <MudText Typo="Typo.h6" GutterBottom="true">Performance Summary</MudText>
-            <MudGrid>
-                <MudItem xs="12" sm="3">
-                    <MudField Label="Total Performance Score" Variant="Variant.Outlined">@_summary.TotalPerformanceScore</MudField>
-                </MudItem>
-                <MudItem xs="12" sm="3">
-                    <MudField Label="Rating" Variant="Variant.Outlined">@_summary.Rating (@_summary.PerformanceLabel)</MudField>
-                </MudItem>
-                <MudItem xs="12" sm="3">
-                    <MudField Label="Promotion Eligibility" Variant="Variant.Outlined">@_summary.PromotionEligibility</MudField>
-                </MudItem>
-                <MudItem xs="12" sm="3" Class="d-flex align-end">
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" FullWidth="true" OnClick="FinaliseAssignments">Lock All</MudButton>
-                </MudItem>
-            </MudGrid>
-        </MudPaper>
-    }
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            @if (_summary != null)
+            {
+                <MudPaper Class="pa-4" Style="background-color: var(--mud-palette-background-grey)">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Cycle Performance Summary (All)</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="4">
+                            <MudField Label="Total Score" Variant="Variant.Outlined">@_summary.TotalPerformanceScore.ToString("N2")</MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudField Label="Rating" Variant="Variant.Outlined">@_summary.Rating (@_summary.PerformanceLabel)</MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudField Label="Eligibility" Variant="Variant.Outlined">@_summary.PromotionEligibility</MudField>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
+        </MudItem>
+        <MudItem xs="12" md="6">
+            @if (_selectedItems != null && _selectedItems.Any())
+            {
+                var selSummary = CalculateSelectedSummary();
+                <MudPaper Class="pa-4" Style="background-color: var(--mud-palette-primary-lighten)">
+                    <MudText Typo="Typo.h6" GutterBottom="true" Color="Color.Primary">Selected Performance Summary (@_selectedItems.Count)</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="4">
+                            <MudField Label="Selected Score" Variant="Variant.Outlined" InnerPadding="false">
+                                <MudText Typo="Typo.body1" Class="pa-2">@selSummary.score.ToString("N2")</MudText>
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudField Label="Rating" Variant="Variant.Outlined" InnerPadding="false">
+                                <MudText Typo="Typo.body1" Class="pa-2">@selSummary.rating (@selSummary.label)</MudText>
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudField Label="Eligibility" Variant="Variant.Outlined" InnerPadding="false">
+                                <MudText Typo="Typo.body1" Class="pa-2">@selSummary.promotion</MudText>
+                            </MudField>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info">Select rows to see specific performance calculation.</MudAlert>
+            }
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Class="pa-4 mt-4 d-flex justify-end">
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="FinaliseAssignments">Lock All Cycle Assignments</MudButton>
+    </MudPaper>
 }
 else if (_employeeId > 0 && _cycleId > 0 && !_loading)
 {
@@ -102,6 +139,7 @@ else if (_employeeId > 0 && _cycleId > 0 && !_loading)
     private int _cycleId;
     private IEnumerable<AppraisalCycleDto> _cycles = new List<AppraisalCycleDto>();
     private IEnumerable<EmployeeKpiAssignmentDto>? _assignments;
+    private HashSet<EmployeeKpiAssignmentDto> _selectedItems = new();
     private KpiScoreSummaryDto? _summary;
     private bool _loading;
 
@@ -120,6 +158,7 @@ else if (_employeeId > 0 && _cycleId > 0 && !_loading)
         }
 
         _loading = true;
+        _selectedItems.Clear();
         try
         {
             _assignments = await EmpKpiService.GetAssignmentsAsync(_employeeId, _cycleId);
@@ -129,6 +168,23 @@ else if (_employeeId > 0 && _cycleId > 0 && !_loading)
         {
             _loading = false;
         }
+    }
+
+    private (decimal score, int rating, string label, string promotion) CalculateSelectedSummary()
+    {
+        decimal totalWeightedScore = _selectedItems.Sum(x => x.WeightedScore ?? 0);
+        
+        // Map to rating (logic from KpiScoreCalculator)
+        int rating = 1;
+        string label = "Unsatisfactory";
+        string promotion = "Not Eligible";
+
+        if (totalWeightedScore >= 86) { rating = 5; label = "Excellent/Outstanding"; promotion = "Strongly Recommended"; }
+        else if (totalWeightedScore >= 71) { rating = 4; label = "Good"; promotion = "Eligible"; }
+        else if (totalWeightedScore >= 60) { rating = 3; label = "Meets Requirement"; promotion = "Possible"; }
+        else if (totalWeightedScore >= 40) { rating = 2; label = "Needs Improvement"; promotion = "Not Eligible"; }
+
+        return (totalWeightedScore, rating, label, promotion);
     }
 
     private async Task OpenAddDialog()

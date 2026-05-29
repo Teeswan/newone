@@ -43,7 +43,7 @@ public class AddAdHocKpiCommandHandler : IRequestHandler<AddAdHocKpiCommand, Res
 
     public async Task<Result<decimal>> Handle(AddAdHocKpiCommand request, CancellationToken cancellationToken)
     {
-        var adHocKpi = EmployeeKpiAssignment.CreateAdHoc(
+        var adHocKpi = EmployeeKpi.CreateAdHoc(
             request.EmployeeId,
             request.CycleId,
             request.KpiName,

@@ -8,12 +8,19 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_isValid">
-            <MudSelect T="int" Label="Team KPI" Value="_request.TeamKpiId" ValueChanged="OnKpiValueChanged" Required="true">
-                @foreach (var kpi in _teamKpis)
-                {
-                    <MudSelectItem Value="@kpi.TeamKpiId">@kpi.KpiName (@kpi.TeamName)</MudSelectItem>
-                }
-            </MudSelect>
+            @if (IsEdit)
+            {
+                <MudTextField T="string" Label="KPI Name" Value="@EmployeeKpi?.KpiName" ReadOnly="true" Variant="Variant.Outlined" Class="mb-4" />
+            }
+            else
+            {
+                <MudSelect T="int" Label="Team KPI" Value="_request.TeamKpiId" ValueChanged="OnKpiValueChanged" Required="true">
+                    @foreach (var kpi in _teamKpis)
+                    {
+                        <MudSelectItem Value="@kpi.TeamKpiId">@kpi.KpiName (@kpi.TeamName)</MudSelectItem>
+                    }
+                </MudSelect>
+            }
 
             @if (_selectedKpi != null)
             {
@@ -22,19 +29,38 @@
                 </MudAlert>
             }
 
-            <MudNumericField T="decimal" Label="Employee Target" @bind-Value="_request.EmployeeTarget" Required="true" />
-            <MudNumericField T="decimal" Label="Weight %" @bind-Value="_request.Weight" Min="0" Max="100" Required="true" />
+            <MudNumericField T="decimal" Label="Employee Target" @bind-Value="_request.EmployeeTarget" Required="true" Immediate="true" />
+            <MudNumericField T="decimal" Label="Weight %" @bind-Value="_request.Weight" Min="0" Max="100" Required="true" Immediate="true" />
+            <MudNumericField T="decimal?" Label="Actual Value" @bind-Value="_request.ActualValue" Clearable="true" Immediate="true" />
+
+            @if (_request.ActualValue.HasValue)
+            {
+                var score = CalculateScore();
+                var weightedScore = CalculateWeightedScore(score);
+                <MudGrid Class="mt-2">
+                    <MudItem xs="6">
+                        <MudTextField Label="Score (%)" Value="@(score.HasValue ? score.Value.ToString("N2") + "%" : "N/A")" ReadOnly="true" Variant="Variant.Filled" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Weighted Score" Value="@(weightedScore.HasValue ? weightedScore.Value.ToString("N4") : "N/A")" ReadOnly="true" Variant="Variant.Filled" />
+                    </MudItem>
+                </MudGrid>
+            }
+            
+            <MudSwitch T="bool" @bind-Value="_request.IsActive" Color="Color.Primary" Label="Is Active" Class="mt-4" />
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Disabled="@(!_isValid)" OnClick="Submit">Assign</MudButton>
+        <MudButton Color="Color.Primary" Disabled="@(!_isValid)" OnClick="Submit">@(IsEdit ? "Update" : "Assign")</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public int EmployeeId { get; set; }
+    [Parameter] public int? EmployeeKpiId { get; set; }
+    [Parameter] public EmployeeKpiDto? EmployeeKpi { get; set; }
 
     private EmployeeKpiRequest _request = new();
     private IEnumerable<TeamKpiDto> _teamKpis = new List<TeamKpiDto>();
@@ -42,23 +68,69 @@
     private MudForm _form = null!;
     private bool _isValid;
 
+    private bool IsEdit => EmployeeKpiId.HasValue;
+
     protected override async Task OnInitializedAsync()
     {
         _request.EmployeeId = EmployeeId;
+
+        if (IsEdit && EmployeeKpi != null)
+        {
+            _request.TeamKpiId = EmployeeKpi.TeamKpiId;
+            _request.EmployeeTarget = EmployeeKpi.EmployeeTarget;
+            _request.Weight = EmployeeKpi.Weight;
+            _request.IsActive = EmployeeKpi.IsActive;
+            _request.ActualValue = EmployeeKpi.ActualValue;
+            
+            // For editing, we might need the direction for calculation
+            // We can fetch it via the team KPI if needed, but for now we'll assume HigherIsBetter if not found
+            // or we could have included it in the DTO.
+        }
         
-        // Fetch the employee to get their team
+        // Fetch the employee to get their team (needed for both new and edit to get context if needed)
         var employee = await EmployeeService.GetEmployeeDetailsAsync(EmployeeId);
         if (employee != null && employee.TeamId.HasValue)
         {
             var kpis = await KpiService.GetTeamByTeamAsync(employee.TeamId.Value);
             _teamKpis = kpis.ToList();
+            if (IsEdit)
+            {
+                _selectedKpi = _teamKpis.FirstOrDefault(k => k.TeamKpiId == _request.TeamKpiId);
+            }
+        }
+    }
+
+    private decimal? CalculateScore()
+    {
+        if (!_request.ActualValue.HasValue || _request.EmployeeTarget == 0) return null;
+
+        // Note: In a real app, you'd fetch the Direction from the master KPI.
+        // For simplicity in the UI, we'll try to find it from _selectedKpi or default.
+        // Since we don't have Direction on TeamKpiDto easily here without more lookups, 
+        // we'll assume HigherIsBetter unless we enhance the DTOs further.
+        // However, EmployeeKpiDto NOW has Direction!
+        
+        var direction = EmployeeKpi?.Direction ?? EPMS.Domain.Enums.KpiDirection.HigherIsBetter;
+
+        decimal score;
+        if (direction == EPMS.Domain.Enums.KpiDirection.HigherIsBetter)
+        {
+            score = (_request.ActualValue.Value / _request.EmployeeTarget) * 100;
         }
         else
         {
-            // If no team, just fetch all team KPIs as fallback
-            var allKpis = await KpiService.GetAllTeamAsync();
-            _teamKpis = allKpis.ToList();
+            if (_request.ActualValue.Value == 0) return 100;
+            score = (_request.EmployeeTarget / _request.ActualValue.Value) * 100;
+            if (score > 100) score = 100;
         }
+
+        return Math.Round(score, 4);
+    }
+
+    private decimal? CalculateWeightedScore(decimal? score)
+    {
+        if (!score.HasValue) return null;
+        return Math.Round(score.Value * (_request.Weight / 100), 4);
     }
 
     private void OnKpiValueChanged(int id)
@@ -76,8 +148,16 @@
         {
             try
             {
-                await KpiService.CreateEmpAsync(_request);
-                Snackbar.Add("KPI assigned to employee successfully", Severity.Success);
+                if (IsEdit)
+                {
+                    await KpiService.UpdateEmpAsync(EmployeeKpiId!.Value, _request);
+                    Snackbar.Add("Employee KPI updated successfully", Severity.Success);
+                }
+                else
+                {
+                    await KpiService.CreateEmpAsync(_request);
+                    Snackbar.Add("KPI assigned to employee successfully", Severity.Success);
+                }
                 MudDialog.Close(DialogResult.Ok(true));
             }
             catch (Exception ex)

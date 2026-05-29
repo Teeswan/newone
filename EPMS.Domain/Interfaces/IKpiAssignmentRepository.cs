@@ -4,10 +4,10 @@ using EPMS.Domain.Entities;
 
 namespace EPMS.Domain.Interfaces;
 
-public interface IKpiAssignmentRepository : IBaseRepository<EmployeeKpiAssignment, int>
+public interface IKpiAssignmentRepository : IBaseRepository<EmployeeKpi, int>
 {
-    Task<IEnumerable<EmployeeKpiAssignment>> GetAssignmentsByEmployeeCycleAsync(int employeeId, int cycleId);
-    Task<EmployeeKpiAssignment?> GetSnapshotAsync(int employeeId, int cycleId, int kpiId);
-    Task AddRangeAsync(IEnumerable<EmployeeKpiAssignment> assignments);
-    Task AddAsync(EmployeeKpiAssignment assignment);
+    Task<IEnumerable<EmployeeKpi>> GetAssignmentsByEmployeeCycleAsync(int employeeId, int cycleId);
+    Task<EmployeeKpi?> GetSnapshotAsync(int employeeId, int cycleId, int kpiId);
+    Task AddRangeAsync(IEnumerable<EmployeeKpi> assignments);
+    Task AddAsync(EmployeeKpi assignment);
 }

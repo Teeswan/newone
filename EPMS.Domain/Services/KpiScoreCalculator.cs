@@ -33,7 +33,7 @@ public class KpiScoreCalculator : IKpiScoreCalculator
         return Math.Round(kpiScore * (weightPercent / 100), 4);
     }
 
-    public decimal CalculateTotalScore(IEnumerable<EmployeeKpiAssignment> assignments)
+    public decimal CalculateTotalScore(IEnumerable<EmployeeKpi> assignments)
     {
         return assignments.Sum(a => a.WeightedScore ?? 0);
     }

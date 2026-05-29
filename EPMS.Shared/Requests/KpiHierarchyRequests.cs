@@ -33,5 +33,7 @@ namespace EPMS.Shared.Requests
         public int TeamKpiId { get; set; }
         public decimal EmployeeTarget { get; set; }
         public decimal Weight { get; set; }
+        public bool IsActive { get; set; } = true;
+        public decimal? ActualValue { get; set; }
     }
 }

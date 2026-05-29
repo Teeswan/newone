@@ -28,24 +28,51 @@
 
     @if (_employeeKpis != null && _employeeKpis.Any())
     {
-        <MudTable Items="@_employeeKpis" Hover="true" Breakpoint="Breakpoint.Sm">
+        <MudTable Items="@_employeeKpis" Hover="true" Breakpoint="Breakpoint.Sm" MultiSelection="true" @bind-SelectedItems="_selectedItems">
             <HeaderContent>
                 <MudTh>KPI Name</MudTh>
                 <MudTh>Target</MudTh>
+                <MudTh>Actual</MudTh>
                 <MudTh>Weight</MudTh>
+                <MudTh>Score (%)</MudTh>
+                <MudTh>Weighted Score</MudTh>
                 <MudTh>Status</MudTh>
-                <MudTh>Created At</MudTh>
+                <MudTh>Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
                 <MudTd DataLabel="Target">@context.EmployeeTarget</MudTd>
+                <MudTd DataLabel="Actual">@context.ActualValue</MudTd>
                 <MudTd DataLabel="Weight">@context.Weight%</MudTd>
+                <MudTd DataLabel="Score (%)">@(context.KpiScore?.ToString("N2") ?? "0.00")%</MudTd>
+                <MudTd DataLabel="Weighted Score">@context.WeightedScore?.ToString("N4")</MudTd>
                 <MudTd DataLabel="Status">
                     <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">@(context.IsActive ? "Active" : "Inactive")</MudChip>
                 </MudTd>
-                <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToShortDateString()</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                </MudTd>
             </RowTemplate>
         </MudTable>
+
+        @if (_selectedItems != null && _selectedItems.Any())
+        {
+            var summary = CalculateSummary();
+            <MudPaper Class="pa-4 mt-4" Style="background-color: var(--mud-palette-primary-lighten)">
+                <MudText Typo="Typo.h6" Color="Color.Primary">Selected KPIs Performance Summary (@_selectedItems.Count)</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="4">
+                        <MudField Label="Total Weighted Score" Variant="Variant.Outlined">@summary.score.ToString("N4")</MudField>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudField Label="Rating" Variant="Variant.Outlined">@summary.rating (@summary.label)</MudField>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudField Label="Eligibility" Variant="Variant.Outlined">@summary.promotion</MudField>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
     }
     else if (_hasLoaded)
     {
@@ -56,12 +83,29 @@
 @code {
     private IEnumerable<EmployeeDto> _employees = new List<EmployeeDto>();
     private IEnumerable<EmployeeKpiDto> _employeeKpis = new List<EmployeeKpiDto>();
+    private HashSet<EmployeeKpiDto> _selectedItems = new();
     private EmployeeDto? _selectedEmployee;
     private bool _hasLoaded;
 
     protected override async Task OnInitializedAsync()
     {
         _employees = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private (decimal score, int rating, string label, string promotion) CalculateSummary()
+    {
+        decimal totalWeightedScore = _selectedItems.Sum(x => x.WeightedScore ?? 0);
+        
+        int rating = 1;
+        string label = "Unsatisfactory";
+        string promotion = "Not Eligible";
+
+        if (totalWeightedScore >= 86) { rating = 5; label = "Excellent/Outstanding"; promotion = "Strongly Recommended"; }
+        else if (totalWeightedScore >= 71) { rating = 4; label = "Good"; promotion = "Eligible"; }
+        else if (totalWeightedScore >= 60) { rating = 3; label = "Meets Requirement"; promotion = "Possible"; }
+        else if (totalWeightedScore >= 40) { rating = 2; label = "Needs Improvement"; promotion = "Not Eligible"; }
+
+        return (totalWeightedScore, rating, label, promotion);
     }
 
     private async Task<IEnumerable<EmployeeDto>> SearchEmployees(string value, CancellationToken token)
@@ -76,12 +120,14 @@
         _selectedEmployee = employee;
         _hasLoaded = false;
         _employeeKpis = new List<EmployeeKpiDto>();
+        _selectedItems.Clear();
     }
 
     private async Task LoadEmployeeKpis()
     {
         if (_selectedEmployee == null) return;
         _employeeKpis = await KpiService.GetEmpByEmpAsync(_selectedEmployee.EmployeeId);
+        _selectedItems.Clear();
         _hasLoaded = true;
     }
 
@@ -93,6 +139,23 @@
             ["EmployeeId"] = _selectedEmployee.EmployeeId 
         };
         var dialog = DialogService.Show<AssignEmployeeKpiDialog>("Assign KPI to Employee", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadEmployeeKpis();
+        }
+    }
+
+    private async Task OpenEditDialog(EmployeeKpiDto dto)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["EmployeeId"] = dto.EmployeeId,
+            ["EmployeeKpiId"] = dto.EmployeeKpiId,
+            ["EmployeeKpi"] = dto
+        };
+        var dialog = DialogService.Show<AssignEmployeeKpiDialog>("Edit Employee KPI", parameters);
         var result = await dialog.Result;
 
         if (!result.Canceled)

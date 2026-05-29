@@ -31,11 +31,11 @@ public class AssignKpiFromMasterCommandHandler : IRequestHandler<AssignKpiFromMa
         var existing = await _repository.GetSnapshotAsync(request.EmployeeId, request.CycleId, request.KpiId);
         if (existing != null) return Result<int>.Failure("KPI already assigned to this employee for this cycle.");
 
-        var assignment = EmployeeKpiAssignment.CreateSnapshot(request.EmployeeId, request.CycleId, masterKpi);
+        var assignment = EmployeeKpi.CreateSnapshot(request.EmployeeId, request.CycleId, masterKpi);
         
         await _repository.AddAsync(assignment);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<int>.Success(assignment.AssignmentId);
+        return Result<int>.Success(assignment.EmployeeKpiId);
     }
 }

@@ -26,6 +26,33 @@ public class GetKpiScoreSummaryQueryHandler : IRequestHandler<GetKpiScoreSummary
         var assignments = await _queryService.GetEmployeeKpiAssignmentAsync(request.EmployeeId, request.CycleId);
         summary.Assignments = (System.Collections.Generic.List<EmployeeKpiAssignmentDto>)assignments;
 
+        // Set Performance Label and Promotion Eligibility based on Score
+        if (summary.TotalPerformanceScore >= 86)
+        {
+            summary.PerformanceLabel = "Outstanding";
+            summary.PromotionEligibility = "Highly Eligible";
+        }
+        else if (summary.TotalPerformanceScore >= 71)
+        {
+            summary.PerformanceLabel = "Exceeds Expectations";
+            summary.PromotionEligibility = "Eligible";
+        }
+        else if (summary.TotalPerformanceScore >= 60)
+        {
+            summary.PerformanceLabel = "Meets Expectations";
+            summary.PromotionEligibility = "Potentially Eligible";
+        }
+        else if (summary.TotalPerformanceScore >= 40)
+        {
+            summary.PerformanceLabel = "Needs Improvement";
+            summary.PromotionEligibility = "Not Eligible";
+        }
+        else
+        {
+            summary.PerformanceLabel = "Poor Performance";
+            summary.PromotionEligibility = "Not Eligible / PIP Required";
+        }
+
         return Result<KpiScoreSummaryDto>.Success(summary);
     }
 }

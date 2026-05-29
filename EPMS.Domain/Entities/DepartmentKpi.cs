@@ -18,6 +18,8 @@ namespace EPMS.Domain.Entities
         public virtual AppraisalCycle Cycle { get; private set; } = null!;
         public virtual Kpi Kpi { get; private set; } = null!;
 
+        public virtual ICollection<TeamKpi> TeamKpis { get; private set; } = new List<TeamKpi>();
+
         private DepartmentKpi() { }
 
         public static DepartmentKpi Create(int departmentId, int cycleId, int kpiId, decimal departmentTarget, decimal weight)

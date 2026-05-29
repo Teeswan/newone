@@ -26,4 +26,6 @@ public partial class Department : ISoftDelete
     public virtual Department? ParentDepartment { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
+
+    public virtual ICollection<DepartmentKpi> DepartmentKpis { get; set; } = new List<DepartmentKpi>();
 }

@@ -208,11 +208,22 @@ namespace EPMS.Application.Services
     public class EmployeeKpiService : IEmployeeKpiService
     {
         private readonly IEmployeeKpiRepository _repository;
+        private readonly ITeamKpiRepository _teamKpiRepository;
+        private readonly IKpiAssignmentRepository _assignmentRepository;
+        private readonly IAppraisalCycleRepository _cycleRepository;
         private readonly IMapper _mapper;
 
-        public EmployeeKpiService(IEmployeeKpiRepository repository, IMapper mapper)
+        public EmployeeKpiService(
+            IEmployeeKpiRepository repository, 
+            ITeamKpiRepository teamKpiRepository,
+            IKpiAssignmentRepository assignmentRepository,
+            IAppraisalCycleRepository cycleRepository,
+            IMapper mapper)
         {
             _repository = repository;
+            _teamKpiRepository = teamKpiRepository;
+            _assignmentRepository = assignmentRepository;
+            _cycleRepository = cycleRepository;
             _mapper = mapper;
         }
 
@@ -237,14 +248,26 @@ namespace EPMS.Application.Services
         public async Task<EmployeeKpiDto> CreateAsync(EmployeeKpiRequest request)
         {
             var existing = await _repository.GetByEmployeeIdAsync(request.EmployeeId);
-            if (existing.Sum(k => k.Weight) + request.Weight > 100)
+            if (existing.Sum(k => k.WeightPercent) + request.Weight > 100)
                 throw new InvalidOperationException("Total weight for this employee cannot exceed 100%.");
+
+            var teamKpi = await _teamKpiRepository.GetByIdAsync(request.TeamKpiId);
+            if (teamKpi == null) throw new KeyNotFoundException("Team KPI not found.");
+
+            var direction = teamKpi.DepartmentKpi?.Kpi?.Direction ?? EPMS.Domain.Enums.KpiDirection.HigherIsBetter;
 
             var entity = EmployeeKpi.Create(
                 request.EmployeeId,
+                teamKpi.DepartmentKpi!.CycleId,
                 request.TeamKpiId,
                 request.EmployeeTarget,
-                request.Weight);
+                request.Weight,
+                request.IsActive,
+                request.ActualValue,
+                direction,
+                teamKpi.DepartmentKpi.Kpi.KpiName,
+                teamKpi.DepartmentKpi.Kpi.Category,
+                teamKpi.DepartmentKpi.Kpi.Unit);
             
             var created = await _repository.CreateAsync(entity);
             var result = await _repository.GetByIdAsync(created.EmployeeKpiId);
@@ -259,11 +282,36 @@ namespace EPMS.Application.Services
             var otherKpis = (await _repository.GetByEmployeeIdAsync(entity.EmployeeId))
                 .Where(k => k.EmployeeKpiId != id);
             
-            if (otherKpis.Sum(k => k.Weight) + request.Weight > 100)
+            if (otherKpis.Sum(k => k.WeightPercent) + request.Weight > 100)
                 throw new InvalidOperationException("Total weight for this employee cannot exceed 100%.");
 
-            entity.Update(request.EmployeeTarget, request.Weight);
+            // Get Direction from the hierarchy
+            var direction = entity.TeamKpi?.DepartmentKpi?.Kpi?.Direction ?? EPMS.Domain.Enums.KpiDirection.HigherIsBetter;
+
+            entity.Update(request.EmployeeTarget, request.Weight, request.IsActive, request.ActualValue, direction);
             await _repository.UpdateAsync(entity);
+
+            // Update active assignments in non-finalized cycles
+            var activeAssignments = (await _assignmentRepository.GetAllAsync())
+                .Where(a => a.EmployeeId == entity.EmployeeId && a.TeamKpiId == entity.TeamKpiId);
+
+            foreach (var assignment in activeAssignments)
+            {
+                var cycle = await _cycleRepository.GetByIdAsync(assignment.CycleId);
+                if (cycle != null && cycle.CycleStatus != "Finalized" && cycle.CycleStatus != "Completed")
+                {
+                    assignment.UpdateDetails(
+                        assignment.KpiNameSnapshot,
+                        assignment.CategorySnapshot,
+                        assignment.UnitSnapshot,
+                        assignment.Direction,
+                        request.Weight,
+                        request.EmployeeTarget
+                    );
+                    await _assignmentRepository.UpdateAsync(assignment);
+                }
+            }
+
             var result = await _repository.GetByIdAsync(id);
             return _mapper.Map<EmployeeKpiDto>(result);
         }

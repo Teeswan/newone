@@ -40,7 +40,7 @@ public class ActivateCycleKpiSnapshotCommandHandler : IRequestHandler<ActivateCy
             var positionKpis = await _kpiRepository.GetListByPositionAsync(employee.PositionId);
             var allKpis = globalKpis.Concat(positionKpis);
 
-            var assignments = allKpis.Select(k => EmployeeKpiAssignment.CreateSnapshot(
+            var assignments = allKpis.Select(k => EmployeeKpi.CreateSnapshot(
                 employee.EmployeeId,
                 request.CycleId,
                 k));

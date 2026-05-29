@@ -28,5 +28,6 @@ namespace EPMS.Blazor.Services
         Task<IEnumerable<EmployeeKpiDto>> GetAllEmpAsync();
         Task<IEnumerable<EmployeeKpiDto>> GetEmpByEmpAsync(int empId);
         Task<EmployeeKpiDto> CreateEmpAsync(EmployeeKpiRequest request);
+        Task<EmployeeKpiDto?> UpdateEmpAsync(int id, EmployeeKpiRequest request);
     }
 }
