@@ -60,9 +60,11 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
             new SqlParameter("@ManagerRating", ToDbValue(entity.ManagerRating)),
             new SqlParameter("@SelfComments", ToDbValue(entity.SelfComments)),
             new SqlParameter("@ManagerComments", ToDbValue(entity.ManagerComments)),
+            new SqlParameter("@CalibrationComments", ToDbValue(entity.CalibrationComments)),
             new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
             new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
-            new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
+            new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt)),
+            new SqlParameter("@CreatedByEmployeeId", ToDbValue(entity.CreatedByEmployeeId))
         };
 
         var result = await _sqlRepository.FromSqlFirstOrDefaultAsync(PerformanceEvaluations_Create, parameters);
@@ -84,9 +86,11 @@ public class PerformanceEvaluationRepository : BaseRepository<PerformanceEvaluat
             new SqlParameter("@ManagerRating", ToDbValue(entity.ManagerRating)),
             new SqlParameter("@SelfComments", ToDbValue(entity.SelfComments)),
             new SqlParameter("@ManagerComments", ToDbValue(entity.ManagerComments)),
+            new SqlParameter("@CalibrationComments", ToDbValue(entity.CalibrationComments)),
             new SqlParameter("@FinalRatingScore", ToDbValue(entity.FinalRatingScore)),
             new SqlParameter("@IsFinalized", ToDbValue(entity.IsFinalized)),
-            new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt))
+            new SqlParameter("@FinalizedAt", ToDbValue(entity.FinalizedAt)),
+            new SqlParameter("@CreatedByEmployeeId", ToDbValue(entity.CreatedByEmployeeId))
         };
 
         return await _sqlRepository.FromSqlFirstOrDefaultAsync(PerformanceEvaluations_Update, parameters);

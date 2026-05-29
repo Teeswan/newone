@@ -197,6 +197,6 @@ public static class DbInitializer
         foreach (var employee in allEmployees)
         {
             await accountInitializationService.InitializeAccountAsync(employee);
-        }
+        } 
     }
 }

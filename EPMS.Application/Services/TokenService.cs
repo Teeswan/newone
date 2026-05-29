@@ -30,8 +30,12 @@ public class TokenService : ITokenService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, employee.Email ?? employee.FullName),
-            new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
+            new Claim(ClaimTypes.Name, employee.FullName ?? employee.Email ?? ""),
+            new Claim(ClaimTypes.Email, employee.Email ?? ""),
+            new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString()),
+            new Claim("EmployeeId", employee.EmployeeId.ToString()),
+            new Claim("name", employee.FullName ?? ""),
+            new Claim("role", user?.EmployeeId != null ? "User" : "Guest") // Placeholder for roles if needed
         };
 
         if (user != null)

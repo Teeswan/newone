@@ -22,6 +22,7 @@ public class CreateEmployeeRequest
     public string? EmergencyPhone { get; set; }
     public string? BankName { get; set; }
     public string? BankAccountNumber { get; set; }
+    public byte[]? ProfilePicture { get; set; }
 }
 
 public class UpdateEmployeeRequest : CreateEmployeeRequest

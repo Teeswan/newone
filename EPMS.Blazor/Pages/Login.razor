@@ -13,6 +13,8 @@
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
+@inject ICurrentEmployeeStateService CurrentEmployeeState
+@inject IEmployeeBlazorService EmployeeService
 
 <style>
     html, body, #app, .mud-layout, .main-layout, .login-main-content {
@@ -465,6 +467,13 @@
                 await LocalStorage.SetItemAsync("authToken", result.Token);
                 await LocalStorage.SetItemAsync("loginResponse", result);
                 ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication(result.Token);
+                
+                // Load new employee data into shared state RIGHT AWAY!
+                var employee = await EmployeeService.GetEmployeeDetailsAsync(result.EmployeeId);
+                if (employee != null)
+                {
+                    CurrentEmployeeState.SetCurrentEmployee(employee);
+                }
                 
                 if (result.IsFirstLogin)
                 {

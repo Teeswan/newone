@@ -90,7 +90,7 @@
             }
             await MeetingService.ScheduleBulkMeetingsAsync(createDto);
             Snackbar.Add("Meetings scheduled successfully!", Severity.Success);
-            NavManager.NavigateTo("/one-on-one-meetings");
+            NavManager.NavigateTo("/development-hub");
         }
         catch (Exception ex)
         {
@@ -104,6 +104,6 @@
 
     private void GoBack()
     {
-        NavManager.NavigateTo("/one-on-one-meetings");
+        NavManager.NavigateTo("/development-hub");
     }
 }

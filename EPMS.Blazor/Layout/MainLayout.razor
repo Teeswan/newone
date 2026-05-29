@@ -8,6 +8,8 @@
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
 @inject INotificationBlazorService NotificationService
+@inject IEmployeeBlazorService EmployeeService
+@inject ICurrentEmployeeStateService CurrentEmployeeState
 
 <style>
     .main-layout, .mud-layout {
@@ -62,12 +64,39 @@
                         <MudMenuItem Href="/notifications" Class="text-center">View All</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
-                <MudChip T="string" Color="@(IsLoginPage ? Color.Inherit : Color.Secondary)" Size="Size.Medium" Class="mr-4">
-                    Welcome, @context.User.Identity?.Name!
-                </MudChip>
-                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="HandleLogout" StartIcon="@Icons.Material.Filled.Logout">
-                    Logout
-                </MudButton>
+                
+                <!-- Profile Avatar -->
+                <MudMenu Class="mr-4">
+                    <ActivatorContent>
+                        <MudAvatar Color="Color.Secondary" Size="Size.Medium" Class="cursor-pointer">
+                            @if (CurrentEmployeeState.CurrentEmployee?.ProfilePicture != null && CurrentEmployeeState.CurrentEmployee.ProfilePicture.Length > 0)
+                            {
+                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(CurrentEmployeeState.CurrentEmployee.ProfilePicture)"
+                                     alt="Profile"
+                                     style="width: 100%; height: 100%; object-fit: cover; object-position: center;" />
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.h6" Style="color: var(--mud-palette-secondary-text);">
+                                    @GetFirstLetter(CurrentEmployeeState.CurrentEmployee?.FullName ?? context.User.Identity?.Name)
+                                </MudText>
+                            }
+                        </MudAvatar>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Href="/profile">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-3" />
+                            My Profile
+                        </MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem OnClick="HandleLogout">
+                            <MudIcon Icon="@Icons.Material.Filled.Logout" Class="mr-3" />
+                            Logout
+                        </MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+                
+                
             </Authorized>
             <NotAuthorized>
                 @if (!IsLoginPage)
@@ -98,9 +127,22 @@
     private List<NotificationDto> _notifications = new();
     private int _unreadCount = 0;
     private int? _userId;
+    private bool _disposed;
+
+    private string GetFirstLetter(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            return "?";
+        }
+        return fullName.TrimStart().Substring(0, 1).ToUpper();
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        // Subscribe to current employee changes
+        CurrentEmployeeState.CurrentEmployeeChanged += OnCurrentEmployeeChanged;
+
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -111,6 +153,7 @@
             {
                 _userId = userId;
                 await LoadNotifications();
+                await LoadCurrentEmployee();
             }
         }
     }
@@ -123,6 +166,32 @@
             _unreadCount = await NotificationService.GetUnreadCountAsync(_userId.Value);
             StateHasChanged();
         }
+    }
+
+    private async Task LoadCurrentEmployee()
+    {
+        try
+        {
+            var loginResponse = await LocalStorage.GetItemAsync<LoginResponseDto>("loginResponse");
+            if (loginResponse != null)
+            {
+                // Always load fresh employee data when logging in (in case new user)
+                var employee = await EmployeeService.GetEmployeeDetailsAsync(loginResponse.EmployeeId);
+                if (employee != null)
+                {
+                    CurrentEmployeeState.SetCurrentEmployee(employee);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore errors
+        }
+    }
+
+    private void OnCurrentEmployeeChanged()
+    {
+        InvokeAsync(() => StateHasChanged());
     }
 
     private async Task HandleNotificationClick(NotificationDto notification)
@@ -146,6 +215,9 @@
     private async Task HandleLogout()
     {
         await LocalStorage.RemoveItemAsync("authToken");
+        await LocalStorage.RemoveItemAsync("loginResponse");
+        CurrentEmployeeState.ClearCurrentEmployee();
+        Dispose();
         ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserLogout();
         Navigation.NavigateTo("/login");
     }
@@ -153,5 +225,14 @@
     private void ToggleDrawer()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            CurrentEmployeeState.CurrentEmployeeChanged -= OnCurrentEmployeeChanged;
+            _disposed = true;
+        }
     }
 }

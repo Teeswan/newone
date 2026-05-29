@@ -152,7 +152,8 @@ public class ExcelPdfService : IExcelPdfService
         ws.Cell(1, 1).Value = "FormId";
         ws.Cell(1, 2).Value = "FormName";
         ws.Cell(1, 3).Value = "IsActive";
-        StyleHeaderRow(ws, 3);
+        ws.Cell(1, 4).Value = "FormType";
+        StyleHeaderRow(ws, 4);
 
         int row = 2;
         foreach (var item in data)
@@ -160,6 +161,7 @@ public class ExcelPdfService : IExcelPdfService
             ws.Cell(row, 1).Value = item.FormId;
             ws.Cell(row, 2).Value = item.FormName ?? "";
             ws.Cell(row, 3).Value = item.IsActive == true ? "Yes" : "No";
+            ws.Cell(row, 4).Value = item.FormType.ToString();
             row++;
         }
 
@@ -435,10 +437,17 @@ public class ExcelPdfService : IExcelPdfService
 
         foreach (var row in ws.RowsUsed().Skip(1))
         {
+            var formTypeStr = row.Cell(4).GetString();
+            if (!Enum.TryParse<AppraisalFormType>(formTypeStr, true, out var formType))
+            {
+                formType = AppraisalFormType.PerformanceAppraisal;
+            }
+
             var request = new CreateAppraisalFormRequest
             {
                 FormName = row.Cell(2).GetString(),
-                IsActive = row.Cell(3).GetString().Equals("Yes", StringComparison.OrdinalIgnoreCase)
+                IsActive = row.Cell(3).GetString().Equals("Yes", StringComparison.OrdinalIgnoreCase),
+                FormType = formType
             };
             await _formService.CreateAsync(request);
             count++;
@@ -850,8 +859,8 @@ public class ExcelPdfService : IExcelPdfService
     public async Task<byte[]> ExportAppraisalFormsToPdfAsync()
     {
         var data = (await _formService.GetAllAsync()).ToList();
-        return GeneratePdf("Appraisal Forms Report", new[] { "FormId", "FormName", "IsActive" },
-            data.Select(i => new[] { i.FormId.ToString(), i.FormName ?? "", i.IsActive == true ? "Yes" : "No" }).ToList());
+        return GeneratePdf("Appraisal Forms Report", new[] { "FormId", "FormName", "IsActive", "FormType" },
+            data.Select(i => new[] { i.FormId.ToString(), i.FormName ?? "", i.IsActive == true ? "Yes" : "No", i.FormType.ToString() }).ToList());
     }
 
     public async Task<byte[]> ExportFormQuestionsToPdfAsync()

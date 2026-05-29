@@ -18,6 +18,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
+builder.Services.AddScoped<ICurrentEmployeeStateService, CurrentEmployeeStateService>();
 
 // Register the Authentication Handler
 builder.Services.AddScoped<AuthenticationHeaderHandler>();
@@ -57,9 +58,6 @@ builder.Services.AddHttpClient<IAppraisalFormBlazorService, AppraisalFormBlazorS
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddHttpClient<IAppraisalQuestionBlazorService, AppraisalQuestionBlazorService>(client => client.BaseAddress = apiBaseUrl)
-    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
-
-builder.Services.AddHttpClient<IAppraisalResponseBlazorService, AppraisalResponseBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddHttpClient<IPerformanceEvaluationBlazorService, PerformanceEvaluationBlazorService>(client => client.BaseAddress = apiBaseUrl)
