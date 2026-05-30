@@ -39,3 +39,10 @@ public class UpdatePerformanceEvaluationRequest
 
     public List<UpdateAppraisalResponseRequest> Responses { get; set; } = new();
 }
+
+public class BulkPerformanceEvaluationRequest
+{
+    public int CycleId { get; set; }
+    public int FormId { get; set; }
+    public List<int> EmployeeIds { get; set; } = new();
+}

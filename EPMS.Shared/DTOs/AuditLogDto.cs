@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
 
-namespace EPMS.Domain.Entities;
+namespace EPMS.Shared.DTOs;
 
-public partial class AuditLog
+public class AuditLogDto
 {
     public int AuditId { get; set; }
     public string? TableName { get; set; }
@@ -11,8 +10,7 @@ public partial class AuditLog
     public string? ActionType { get; set; }
     public string? OldData { get; set; }
     public string? NewData { get; set; }
-    public int? ChangedByEmployeeId { get; set; } // Now perfectly matches the database!
+    public int? ChangedByEmployeeId { get; set; }
+    public string? ChangedByEmployeeName { get; set; }
     public DateTimeOffset? ChangedAt { get; set; }
-
-    public virtual Employee? ChangedByEmployee { get; set; }
 }

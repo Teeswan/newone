@@ -65,6 +65,14 @@ public class PerformanceEvaluationsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.EvalId }, result);
     }
 
+    [HttpPost("bulk")]
+    [HasPermission(Permissions.PerformanceEvaluations.Manage)]
+    public async Task<ActionResult<int>> CreateBulk(BulkPerformanceEvaluationRequest request)
+    {
+        var result = await _service.CreateBulkAsync(request, GetCurrentEmployeeId());
+        return Ok(result);
+    }
+
     [HttpPut("{id}")]
     [HasPermission(Permissions.PerformanceEvaluations.Manage)]
     public async Task<ActionResult<PerformanceEvaluationDto>> Update(int id, UpdatePerformanceEvaluationRequest request)
@@ -88,6 +96,15 @@ public class PerformanceEvaluationsController : ControllerBase
     public async Task<ActionResult> SubmitManagerReview(int id)
     {
         var result = await _service.SubmitManagerReviewAsync(id, GetCurrentEmployeeId());
+        if (!result) return NotFound();
+        return Ok();
+    }
+
+    [HttpPost("{id}/finalize")]
+    [HasPermission(Permissions.PerformanceEvaluations.Manage)]
+    public async Task<ActionResult> Finalize(int id)
+    {
+        var result = await _service.FinalizeAsync(id, GetCurrentEmployeeId());
         if (!result) return NotFound();
         return Ok();
     }

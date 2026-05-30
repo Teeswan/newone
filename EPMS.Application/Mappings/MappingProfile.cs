@@ -181,6 +181,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
 
+        CreateMap<AuditLog, AuditLogDto>()
+            .ForMember(dest => dest.ChangedByEmployeeName, opt => opt.MapFrom(src => src.ChangedByEmployee != null ? src.ChangedByEmployee.FullName : (src.ChangedByEmployeeId != null ? "Employee #" + src.ChangedByEmployeeId : "System")));
+
         // Entity ? DTO
         CreateMap<PipPlan, PipPlanDto>()
             .ForMember(d => d.PipId, o => o.MapFrom(s => s.Pipid))
