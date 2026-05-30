@@ -27,6 +27,7 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
 builder.Services.AddScoped<ICurrentEmployeeStateService, CurrentEmployeeStateService>();
+builder.Services.AddScoped<IPermissionCheckerService, PermissionCheckerService>();
 
 // Register the Authentication Handler
 builder.Services.AddScoped<AuthenticationHeaderHandler>();

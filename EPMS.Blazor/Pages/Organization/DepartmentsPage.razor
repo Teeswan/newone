@@ -9,6 +9,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IPermissionCheckerService PermissionChecker
 
 <PageTitle>Departments</PageTitle>
 
@@ -25,12 +26,15 @@
             <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="ExportToPdfAsync" Class="rounded-lg">
                 PDF
             </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenImportDialog" Class="rounded-lg">
-                Import
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDepartmentAddDialog" Class="rounded-lg">
-                Add Department
-            </MudButton>
+            @if (_canCreate)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenImportDialog" Class="rounded-lg">
+                    Import
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDepartmentAddDialog" Class="rounded-lg">
+                    Add Department
+                </MudButton>
+            }
         </div>
     </div>
 
@@ -77,8 +81,14 @@
                             <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" />
                             View Teams
                         </MudButton>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
+                        @if (_canEdit)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
+                        }
+                        @if (_canDelete)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
+                        }
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -93,10 +103,21 @@
     private List<DepartmentDto> _departments = new();
     private bool _isLoading = true;
     private string _search = "";
+    private bool _canCreate = false;
+    private bool _canEdit = false;
+    private bool _canDelete = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadPermissions();
         await LoadDepartments();
+    }
+
+    private async Task LoadPermissions()
+    {
+        _canCreate = await PermissionChecker.CanCreateAsync("Departments");
+        _canEdit = await PermissionChecker.CanEditAsync("Departments");
+        _canDelete = await PermissionChecker.CanDeleteAsync("Departments");
     }
 
     private async Task LoadDepartments()
