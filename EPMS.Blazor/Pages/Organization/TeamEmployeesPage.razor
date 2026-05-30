@@ -1,0 +1,306 @@
+@page "/teams/{teamId:int}/employees"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Dialogs
+@using EPMS.Blazor.Pages.Employees
+@inject IEmployeeBlazorService EmployeeService
+@inject ITeamBlazorService TeamService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Team Employees</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="d-flex justify-space-between align-center mb-8">
+        <div class="d-flex align-center">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" />
+            <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827;">
+                Employees in @(_team?.TeamName ?? "Loading...")
+            </MudText>
+        </div>
+        <div class="d-flex gap-3">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Download" OnClick="ExportToExcelAsync" Class="rounded-lg">
+                Excel
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="ExportToPdfAsync" Class="rounded-lg">
+                PDF
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenImportDialog" Class="rounded-lg">
+                Import
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="OpenEmployeeAddDialog" Class="rounded-lg">
+                Add Employee
+            </MudButton>
+        </div>
+    </div>
+
+    <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+        <MudTextField @bind-Value="_search" Placeholder="Search employees..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+    </MudPaper>
+
+    @if (_isLoading)
+    {
+        <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+            <MudSkeletonLoader Animated="true" SkeletonType="SkeletonType.Text" Width="100%" Height="40px" Class="mb-4" />
+            <MudSkeletonLoader Animated="true" SkeletonType="SkeletonType.Text" Width="80%" Height="40px" Class="mb-4" />
+            <MudSkeletonLoader Animated="true" SkeletonType="SkeletonType.Text" Width="90%" Height="40px" />
+        </MudPaper>
+    }
+    else if (_filteredEmployees.Count == 0)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mt-4">
+            No employees found for this team
+        </MudAlert>
+    }
+    else
+    {
+        <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+            <MudTable Items="_filteredEmployees" T="EmployeeDto" Hover="true" Breakpoint="Breakpoint.Sm" Filter="new Func<EmployeeDto,bool>(Filter)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>Code</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Department</MudTh>
+                    <MudTh>Position</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
+                    <MudTd DataLabel="Name">@context.FullName</MudTd>
+                    <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive == true ? Color.Success : Color.Error)">@(context.IsActive == true ? "Active" : "Inactive")</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEmployeeEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int TeamId { get; set; }
+
+    private TeamDto? _team;
+    private List<EmployeeDto> _filteredEmployees = new();
+    private bool _isLoading = true;
+    private string _search = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            StateHasChanged();
+
+            // Load data in parallel
+            var employeesTask = EmployeeService.GetEmployeesByTeamAsync(TeamId);
+            var allTeamsTask = TeamService.GetAllTeamsAsync();
+
+            await Task.WhenAll(employeesTask, allTeamsTask);
+
+            _filteredEmployees = employeesTask.Result.ToList();
+            var allTeams = allTeamsTask.Result.ToList();
+            _team = allTeams.FirstOrDefault(t => t.TeamId == TeamId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool Filter(EmployeeDto employee) => 
+        string.IsNullOrWhiteSpace(_search) || 
+        employee.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+        employee.EmployeeCode.Contains(_search, StringComparison.OrdinalIgnoreCase);
+
+    private async Task OpenEmployeeAddDialog()
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["DefaultDepartmentId"] = _team?.DepartmentId,
+            ["DefaultTeamId"] = TeamId
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<EmployeeForm>("Add Employee", parameters, options);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled && result.Data is EPMS.Shared.Requests.UpdateEmployeeRequest request)
+        {
+            var success = await EmployeeService.CreateEmployeeAsync(new EPMS.Shared.Requests.CreateEmployeeRequest
+            {
+                EmployeeCode = request.EmployeeCode,
+                FullName = request.FullName,
+                Email = request.Email,
+                DepartmentId = request.DepartmentId,
+                TeamId = request.TeamId,
+                PositionId = request.PositionId,
+                ReportsTo = request.ReportsTo,
+                JoinDate = request.JoinDate,
+                CurrentSalary = request.CurrentSalary,
+                Phone = request.Phone,
+                Address = request.Address,
+                DateOfBirth = request.DateOfBirth,
+                EmploymentStatus = request.EmploymentStatus,
+                NrcNumber = request.NrcNumber,
+                Gender = request.Gender,
+                EmergencyContact = request.EmergencyContact,
+                EmergencyPhone = request.EmergencyPhone,
+                BankName = request.BankName,
+                BankAccountNumber = request.BankAccountNumber,
+                IsActive = request.IsActive
+            });
+            if (success)
+            {
+                Snackbar.Add("Employee created successfully!", Severity.Success);
+                await Task.Delay(200);
+                await LoadData();
+            }
+        }
+    }
+
+    private async Task OpenEmployeeEditDialog(EmployeeDto employee)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["EmployeeId"] = employee.EmployeeId, 
+            ["IsEdit"] = true 
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<EmployeeForm>("Edit Employee", parameters, options);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled && result.Data is EPMS.Shared.Requests.UpdateEmployeeRequest request)
+        {
+            var success = await EmployeeService.UpdateEmployeeAsync(employee.EmployeeId, request);
+            if (success)
+            {
+                Snackbar.Add("Employee updated successfully!", Severity.Success);
+                await Task.Delay(200);
+                await LoadData();
+            }
+        }
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete this employee?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var success = await EmployeeService.DeleteEmployeeAsync(id);
+            if (success)
+            {
+                Snackbar.Add("Employee deleted successfully!", Severity.Success);
+                await LoadData();
+            }
+            else
+            {
+                Snackbar.Add("Error deleting employee.", Severity.Error);
+            }
+        }
+    }
+
+    private void GoBack()
+    {
+        if (_team?.DepartmentId != null)
+            Navigation.NavigateTo($"/departments/{_team.DepartmentId}/teams");
+        else
+            Navigation.NavigateTo("/departments");
+    }
+
+    private async Task OpenImportDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<ImportEmployeeDialog>("Import Employees", options);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await Task.Delay(200);
+            await LoadData();
+        }
+    }
+
+    private async Task ExportToExcelAsync()
+    {
+        try
+        {
+            var fileBytes = await EmployeeService.ExportToExcelAsync();
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                (function() {
+                    window.BlazorDownloadFile = function(filename, contentType, content) {
+                        const link = document.createElement('a');
+                        const fileUrl = 'data:' + contentType + ';base64,' + content;
+                        link.href = fileUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    };
+                })();
+            ");
+            await JSRuntime.InvokeVoidAsync("BlazorDownloadFile", "Employees.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("Exported to Excel!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportToPdfAsync()
+    {
+        try
+        {
+            var fileBytes = await EmployeeService.ExportToPdfAsync();
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                (function() {
+                    window.BlazorDownloadFile = function(filename, contentType, content) {
+                        const link = document.createElement('a');
+                        const fileUrl = 'data:' + contentType + ';base64,' + content;
+                        link.href = fileUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    };
+                })();
+            ");
+            await JSRuntime.InvokeVoidAsync("BlazorDownloadFile", "Employees.pdf", "application/pdf", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("Exported to PDF!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+}

@@ -1,0 +1,261 @@
+@page "/departments/{departmentId:int}/teams"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Dialogs
+@using EPMS.Blazor.Pages.Teams
+@inject IDepartmentBlazorService DepartmentService
+@inject ITeamBlazorService TeamService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Teams</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="d-flex justify-space-between align-center mb-8">
+        <div class="d-flex align-center">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" />
+            <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827;">
+                Teams in @(_department?.DepartmentName ?? "Loading...")
+            </MudText>
+        </div>
+        <div class="d-flex gap-3">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Download" OnClick="ExportToExcelAsync" Class="rounded-lg">
+                Excel
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="ExportToPdfAsync" Class="rounded-lg">
+                PDF
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenImportDialog" Class="rounded-lg">
+                Import
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenTeamAddDialog" Class="rounded-lg">
+                Add Team
+            </MudButton>
+        </div>
+    </div>
+
+    <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+        <MudTextField @bind-Value="_search" Placeholder="Search teams..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+    </MudPaper>
+
+    @if (_isLoading)
+    {
+        <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+            <MudSkeletonLoader Animated="true" SkeletonType="SkeletonType.Text" Width="100%" Height="40px" Class="mb-4" />
+            <MudSkeletonLoader Animated="true" SkeletonType="SkeletonType.Text" Width="80%" Height="40px" Class="mb-4" />
+            <MudSkeletonLoader Animated="true" SkeletonType="SkeletonType.Text" Width="90%" Height="40px" />
+        </MudPaper>
+    }
+    else if (_filteredTeams.Count == 0)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mt-4">
+            No teams found for this department
+        </MudAlert>
+    }
+    else
+    {
+        <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+            <MudTable Items="_filteredTeams" T="TeamDetailDto" Hover="true" Breakpoint="Breakpoint.Sm" Filter="new Func<TeamDetailDto,bool>(Filter)" Class="rounded-lg">
+                <HeaderContent>
+                    <MudTh>ID</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Manager</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="ID">@context.TeamIdName</MudTd>
+                    <MudTd DataLabel="Name">@context.TeamName</MudTd>
+                    <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => NavigateToEmployees(context))">
+                            <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-2" />
+                            View Employees
+                        </MudButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenTeamEditDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteTeam(context.TeamId))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int DepartmentId { get; set; }
+
+    private DepartmentDto? _department;
+    private List<TeamDetailDto> _filteredTeams = new();
+    private bool _isLoading = true;
+    private string _search = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            StateHasChanged();
+
+            // Load data in parallel
+            var teamsTask = TeamService.GetTeamsByDepartmentAsync(DepartmentId);
+            var allDeptsTask = DepartmentService.GetAllDepartmentsAsync();
+
+            await Task.WhenAll(teamsTask, allDeptsTask);
+
+            _filteredTeams = teamsTask.Result.ToList();
+            var allDepts = allDeptsTask.Result.ToList();
+            _department = allDepts.FirstOrDefault(d => d.DepartmentId == DepartmentId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToEmployees(TeamDetailDto team) => Navigation.NavigateTo($"/teams/{team.TeamId}/employees");
+
+    private bool Filter(TeamDetailDto team) => 
+        string.IsNullOrWhiteSpace(_search) || 
+        team.TeamName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+        (team.TeamIdName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (team.ManagerName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private async Task OpenTeamAddDialog()
+    {
+        var parameters = new DialogParameters { ["DefaultDepartmentId"] = DepartmentId };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<TeamDialog>("Add Team", parameters, options);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(200);
+            await LoadData();
+        }
+    }
+
+    private async Task OpenTeamEditDialog(TeamDetailDto team)
+    {
+        var parameters = new DialogParameters { ["Id"] = team.TeamId };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<TeamDialog>("Edit Team", parameters, options);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(200);
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteTeam(int id)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete this team?" },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var success = await TeamService.DeleteTeamAsync(id);
+            if (success)
+            {
+                Snackbar.Add("Team deleted successfully!", Severity.Success);
+                await LoadData();
+            }
+            else
+            {
+                Snackbar.Add("Error deleting team.", Severity.Error);
+            }
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/departments");
+
+    private async Task OpenImportDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<ImportTeamDialog>("Import Teams", options);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await Task.Delay(200);
+            await LoadData();
+        }
+    }
+
+    private async Task ExportToExcelAsync()
+    {
+        try
+        {
+            var fileBytes = await TeamService.ExportToExcelAsync();
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                (function() {
+                    window.BlazorDownloadFile = function(filename, contentType, content) {
+                        const link = document.createElement('a');
+                        const fileUrl = 'data:' + contentType + ';base64,' + content;
+                        link.href = fileUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    };
+                })();
+            ");
+            await JSRuntime.InvokeVoidAsync("BlazorDownloadFile", "Teams.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("Exported to Excel!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportToPdfAsync()
+    {
+        try
+        {
+            var fileBytes = await TeamService.ExportToPdfAsync();
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                (function() {
+                    window.BlazorDownloadFile = function(filename, contentType, content) {
+                        const link = document.createElement('a');
+                        const fileUrl = 'data:' + contentType + ';base64,' + content;
+                        link.href = fileUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    };
+                })();
+            ");
+            await JSRuntime.InvokeVoidAsync("BlazorDownloadFile", "Teams.pdf", "application/pdf", Convert.ToBase64String(fileBytes));
+            Snackbar.Add("Exported to PDF!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+}

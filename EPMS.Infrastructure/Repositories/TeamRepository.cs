@@ -47,10 +47,8 @@ public class TeamRepository : BaseRepository<Team, int>, ITeamRepository
 
     public async Task<IEnumerable<dynamic>> GetTeamsByDepartmentAsync(int departmentId)
     {
-        // Using dynamic here because sp_GetTeamsByDepartment returns joined data (manager name, member count)
-        // that doesn't map directly to the Team entity.
-        var parameters = new[] { new SqlParameter("@DepartmentId", departmentId) };
-        return await _sqlRepository.FromSqlAsync(Teams_GetByDepartment, parameters);
+        using IDbConnection db = new SqlConnection(_connectionString);
+        return await db.QueryAsync(Teams_GetByDepartment, new { DepartmentId = departmentId });
     }
 
     public async Task<Team?> GetByIdNoTrackingAsync(int id)

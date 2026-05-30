@@ -9,6 +9,7 @@ namespace EPMS.Blazor.Services
         Task<List<EmployeeDto>> GetEmployeesAsync();
         Task<EmployeeDetailDto?> GetEmployeeDetailsAsync(int id);
         Task<List<EmployeeDto>> GetHierarchyAsync();
+        Task<List<EmployeeDto>> GetEmployeesByTeamAsync(int teamId);
         Task<bool> CreateEmployeeAsync(CreateEmployeeRequest request);
         Task<bool> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request);
         Task<bool> DeleteEmployeeAsync(int id);

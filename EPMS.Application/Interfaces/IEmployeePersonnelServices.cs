@@ -11,6 +11,7 @@ public interface IEmployeeService
     Task<EmployeeDto?> UpdateAsync(int id, UpdateEmployeeRequest request);
     Task<bool> DeleteAsync(int id);
     Task<IEnumerable<EmployeeDto>> GetByDepartmentAsync(int departmentId);
+    Task<IEnumerable<EmployeeDto>> GetByTeamAsync(int teamId);
     Task<IEnumerable<EmployeeDto>> GetDirectReportsAsync(int managerId);
     Task<EmployeeDto?> GetByCodeAsync(string code);
 }
