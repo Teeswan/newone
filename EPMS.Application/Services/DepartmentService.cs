@@ -32,6 +32,15 @@ public class DepartmentService : IDepartmentService
 
     public async Task<DepartmentDto> CreateAsync(CreateDepartmentRequest request)
     {
+        if (!string.IsNullOrWhiteSpace(request.DepartmentIdName))
+        {
+            var existing = await _repository.GetAllAsync();
+            if (existing.Any(d => d.DepartmentIdName == request.DepartmentIdName))
+            {
+                throw new InvalidOperationException($"A department with code '{request.DepartmentIdName}' already exists. Please use a different code.");
+            }
+        }
+
         var entity = _mapper.Map<Department>(request);
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<DepartmentDto>(created);

@@ -1,5 +1,6 @@
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using EPMS.Shared.Common;
 using System.Net.Http.Json;
 
 namespace EPMS.Blazor.Services;
@@ -17,29 +18,52 @@ public class LevelBlazorService : ILevelBlazorService
     public async Task<IEnumerable<LevelDto>> GetAllLevelsAsync()
     {
         var response = await _httpClient.GetAsync(BaseUrl);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<IEnumerable<LevelDto>>() ?? new List<LevelDto>();
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<IEnumerable<LevelDto>>>();
+            return result?.Data ?? new List<LevelDto>();
+        }
+        
+        // Handle direct array response for backward compatibility or different API design
+        try { return await response.Content.ReadFromJsonAsync<IEnumerable<LevelDto>>() ?? new List<LevelDto>(); }
+        catch { return new List<LevelDto>(); }
     }
 
     public async Task<LevelDto?> GetLevelByIdAsync(string id)
     {
         var response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<LevelDto>();
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<LevelDto>>();
+            return result?.Data;
+        }
+        return null;
     }
 
     public async Task<LevelDto> CreateLevelAsync(CreateLevelRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync(BaseUrl, request);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<LevelDto>() ?? throw new InvalidOperationException("Could not create level.");
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<LevelDto>>();
+        
+        if (response.IsSuccessStatusCode && result != null && result.Success)
+        {
+            return result.Data!;
+        }
+        
+        throw new InvalidOperationException(result?.Message ?? "Could not create level.");
     }
 
     public async Task<LevelDto?> UpdateLevelAsync(string id, UpdateLevelRequest request)
     {
         var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", request);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<LevelDto>();
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<LevelDto>>();
+        
+        if (response.IsSuccessStatusCode && result != null && result.Success)
+        {
+            return result.Data;
+        }
+        
+        throw new InvalidOperationException(result?.Message ?? "Could not update level.");
     }
 
     public async Task<bool> DeleteLevelAsync(string id)

@@ -145,7 +145,7 @@
                             </MudTabs>
                         }
 
-                        @if (!isReadOnlyForUser)
+                        @if (!isReadOnlyForUser && evaluationType != AppraisalFormType.SelfAssessment)
                         {
                             <div class="mt-4 d-flex align-center gap-4">
                                 <MudSelect T="int?" Label="Select Evaluator" @bind-Value="newEvaluatorId" Variant="Variant.Outlined" Dense="true" Style="max-width: 300px">
@@ -174,19 +174,22 @@
                             <MudExpansionPanel Text="Final Summary & Comments" IsExpanded="true">
                                 <MudGrid>
                                     @* Always show scores for transparency, but keep them Read-Only *@
-                                    <MudItem xs="12" sm="3">
-                                        <MudNumericField @bind-Value="updateRequest.SelfRating" Label="Total Self Rating" ReadOnly="true" Variant="Variant.Outlined" />
-                                    </MudItem>
-
-                                    @* Only show Manager Rating to the Creator or if already submitted *@
-                                    @if (currentEmployeeId != updateRequest.EmployeeId || updateRequest.Status != PerformanceEvaluationStatus.Draft)
+                                    @if (evaluationType != AppraisalFormType.Feedback360)
                                     {
                                         <MudItem xs="12" sm="3">
-                                            <MudNumericField @bind-Value="updateRequest.ManagerRating" Label="Total Manager Rating" ReadOnly="true" Variant="Variant.Outlined" />
+                                            <MudNumericField @bind-Value="updateRequest.SelfRating" Label="Total Self Rating" ReadOnly="true" Variant="Variant.Outlined" />
                                         </MudItem>
-                                        <MudItem xs="12" sm="3">
-                                            <MudNumericField @bind-Value="updateRequest.FinalRatingScore" Label="Final Score (%)" ReadOnly="true" Variant="Variant.Outlined" />
-                                        </MudItem>
+
+                                        @* Only show Manager Rating to the Creator or if already submitted *@
+                                        @if (evaluationType != AppraisalFormType.SelfAssessment && (currentEmployeeId != updateRequest.EmployeeId || updateRequest.Status != PerformanceEvaluationStatus.Draft))
+                                        {
+                                            <MudItem xs="12" sm="3">
+                                                <MudNumericField @bind-Value="updateRequest.ManagerRating" Label="Total Manager Rating" ReadOnly="true" Variant="Variant.Outlined" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="3">
+                                                <MudNumericField @bind-Value="updateRequest.FinalRatingScore" Label="Final Score (%)" ReadOnly="true" Variant="Variant.Outlined" />
+                                            </MudItem>
+                                        }
                                     }
 
                                     @* Employee Remarks: Editable only by the subject during Draft *@
@@ -199,11 +202,18 @@
                                     </MudItem>
 
                                     @* Appraiser Remarks & Finalize: Visible only to the Form Creator *@
-                                    @if (currentEmployeeId == updateRequest.CreatedByEmployeeId)
+                                    @if (currentEmployeeId == updateRequest.CreatedByEmployeeId && evaluationType != AppraisalFormType.SelfAssessment)
                                     {
                                         <MudItem xs="12" sm="12">
                                             <MudTextField @bind-Value="updateRequest.ManagerComments" Label="Appraiser Overall Remarks" Lines="3" Variant="Variant.Outlined" />
                                         </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudCheckBox @bind-Value="isFinalizedValue" Label="Finalize & Lock this Evaluation?" Color="Color.Primary" />
+                                        </MudItem>
+                                    }
+                                    
+                                    @if (currentEmployeeId == updateRequest.CreatedByEmployeeId && evaluationType == AppraisalFormType.SelfAssessment)
+                                    {
                                         <MudItem xs="12" sm="3">
                                             <MudCheckBox @bind-Value="isFinalizedValue" Label="Finalize & Lock this Evaluation?" Color="Color.Primary" />
                                         </MudItem>
@@ -250,6 +260,7 @@
 
     private MudForm? form;
     private UpdatePerformanceEvaluationRequest? updateRequest;
+    private AppraisalFormType? evaluationType;
     private bool isFinalizedValue { get; set; } = false;
     private List<AppraisalResponseDto>? evalResponses;
 
@@ -312,6 +323,7 @@
                 };
                 isFinalizedValue = eval.IsFinalized ?? false;
                 evalResponses = eval.Responses;
+                evaluationType = eval.FormType;
 
                 // Set initial lookup values
                 selectedEmployee = employees?.FirstOrDefault(e => e.EmployeeId == eval.EmployeeId);
@@ -342,13 +354,13 @@
             else
             {
                 Snackbar.Add("Performance evaluation not found.", Severity.Error);
-                NavigationManager.NavigateTo("/performanceevaluations");
+                NavigationManager.NavigateTo("/performance-hub");
             }
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error loading performance evaluation: {ex.Message}", Severity.Error);
-            NavigationManager.NavigateTo("/performanceevaluations");
+            NavigationManager.NavigateTo("/performance-hub");
         }
     }
 
@@ -485,7 +497,7 @@
                 {
                     await PerformanceEvaluationService.UpdatePerformanceEvaluationAsync(Id, updateRequest);
                     Snackbar.Add("Performance evaluation updated successfully.", Severity.Success);
-                    NavigationManager.NavigateTo("/performanceevaluations");
+                    NavigationManager.NavigateTo("/performance-hub");
                 }
                 catch (Exception ex)
                 {
@@ -495,5 +507,5 @@
         }
     }
 
-    private void Cancel() => NavigationManager.NavigateTo("/performanceevaluations");
+    private void Cancel() => NavigationManager.NavigateTo("/performance-hub");
 }

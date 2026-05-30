@@ -83,6 +83,14 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.AuditId);
+            entity.HasOne(d => d.ChangedByEmployee)
+                .WithMany()
+                .HasForeignKey(d => d.ChangedByEmployeeId);
+        });
+
         modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
         {
             entity.HasOne(e => e.TeamKpi)
@@ -407,6 +415,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("LevelID");
             entity.Property(e => e.LevelName).HasMaxLength(100);
+            entity.Property(e => e.LevelDescription).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<MeetingNote>(entity =>

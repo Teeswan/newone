@@ -1,0 +1,119 @@
+@page "/security/audit-logs"
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@using EPMS.Shared.Constants
+@attribute [Authorize(Roles = "Admin")] // Restrict to Admins or specific permission
+@inject IAuditLogBlazorService AuditLogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Audit Logs</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-6">System Audit Logs</MudText>
+
+    <MudPaper Elevation="3" Class="pa-4 mb-6">
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_searchString" Placeholder="Search logs (Entity, Action, Data)..." 
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
+                              IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudSelect T="string" Label="Filter by Entity" @bind-Value="_entityFilter" Clearable="true">
+                    <MudSelectItem Value="@("PerformanceEvaluation")">Performance Evaluations</MudSelectItem>
+                    <MudSelectItem Value="@("Employee")">Employees</MudSelectItem>
+                    <MudSelectItem Value="@("AppraisalCycle")">Appraisal Cycles</MudSelectItem>
+                    <MudSelectItem Value="@("User")">Users</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="d-flex align-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadLogs" StartIcon="@Icons.Material.Filled.Refresh">Refresh Logs</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudTable Items="_logs" Hover="true" Breakpoint="Breakpoint.Sm" Loading="_loading" 
+              Filter="new Func<AuditLogDto,bool>(FilterFunc)" Elevation="3" Class="rounded-lg">
+        <HeaderContent>
+            <MudTh>Timestamp</MudTh>
+            <MudTh>User</MudTh>
+            <MudTh>Entity</MudTh>
+            <MudTh>Action</MudTh>
+            <MudTh>Details</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Timestamp">@context.ChangedAt?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="User">@context.ChangedByEmployeeName</MudTd>
+            <MudTd DataLabel="Entity">@context.TableName</MudTd>
+            <MudTd DataLabel="Action">
+                <MudChip T="string" Color="@GetActionColor(context.ActionType)" Size="Size.Small" Variant="Variant.Filled">
+                    @context.ActionType
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Details">
+                <MudText Typo="Typo.body2" Style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" Title="@context.NewData">
+                    @context.NewData
+                </MudText>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<AuditLogDto> _logs = new();
+    private bool _loading = true;
+    private string _searchString = "";
+    private string _entityFilter = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLogs();
+    }
+
+    private async Task LoadLogs()
+    {
+        _loading = true;
+        try
+        {
+            _logs = (await AuditLogService.GetAllAuditLogsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading logs: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private bool FilterFunc(AuditLogDto element)
+    {
+        if (!string.IsNullOrEmpty(_entityFilter) && element.TableName != _entityFilter)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        if (element.TableName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+        if (element.ActionType?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+        if (element.NewData?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+        if (element.ChangedByEmployeeName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+        return false;
+    }
+
+    private Color GetActionColor(string? action) => action?.ToLower() switch
+    {
+        "create" or "add" or "bulkcreate" => Color.Success,
+        "update" or "edit" or "recalculate" => Color.Info,
+        "delete" or "remove" => Color.Error,
+        "finalize" or "submit" => Color.Warning,
+        _ => Color.Default
+    };
+}

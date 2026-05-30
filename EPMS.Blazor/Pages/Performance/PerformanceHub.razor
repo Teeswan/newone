@@ -42,62 +42,15 @@
 
     <MudTabs Elevation="4" Rounded="true" Color="Color.Primary" ApplyEffectsToContainer="true" PanelClass="pa-6">
         @* Evaluations Tab *@
-        <MudTabPanel Text="Evaluations" Icon="@Icons.Material.Filled.Assessment">
-            <MudTabs Elevation="0" Rounded="true" Color="Color.Secondary" ApplyEffectsToContainer="true" PanelClass="mt-4" Border="true">
-                <MudTabPanel Text="Performance Appraisal" Icon="@Icons.Material.Filled.Assignment">
-                    @if (CanCreateEvaluation(AppraisalFormType.PerformanceAppraisal))
-                    {
-                        @RenderEvaluationsTable(AppraisalFormType.PerformanceAppraisal)
-                    }
-                    else
-                    {
-                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Managers (Level 02-06) can initiate Performance Appraisals.</MudAlert>
-                        @RenderEvaluationsTable(AppraisalFormType.PerformanceAppraisal, true)
-                    }
-                </MudTabPanel>
-                <MudTabPanel Text="Self Assessment" Icon="@Icons.Material.Filled.Person">
-                    @if (CanCreateEvaluation(AppraisalFormType.SelfAssessment))
-                    {
-                        @RenderEvaluationsTable(AppraisalFormType.SelfAssessment)
-                    }
-                    else
-                    {
-                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Employees (Level 02-09) can initiate Self-Assessments.</MudAlert>
-                        @RenderEvaluationsTable(AppraisalFormType.SelfAssessment, true)
-                    }
-                </MudTabPanel>
-                <MudTabPanel Text="360 Feedback" Icon="@Icons.Material.Filled.Groups">
-                    @if (CanCreateEvaluation(AppraisalFormType.Feedback360))
-                    {
-                        @RenderEvaluationsTable(AppraisalFormType.Feedback360)
-                    }
-                    else
-                    {
-                        <MudAlert Severity="Severity.Info" Class="mt-4">Eligible Positions for 360 Feedback are Level 02-08.</MudAlert>
-                        @RenderEvaluationsTable(AppraisalFormType.Feedback360, true)
-                    }
-                </MudTabPanel>
-                <MudTabPanel Text="Calibration & Review" Icon="@Icons.Material.Filled.FactCheck">
-                    @if (CanCreateEvaluation(AppraisalFormType.CalibrationReview))
-                    {
-                        @RenderEvaluationsTable(AppraisalFormType.CalibrationReview)
-                    }
-                    else
-                    {
-                        <MudAlert Severity="Severity.Info" Class="mt-4">Only Senior Management (Level 01-04) can access Calibration & Review.</MudAlert>
-                        @RenderEvaluationsTable(AppraisalFormType.CalibrationReview, true)
-                    }
-                </MudTabPanel>
-            </MudTabs>
+        <MudTabPanel Text="Evaluations" Icon="@Icons.Material.Filled.HistoryEdu">
+            @RenderEvaluationsTable()
         </MudTabPanel>
 
         @* Outcomes Tab *@
         <MudTabPanel Text="Outcomes" Icon="@Icons.Material.Filled.TaskAlt">
             <div class="d-flex justify-space-between align-center mb-6">
                 <MudText Typo="Typo.h5" Style="font-weight: 700;">Performance Outcomes</MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenOutcomeAddDialog" Class="rounded-lg px-6 py-2 shadow-lg">
-                    New Outcome
-                </MudButton>
+                @* Outcomes are auto-created upon evaluation finalization *@
             </div>
             <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
                 <MudTextField @bind-Value="_outcomeSearch" Placeholder="Search outcomes..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
@@ -120,6 +73,10 @@
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
+                        @if (context.EvalId.HasValue)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Description" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEvaluation(context.EvalId.Value))" Title="View Finalized Form" />
+                        }
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenOutcomeEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteOutcome(context.OutcomeId))" />
                     </MudTd>
@@ -139,15 +96,26 @@
 </MudContainer>
 
 @code {
-    private RenderFragment RenderEvaluationsTable(AppraisalFormType type, bool hideCreate = false) => __builder => {
+    private RenderFragment RenderEvaluationsTable(AppraisalFormType? type = null, bool hideCreate = false) => __builder => {
         <div class="d-flex justify-space-between align-center mb-6 mt-4">
-            <MudText Typo="Typo.h5" Style="font-weight: 700;">@GetTypeName(type) Evaluations</MudText>
-            @if (!hideCreate)
-            {
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEvaluationAddDialog(type))" Class="rounded-lg px-6 py-2 shadow-lg">
-                    New @GetTypeName(type)
-                </MudButton>
-            }
+            <MudText Typo="Typo.h5" Style="font-weight: 700;">@(type.HasValue ? GetTypeName(type.Value) : "Performance") Evaluations</MudText>
+            <div class="d-flex gap-2">
+                @if (type == null && !hideCreate)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.GroupAdd" OnClick="OpenBulkStartDialog" Class="rounded-lg px-4 py-2">
+                        Bulk Start
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => NavigationManager.NavigateTo("/performanceevaluations/create"))" Class="rounded-lg px-6 py-2 shadow-lg">
+                        Start Evaluation
+                    </MudButton>
+                }
+                else if (!hideCreate)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEvaluationAddDialog(type!.Value))" Class="rounded-lg px-6 py-2 shadow-lg">
+                        New @GetTypeName(type!.Value)
+                    </MudButton>
+                }
+            </div>
         </div>
         <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
             <MudTextField @bind-Value="_evalSearch" Placeholder="Search evaluations..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
@@ -155,6 +123,10 @@
         <MudTable Items="GetFilteredEvaluations(type)" T="PerformanceEvaluationDto" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Filter="new Func<PerformanceEvaluationDto,bool>(FilterEvaluations)" Class="rounded-lg">
             <HeaderContent>
                 <MudTh>Employee</MudTh>
+                @if (type == null)
+                {
+                    <MudTh>Type</MudTh>
+                }
                 <MudTh>Cycle</MudTh>
                 <MudTh>Score</MudTh>
                 <MudTh>Status</MudTh>
@@ -162,6 +134,10 @@
             </HeaderContent>
             <RowTemplate>
                     <MudTd DataLabel="Employee">@context.EmployeeName</MudTd>
+                    @if (type == null)
+                    {
+                        <MudTd DataLabel="Type">@GetTypeName(context.FormType)</MudTd>
+                    }
                     <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
                     <MudTd DataLabel="Score">@(context.FinalRatingScore?.ToString("N2") ?? "N/A")%</MudTd>
                     <MudTd DataLabel="Status">
@@ -233,12 +209,24 @@
         }
     }
 
-    private IEnumerable<PerformanceEvaluationDto> GetFilteredEvaluations(AppraisalFormType type)
+    private async Task OpenBulkStartDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BulkEvaluationDialog>("Bulk Start Evaluations", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAllData();
+        }
+    }
+
+    private IEnumerable<PerformanceEvaluationDto> GetFilteredEvaluations(AppraisalFormType? type = null)
     {
         if (currentUserEmployee == null) return Enumerable.Empty<PerformanceEvaluationDto>();
 
         var userLevel = ParseLevel(currentUserEmployee.LevelId);
-        var baseList = _evaluations.Where(e => e.FormType == type);
+        var baseList = type.HasValue ? _evaluations.Where(e => e.FormType == type.Value) : _evaluations;
 
         // Logic based on requirements:
         // Self-Assessment: L02 – L09
@@ -249,8 +237,8 @@
         return baseList.Where(e => 
             e.EmployeeId == currentUserEmployee.EmployeeId || // I am the subject
             e.Responses.Any(r => r.RespondentId == currentUserEmployee.EmployeeId) || // I am an evaluator
-            (type == AppraisalFormType.PerformanceAppraisal && userLevel <= 6 && IsDirectReport(e.EmployeeId)) || // Manager review (L02-L06)
-            (type == AppraisalFormType.CalibrationReview && userLevel <= 4) || // Senior management calibration (L01-L04)
+            (e.FormType == AppraisalFormType.PerformanceAppraisal && userLevel <= 6 && IsDirectReport(e.EmployeeId)) || // Manager review (L02-L06)
+            (e.FormType == AppraisalFormType.CalibrationReview && userLevel <= 4) || // Senior management calibration (L01-L04)
             (userLevel <= 4) // Senior management sees all
         );
     }
@@ -309,6 +297,7 @@
         string.IsNullOrWhiteSpace(_evalSearch) || 
         eval.EmployeeName.Contains(_evalSearch, StringComparison.OrdinalIgnoreCase) ||
         eval.CycleName.Contains(_evalSearch, StringComparison.OrdinalIgnoreCase) ||
+        GetTypeName(eval.FormType).Contains(_evalSearch, StringComparison.OrdinalIgnoreCase) ||
         eval.Status.ToString().Contains(_evalSearch, StringComparison.OrdinalIgnoreCase);
 
     private bool FilterOutcomes(PerformanceOutcomeDto outcome) => 
@@ -328,7 +317,7 @@
             (e.CreatedByEmployeeId == currentUserEmployee.EmployeeId && e.Status == PerformanceEvaluationStatus.SelfSubmitted) || // I created this, employee submitted, I need to check/lock
             (IsDirectReport(e.EmployeeId) && e.Status == PerformanceEvaluationStatus.SelfSubmitted && userLevel <= 6) || // Manager review (L02-L06)
             (userLevel <= 4 && e.Status == PerformanceEvaluationStatus.AwaitingCalibration) || // Senior Management needs to calibrate (L01-L04)
-            (e.Responses.Any(r => r.RespondentId == currentUserEmployee.EmployeeId && r.RatingValue == null)) // I am an evaluator but haven't rated yet
+            (e.Responses.Any(r => r.RespondentId == currentUserEmployee.EmployeeId && r.RatingValue == null && e.Status != PerformanceEvaluationStatus.Finalized)) // I am an evaluator but haven't rated yet
         );
     }
 

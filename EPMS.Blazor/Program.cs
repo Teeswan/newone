@@ -10,7 +10,15 @@ using System.Net.Http;
 using MudBlazor;
 using MudBlazor.Services;
 
+using System.Globalization;
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+// Set default culture to support dd/MM/yyyy date format
+var culture = new CultureInfo("en-GB");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
@@ -85,6 +93,9 @@ builder.Services.AddHttpClient<IReportBlazorService, ReportBlazorService>(client
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddHttpClient<INotificationBlazorService, NotificationBlazorService>(client => client.BaseAddress = apiBaseUrl)
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+
+builder.Services.AddHttpClient<IAuditLogBlazorService, AuditLogBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 
