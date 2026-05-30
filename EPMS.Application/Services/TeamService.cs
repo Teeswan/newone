@@ -32,6 +32,15 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto> CreateAsync(CreateTeamRequest request)
     {
+        if (!string.IsNullOrWhiteSpace(request.TeamIdName))
+        {
+            var allTeams = await _repository.GetAllAsync();
+            if (allTeams.Any(t => t.TeamIdName == request.TeamIdName))
+            {
+                throw new InvalidOperationException($"A team with code '{request.TeamIdName}' already exists. Please use a different code.");
+            }
+        }
+
         var entity = _mapper.Map<Team>(request);
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<TeamDto>(created);

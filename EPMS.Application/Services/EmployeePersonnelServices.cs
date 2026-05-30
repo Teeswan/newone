@@ -161,6 +161,12 @@ public class LevelService : ILevelService
 
     public async Task<LevelDto> CreateAsync(CreateLevelRequest request)
     {
+        var existing = await _repository.GetByIdAsync(request.LevelId);
+        if (existing != null)
+        {
+            throw new InvalidOperationException($"A level with ID '{request.LevelId}' already exists. Please use a different ID.");
+        }
+
         var entity = _mapper.Map<Level>(request);
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<LevelDto>(created);
@@ -209,6 +215,12 @@ public class PositionService : IPositionService
 
     public async Task<PositionDto> CreateAsync(CreatePositionRequest request)
     {
+        var existing = await _repository.GetAllAsync();
+        if (existing.Any(p => p.PositionTitle.Equals(request.PositionTitle, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException($"A position with the title '{request.PositionTitle}' already exists.");
+        }
+
         var entity = _mapper.Map<Position>(request);
         var created = await _repository.CreateAsync(entity);
         return _mapper.Map<PositionDto>(created);

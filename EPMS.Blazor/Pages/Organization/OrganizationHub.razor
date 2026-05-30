@@ -79,13 +79,20 @@
                     <MudTh>Code</MudTh>
                     <MudTh>Name</MudTh>
                     <MudTh>Parent</MudTh>
-                    <MudTh Style="text-align: right;">Actions</MudTh>
+                    <MudTh Style="width: 150px;">Status</MudTh>
+                    <MudTh Style="width: 150px; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Code">@context.DepartmentIdName</MudTd>
                     <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
                     <MudTd DataLabel="Parent">@context.ParentDepartmentName</MudTd>
-                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)" Variant="Variant.Filled">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right; white-space: nowrap;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewDepartmentDetails(context))" Title="View Details" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
                     </MudTd>
@@ -113,14 +120,20 @@
                     <MudTh>Name</MudTh>
                     <MudTh>Manager</MudTh>
                     <MudTh>Department</MudTh>
-                    <MudTh Style="text-align: right;">Actions</MudTh>
+                    <MudTh Style="width: 150px;">Status</MudTh>
+                    <MudTh Style="width: 150px; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="ID">@context.TeamIdName</MudTd>
                     <MudTd DataLabel="Name">@context.TeamName</MudTd>
                     <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
                     <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
-                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)" Variant="Variant.Filled">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right; white-space: nowrap;">
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenTeamEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteTeam(context.TeamId))" />
                     </MudTd>
@@ -178,14 +191,19 @@
                 <HeaderContent>
                     <MudTh>ID</MudTh>
                     <MudTh>Name</MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh Style="text-align: right;">Actions</MudTh>
+                    <MudTh Style="width: 150px;">Status</MudTh>
+                    <MudTh Style="width: 150px; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="ID">@context.LevelId</MudTd>
                     <MudTd DataLabel="Name">@context.LevelName</MudTd>
-                    <MudTd DataLabel="Description">@context.LevelDescription</MudTd>
-                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)" Variant="Variant.Filled">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right; white-space: nowrap;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewLevelDetails(context))" Title="View Details" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenLevelEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteLevel(context.LevelId))" />
                     </MudTd>
@@ -331,6 +349,12 @@
 
     private async Task OpenDepartmentAddDialog() => await ShowDialog<DepartmentDialog>("Add Department");
     private async Task OpenDepartmentEditDialog(DepartmentDto dept) => await ShowDialog<DepartmentDialog>("Edit Department", new DialogParameters { ["Id"] = dept.DepartmentId });
+    private async Task ViewDepartmentDetails(DepartmentDto dept)
+    {
+        var parameters = new DialogParameters { ["Department"] = dept };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        DialogService.Show<DepartmentDetailsDialog>("Department Details", parameters, options);
+    }
     private async Task DeleteDepartment(int id) => await ConfirmAndDelete(() => DepartmentService.DeleteDepartmentAsync(id), "Department");
 
     private async Task OpenTeamAddDialog() => await ShowDialog<TeamDialog>("Add Team");
@@ -344,6 +368,12 @@
 
     private async Task OpenLevelAddDialog() => await ShowDialog<LevelDialog>("Add Level");
     private async Task OpenLevelEditDialog(LevelDto level) => await ShowDialog<LevelDialog>("Edit Level", new DialogParameters { ["Id"] = level.LevelId });
+    private async Task ViewLevelDetails(LevelDto level)
+    {
+        var parameters = new DialogParameters { ["Level"] = level };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        DialogService.Show<LevelDetailsDialog>("Level Details", parameters, options);
+    }
     private async Task DeleteLevel(string id) => await ConfirmAndDelete(() => LevelService.DeleteLevelAsync(id), "Level");
 
     private async Task ShowDialog<T>(string title, DialogParameters parameters = null) where T : ComponentBase

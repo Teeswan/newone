@@ -1,5 +1,6 @@
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using EPMS.Shared.Common;
 using System.Net.Http.Json;
 
 namespace EPMS.Blazor.Services
@@ -17,29 +18,49 @@ namespace EPMS.Blazor.Services
         public async Task<IEnumerable<TeamDto>> GetAllTeamsAsync()
         {
             var response = await _httpClient.GetAsync(BaseUrl);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<TeamDto>>() ?? new List<TeamDto>();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<IEnumerable<TeamDto>>>();
+                return result?.Data ?? new List<TeamDto>();
+            }
+            return new List<TeamDto>();
         }
 
         public async Task<TeamDto?> GetTeamByIdAsync(int id)
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<TeamDto>();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<TeamDto>>();
+                return result?.Data;
+            }
+            return null;
         }
 
         public async Task<TeamDto> CreateTeamAsync(CreateTeamRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync(BaseUrl, request);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<TeamDto>() ?? throw new InvalidOperationException("Could not create team.");
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<TeamDto>>();
+            
+            if (response.IsSuccessStatusCode && result != null && result.Success)
+            {
+                return result.Data!;
+            }
+            
+            throw new InvalidOperationException(result?.Message ?? "Could not create team.");
         }
 
         public async Task<TeamDto?> UpdateTeamAsync(int id, UpdateTeamRequest request)
         {
             var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", request);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<TeamDto>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<TeamDto>>();
+            
+            if (response.IsSuccessStatusCode && result != null && result.Success)
+            {
+                return result.Data;
+            }
+            
+            throw new InvalidOperationException(result?.Message ?? "Could not update team.");
         }
 
         public async Task<bool> DeleteTeamAsync(int id)
@@ -51,8 +72,12 @@ namespace EPMS.Blazor.Services
         public async Task<IEnumerable<TeamDetailDto>> GetTeamsByDepartmentAsync(int departmentId)
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}/department/{departmentId}");
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<TeamDetailDto>>() ?? new List<TeamDetailDto>();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<IEnumerable<TeamDetailDto>>>();
+                return result?.Data ?? new List<TeamDetailDto>();
+            }
+            return new List<TeamDetailDto>();
         }
 
         public async Task<byte[]> ExportToExcelAsync()

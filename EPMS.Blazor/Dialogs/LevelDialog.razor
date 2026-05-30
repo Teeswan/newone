@@ -3,6 +3,7 @@
 @using EPMS.Blazor.Services
 @inject ILevelBlazorService LevelService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -15,13 +16,43 @@
         <MudForm @ref="form" Model="request">
             <MudGrid Spacing="4">
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.LevelId" Label="Level ID" Required="true" RequiredError="Level ID is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" Class="rounded-lg" Disabled="@IsEdit" />
+                    <MudTextField @bind-Value="request.LevelId" 
+                                  Label="Level ID" 
+                                  Placeholder="e.g., L-01, MG-1"
+                                  HelperText="Unique identifier for this level"
+                                  Required="true" 
+                                  RequiredError="Level ID is required!" 
+                                  Variant="Variant.Outlined" 
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Badge" 
+                                  Class="rounded-lg" 
+                                  Disabled="@IsEdit" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.LevelName" Label="Level Name" Required="true" RequiredError="Level name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Grade" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.LevelName" 
+                                  Label="Level Name" 
+                                  Placeholder="e.g., Junior, Senior, Manager"
+                                  HelperText="Descriptive name of the level"
+                                  Required="true" 
+                                  RequiredError="Level name is required!" 
+                                  Variant="Variant.Outlined" 
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Grade" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="request.LevelDescription" Label="Description" Variant="Variant.Outlined" Lines="3" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.LevelDescription" 
+                                  Label="Description" 
+                                  Placeholder="Describe the responsibilities or requirements for this level..."
+                                  HelperText="Detailed information about this level"
+                                  Variant="Variant.Outlined" 
+                                  Lines="3" 
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Description" 
+                                  Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudCheckBox @bind-Value="request.IsActive" Label="Level is Active" Color="Color.Primary" />
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -51,7 +82,8 @@
                 {
                     LevelId = level.LevelId,
                     LevelName = level.LevelName,
-                    LevelDescription = level.LevelDescription
+                    LevelDescription = level.LevelDescription,
+                    IsActive = level.IsActive
                 };
             }
         }
@@ -69,7 +101,8 @@
                     var updateRequest = new UpdateLevelRequest
                     {
                         LevelName = request.LevelName,
-                        LevelDescription = request.LevelDescription
+                        LevelDescription = request.LevelDescription,
+                        IsActive = request.IsActive
                     };
                     await LevelService.UpdateLevelAsync(Id!, updateRequest);
                     Snackbar.Add("Level updated successfully!", Severity.Success);
@@ -83,7 +116,10 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                await DialogService.ShowMessageBox(
+                    "Error", 
+                    (MarkupString)$"<b>Operation failed:</b><br />{ex.Message}", 
+                    yesText: "OK");
             }
         }
     }

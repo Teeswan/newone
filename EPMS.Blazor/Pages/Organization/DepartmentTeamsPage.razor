@@ -63,12 +63,18 @@
                     <MudTh>ID</MudTh>
                     <MudTh>Name</MudTh>
                     <MudTh>Manager</MudTh>
+                    <MudTh>Status</MudTh>
                     <MudTh Style="text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="ID">@context.TeamIdName</MudTd>
                     <MudTd DataLabel="Name">@context.TeamName</MudTd>
                     <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)" Variant="Variant.Filled">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => NavigateToEmployees(context))">
                             <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-2" />

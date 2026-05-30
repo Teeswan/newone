@@ -1,5 +1,6 @@
 using EPMS.Application.Interfaces;
 using EPMS.Infrastructure.Authorization;
+using EPMS.Shared.Common;
 using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
@@ -22,53 +23,53 @@ public class TeamsController : ControllerBase
 
     [HttpGet]
     [HasPermission(Permissions.Teams.View)]
-    public async Task<ActionResult<IEnumerable<TeamDto>>> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<TeamDto>>>> GetAll()
     {
         var result = await _service.GetAllAsync();
-        return Ok(result);
+        return Ok(ApiResponse<IEnumerable<TeamDto>>.SuccessResponse(result));
     }
 
     [HttpGet("{id}")]
     [HasPermission(Permissions.Teams.View)]
-    public async Task<ActionResult<TeamDto>> GetById(int id)
+    public async Task<ActionResult<ApiResponse<TeamDto>>> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);
-        if (result == null) return NotFound();
-        return Ok(result);
+        if (result == null) return NotFound(ApiResponse<TeamDto>.FailureResponse("Team not found."));
+        return Ok(ApiResponse<TeamDto>.SuccessResponse(result));
     }
 
     [HttpPost]
     [HasPermission(Permissions.Teams.Manage)]
-    public async Task<ActionResult<TeamDto>> Create(CreateTeamRequest request)
+    public async Task<ActionResult<ApiResponse<TeamDto>>> Create(CreateTeamRequest request)
     {
         var result = await _service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.TeamId }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result.TeamId }, ApiResponse<TeamDto>.SuccessResponse(result, "Team created successfully."));
     }
 
     [HttpPut("{id}")]
     [HasPermission(Permissions.Teams.Manage)]
-    public async Task<ActionResult<TeamDto>> Update(int id, UpdateTeamRequest request)
+    public async Task<ActionResult<ApiResponse<TeamDto>>> Update(int id, UpdateTeamRequest request)
     {
         var result = await _service.UpdateAsync(id, request);
-        if (result == null) return NotFound();
-        return Ok(result);
+        if (result == null) return NotFound(ApiResponse<TeamDto>.FailureResponse("Team not found."));
+        return Ok(ApiResponse<TeamDto>.SuccessResponse(result, "Team updated successfully."));
     }
 
     [HttpDelete("{id}")]
-    [HasPermission(Permissions.Teams.Manage)]
-    public async Task<IActionResult> Delete(int id)
+    [HasPermission(Permissions.Teams.Manage)]                
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);
-        if (!deleted) return NotFound();
-        return NoContent();
+        if (!deleted) return NotFound(ApiResponse<bool>.FailureResponse("Team not found."));
+        return Ok(ApiResponse<bool>.SuccessResponse(true, "Team deleted successfully."));
     }
 
     [HttpGet("department/{departmentId}")]
     [HasPermission(Permissions.Teams.View)]
-    public async Task<ActionResult<IEnumerable<TeamDetailDto>>> GetByDepartment(int departmentId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<TeamDetailDto>>>> GetByDepartment(int departmentId)
     {
         var result = await _service.GetByDepartmentAsync(departmentId);
-        return Ok(result);
+        return Ok(ApiResponse<IEnumerable<TeamDetailDto>>.SuccessResponse(result));
     }
 
     [HttpGet("export/excel")]

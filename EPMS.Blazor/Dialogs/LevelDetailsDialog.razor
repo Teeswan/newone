@@ -1,0 +1,62 @@
+@using EPMS.Shared.DTOs
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center py-2">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium" Class="mr-4">
+                <MudIcon Icon="@Icons.Material.Filled.Grade" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h5" Style="font-weight: 800; color: #111827;">@Level.LevelName</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Level Configuration Details</MudText>
+            </div>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Class="mb-6" />
+        
+        <div class="px-2">
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary" Style="font-weight: 700;">Level ID</MudText>
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">@Level.LevelId</MudText>
+                </MudItem>
+                
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary" Style="font-weight: 700;">Current Status</MudText>
+                    <div>
+                        <MudChip T="string" Size="Size.Small" 
+                                 Color="@(Level.IsActive ? Color.Success : Color.Error)" 
+                                 Variant="Variant.Filled" 
+                                 Class="ma-0 px-4">
+                            @(Level.IsActive ? "ACTIVE" : "INACTIVE")
+                        </MudChip>
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary" Style="font-weight: 700;">Description</MudText>
+                    <MudPaper Elevation="0" Class="pa-4 mt-1" Style="background-color: #F9FAFB; border-radius: 12px; border: 1px solid #E5E7EB; min-height: 100px;">
+                        <MudText Typo="Typo.body2" Style="color: #374151; line-height: 1.6;">
+                            @(string.IsNullOrEmpty(Level.LevelDescription) ? "No description provided for this level." : Level.LevelDescription)
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div class="px-4 pb-4 w-100 d-flex justify-end">
+            <MudButton OnClick="Close" Variant="Variant.Filled" Color="Color.Default" Class="rounded-lg px-8 py-2" Style="text-transform: none; font-weight: 600;">
+                Dismiss
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public LevelDto Level { get; set; } = null!;
+
+    private void Close() => MudDialog.Close();
+}
