@@ -107,6 +107,17 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
         return await db.QueryAsync<Employee>(sql, new { DepartmentId = departmentId });
     }
 
+    public async Task<IEnumerable<Employee>> GetEmployeesByTeamAsync(int teamId)
+    {
+        using IDbConnection db = new SqlConnection(_connectionString);
+        string sql = @"
+            SELECT e.* 
+            FROM Employees e
+            INNER JOIN TeamMembers tm ON e.EmployeeId = tm.EmployeeID
+            WHERE tm.TeamID = @TeamId AND e.IsDeleted = 0";
+        return await db.QueryAsync<Employee>(sql, new { TeamId = teamId });
+    }
+
     public async Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId)
     {
         using IDbConnection db = new SqlConnection(_connectionString);

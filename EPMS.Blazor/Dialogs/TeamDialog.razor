@@ -55,6 +55,7 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public int? Id { get; set; }
+    [Parameter] public int? DefaultDepartmentId { get; set; }
 
     private UpdateTeamRequest request = new() { IsActive = true };
     private List<DepartmentDto> allDepartments = new();
@@ -80,6 +81,10 @@
                     IsActive = team.IsActive
                 };
             }
+        }
+        else if (DefaultDepartmentId.HasValue)
+        {
+            request.DepartmentId = DefaultDepartmentId.Value;
         }
     }
 

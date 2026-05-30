@@ -117,6 +117,12 @@ public class EmployeeService : IEmployeeService
         return _mapper.Map<IEnumerable<EmployeeDto>>(entities);
     }
 
+    public async Task<IEnumerable<EmployeeDto>> GetByTeamAsync(int teamId)
+    {
+        var entities = await _repository.GetEmployeesByTeamAsync(teamId);
+        return _mapper.Map<IEnumerable<EmployeeDto>>(entities);
+    }
+
     public async Task<IEnumerable<EmployeeDto>> GetDirectReportsAsync(int managerId)
     {
         var entities = await _repository.GetDirectReportsAsync(managerId);

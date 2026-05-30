@@ -260,6 +260,8 @@
     [Parameter] public UpdateEmployeeRequest Model { get; set; } = new();
     [Parameter] public bool IsEdit { get; set; }
     [Parameter] public int EmployeeId { get; set; }
+    [Parameter] public int? DefaultDepartmentId { get; set; }
+    [Parameter] public int? DefaultTeamId { get; set; }
 
     private bool IsActive { get; set; } = true;
     private MudForm form = null!;
@@ -287,7 +289,15 @@
             positions = posData ?? new List<PositionDto>();
             allEmployees = empData ?? new List<EmployeeDto>();
 
-            if (IsEdit && EmployeeId > 0)
+            // Set defaults if not editing
+            if (!IsEdit)
+            {
+                if (DefaultDepartmentId.HasValue)
+                    Model.DepartmentId = DefaultDepartmentId.Value;
+                if (DefaultTeamId.HasValue)
+                    Model.TeamId = DefaultTeamId.Value;
+            }
+            else if (IsEdit && EmployeeId > 0)
             {
                 var employee = await EmployeeService.GetEmployeeDetailsAsync(EmployeeId);
                 if (employee != null)

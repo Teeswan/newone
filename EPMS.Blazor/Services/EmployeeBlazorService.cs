@@ -33,6 +33,12 @@ namespace EPMS.Blazor.Services
             return response ?? new List<EmployeeDto>();
         }
 
+        public async Task<List<EmployeeDto>> GetEmployeesByTeamAsync(int teamId)
+        {
+            var response = await _httpClient.GetFromJsonAsync<List<EmployeeDto>>($"api/employees/team/{teamId}");
+            return response ?? new List<EmployeeDto>();
+        }
+
         public async Task<bool> CreateEmployeeAsync(CreateEmployeeRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/employees", request);

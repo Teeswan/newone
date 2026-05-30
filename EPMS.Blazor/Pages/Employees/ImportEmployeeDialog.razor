@@ -1,0 +1,117 @@
+@inject EPMS.Blazor.Services.IEmployeeBlazorService EmployeeService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column align-center mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.UploadFile" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
+            <MudText Typo="Typo.h5">Import Employees from Excel</MudText>
+        </div>
+        
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4" Variant="Variant.Filled" Dense="true">@errorMessage</MudAlert>
+        }
+        
+        <div class="mb-4">
+            <InputFile OnChange="HandleFileSelected" Accept=".xlsx,.xls" class="w-100" />
+        </div>
+        
+        @if (selectedFile != null)
+        {
+            <MudPaper Class="mb-4 p-3" Elevation="2">
+                <div class="d-flex align-center gap-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Medium" Color="Color.Primary" />
+                    <div class="flex-grow-1">
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@selectedFile.Name</MudText>
+                        <MudText Typo="Typo.caption" Class="text-secondary">@FormatFileSize(selectedFile.Size)</MudText>
+                    </div>
+                </div>
+            </MudPaper>
+            
+            <div class="mb-2">
+                <MudCheckBox @bind-Value="skipFirstRow" Label="Skip first row (header)" Color="Color.Primary" />
+            </div>
+            <div class="mb-2">
+                <MudCheckBox @bind-Value="skipExisting" Label="Skip existing items (avoid duplicates)" Color="Color.Primary" />
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="importing" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton OnClick="Import" Color="Color.Primary" Disabled="selectedFile == null || importing" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Upload">
+            @if (importing)
+            {
+                <MudProgressCircular Size="Size.Small" Color="Color.Inherit" />
+                <span class="ml-2">Importing...</span>
+            }
+            else
+            {
+                <span>Import</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private IBrowserFile? selectedFile;
+    private bool importing = false;
+    private bool skipFirstRow = true;
+    private bool skipExisting = false;
+    private string errorMessage = string.Empty;
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        int order = 0;
+        double size = bytes;
+        while (size >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            size /= 1024;
+        }
+        return $"{size:0.##} {sizes[order]}";
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        errorMessage = string.Empty;
+        Snackbar.Add($"File selected: {selectedFile.Name}", Severity.Info, config => { config.Icon = Icons.Material.Filled.Description; });
+    }
+
+    private async Task Import()
+    {
+        if (selectedFile == null) 
+        {
+            errorMessage = "Please select a file first!";
+            return;
+        }
+
+        importing = true;
+        errorMessage = string.Empty;
+        try
+        {
+            Snackbar.Add("Starting import...", Severity.Info, config => { config.Icon = Icons.Material.Filled.UploadFile; });
+            using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            var count = await EmployeeService.ImportFromExcelAsync(stream, selectedFile.Name);
+            Snackbar.Add($"Successfully imported {count} employees!", Severity.Success, config => { config.Icon = Icons.Material.Filled.CheckCircle; });
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Snackbar.Add($"Import failed: {ex.Message}", Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
+        }
+        finally
+        {
+            importing = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

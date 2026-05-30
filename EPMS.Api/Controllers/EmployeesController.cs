@@ -91,6 +91,14 @@ public class EmployeesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("team/{teamId}")]
+    [HasPermission(Permissions.Employees.View)]
+    public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetByTeam(int teamId)
+    {
+        var result = await _service.GetByTeamAsync(teamId);
+        return Ok(result);
+    }
+
     [HttpGet("reports/{managerId}")]
     [HasPermission(Permissions.Employees.View)]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetDirectReports(int managerId)
