@@ -146,6 +146,40 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         return _mapper.Map<PerformanceEvaluationDto>(created);
     }
 
+    public async Task<int> CreateBulkAsync(BulkPerformanceEvaluationRequest request, int? currentEmployeeId = null)
+    {
+        int count = 0;
+        var form = await _formRepository.GetByIdAsync(request.FormId);
+        if (form == null) return 0;
+
+        foreach (var employeeId in request.EmployeeIds)
+        {
+            try
+            {
+                var createRequest = new CreatePerformanceEvaluationRequest
+                {
+                    EmployeeId = employeeId,
+                    CycleId = request.CycleId,
+                    FormId = request.FormId,
+                    Status = PerformanceEvaluationStatus.Draft,
+                    CreatedByEmployeeId = currentEmployeeId,
+                    IsFinalized = false
+                };
+
+                await CreateAsync(createRequest, currentEmployeeId);
+                count++;
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue with other employees
+                await _auditLogService.LogAsync("PerformanceEvaluation", "BulkCreateError", employeeId, $"Error creating bulk evaluation: {ex.Message}", currentEmployeeId);
+            }
+        }
+
+        await _auditLogService.LogAsync("PerformanceEvaluation", "BulkCreate", request.CycleId, $"Bulk created {count} evaluations for form {form.FormName}", currentEmployeeId);
+        return count;
+    }
+
     public async Task<PerformanceEvaluationDto?> UpdateAsync(int evalId, UpdatePerformanceEvaluationRequest request, int? currentEmployeeId = null)
     {
         var existingEval = await _repository.GetByIdAsync(evalId);
@@ -324,9 +358,13 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             var creator = creatorEmployeeId.HasValue ? await _employeeRepository.GetByIdAsync(creatorEmployeeId.Value) : null;
             string creatorName = creator?.FullName ?? "your manager";
 
-            string subjectMessage = form.FormType == AppraisalFormType.SelfAssessment 
-                ? $"Action Required: Please submit your {form.FormName} to {creatorName}."
-                : $"A new {form.FormName} has been initiated for you by {creatorName}.";
+            string subjectMessage = form.FormType switch
+            {
+                AppraisalFormType.SelfAssessment => $"Action Required: Please submit your {form.FormName} to {creatorName}.",
+                AppraisalFormType.PerformanceAppraisal => $"Action Required: Your {form.FormName} cycle has started. Please complete your self-appraisal section.",
+                AppraisalFormType.Feedback360 => $"Notification: A {form.FormName} has been initiated for you. You will receive feedback from your peers soon.",
+                _ => $"A new {form.FormName} has been initiated for you by {creatorName}."
+            };
 
             await _notificationService.CreateNotificationAsync(
                 subjectUser.UserId,

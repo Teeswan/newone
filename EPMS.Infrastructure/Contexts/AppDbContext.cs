@@ -83,6 +83,14 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.AuditId);
+            entity.HasOne(d => d.ChangedByEmployee)
+                .WithMany()
+                .HasForeignKey(d => d.ChangedByEmployeeId);
+        });
+
         modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
         {
             entity.HasOne(e => e.TeamKpi)
