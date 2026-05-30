@@ -12,6 +12,14 @@ public class AppraisalReportDto
     public DateTime? EffectiveDate { get; set; }
     public decimal? FinalScore { get; set; }
     public string PerformanceBand { get; set; } = string.Empty;
+    public string? SelfComments { get; set; }
+    public string? ManagerComments { get; set; }
+    public string? CalibrationComments { get; set; }
+    public string? EmployeeLevel { get; set; }
+    public decimal? SelfRating { get; set; }
+    public decimal? ManagerRating { get; set; }
+    public string? FinalizedByName { get; set; }
+    public string? FinalizedByDesignation { get; set; }
     public int TotalPoints { get; set; }
     public int AnsweredQuestionsCount { get; set; }
     public int MaxPoints { get; set; }

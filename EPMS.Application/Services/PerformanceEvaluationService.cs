@@ -608,6 +608,22 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         var responses = await _responseRepository.GetByEvalIdAsync(evalId);
         var responsesList = responses.ToList();
 
+        // Fetch evaluator details for the report (Position/Department)
+        var employeeList = (await _employeeRepository.GetAllAsync()).ToList();
+        foreach (var resp in responsesList)
+        {
+            if (resp.RespondentId.HasValue)
+            {
+                var evaluator = employeeList.FirstOrDefault(e => e.EmployeeId == resp.RespondentId.Value);
+                if (evaluator != null)
+                {
+                    resp.RespondentName = evaluator.FullName;
+                    resp.RespondentPosition = evaluator.Position?.PositionTitle;
+                    resp.RespondentDepartment = evaluator.Department?.DepartmentName;
+                }
+            }
+        }
+
         // Calculate totals for report
         var selfRatings = responsesList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
         var otherRatings = responsesList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
@@ -618,6 +634,13 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         var activeRatingsForScore = otherRatings.Any() ? otherRatings : selfRatings;
         var totalPoints = activeRatingsForScore.Sum(r => r.RatingValue ?? 0);
         var questionsCount = activeRatingsForScore.Count();
+        
+        // Fetch Finalizer details
+        Employee? finalizer = null;
+        if (eval.CreatedByEmployeeId.HasValue)
+        {
+            finalizer = await _employeeRepository.GetByIdAsync(eval.CreatedByEmployeeId.Value);
+        }
         
         decimal? calculatedScore = questionsCount > 0 ? (decimal)totalPoints / (questionsCount * 5) * 100 : 0;
         var scoreToUse = eval.FinalRatingScore ?? calculatedScore;
@@ -638,9 +661,17 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             EffectiveDate = cycle != null ? new DateTime(cycle.EndDate.Year, cycle.EndDate.Month, cycle.EndDate.Day) : (DateTime?)null,
             FinalScore = scoreToUse,
             PerformanceBand = band?.Label ?? "N/A",
+            SelfComments = eval.SelfComments,
+            ManagerComments = eval.ManagerComments,
+            CalibrationComments = eval.CalibrationComments,
+            EmployeeLevel = employee?.Position?.LevelId,
+            SelfRating = eval.SelfRating,
+            ManagerRating = eval.ManagerRating,
             TotalPoints = totalPoints,
             AnsweredQuestionsCount = questionsCount,
             MaxPoints = questionsCount * 5,
+            FinalizedByName = finalizer?.FullName ?? "N/A",
+            FinalizedByDesignation = finalizer?.Position?.PositionTitle ?? "N/A",
             Responses = _mapper.Map<List<AppraisalResponseDto>>(responsesList)
         };
     }
