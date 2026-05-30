@@ -22,7 +22,9 @@
                                   HelperText="Unique identifier for this level"
                                   Required="true" 
                                   RequiredError="Level ID is required!" 
+                                  Validation="@(new Func<string, string?>(ValidateLevelId))"
                                   Variant="Variant.Outlined" 
+                                  Immediate="true"
                                   Adornment="Adornment.Start" 
                                   AdornmentIcon="@Icons.Material.Filled.Badge" 
                                   Class="rounded-lg" 
@@ -35,7 +37,9 @@
                                   HelperText="Descriptive name of the level"
                                   Required="true" 
                                   RequiredError="Level name is required!" 
+                                  Validation="@(new Func<string, string?>(ValidateLevelName))"
                                   Variant="Variant.Outlined" 
+                                  Immediate="true"
                                   Adornment="Adornment.Start" 
                                   AdornmentIcon="@Icons.Material.Filled.Grade" 
                                   Class="rounded-lg" />
@@ -70,6 +74,20 @@
 
     private CreateLevelRequest request = new();
     private MudForm form = null!;
+
+    private string? ValidateLevelId(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return "Level ID is required";
+        if (id.Length > 10) return "Level ID must not exceed 10 characters";
+        return null;
+    }
+
+    private string? ValidateLevelName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Level name is required";
+        if (name.Length > 100) return "Level name must not exceed 100 characters";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {

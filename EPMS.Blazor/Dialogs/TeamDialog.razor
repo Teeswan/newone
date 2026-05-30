@@ -24,7 +24,9 @@
                                   HelperText="The descriptive name of the team"
                                   Required="true" 
                                   RequiredError="Team name is required!" 
+                                  Validation="@(new Func<string, string?>(ValidateTeamName))"
                                   Variant="Variant.Outlined" 
+                                  Immediate="true"
                                   Adornment="Adornment.Start" 
                                   AdornmentIcon="@Icons.Material.Filled.Groups" 
                                   Class="rounded-lg" />
@@ -34,7 +36,9 @@
                                   Label="Team ID/Code" 
                                   Placeholder="e.g., DEV-01, MKT-A"
                                   HelperText="Unique identifier or short code"
+                                  Validation="@(new Func<string, string?>(ValidateTeamCode))"
                                   Variant="Variant.Outlined" 
+                                  Immediate="true"
                                   Adornment="Adornment.Start" 
                                   AdornmentIcon="@Icons.Material.Filled.Badge" 
                                   Class="rounded-lg" />
@@ -96,6 +100,20 @@
     private List<DepartmentDto> allDepartments = new();
     private List<EmployeeDto> allEmployees = new();
     private MudForm form = null!;
+
+    private string? ValidateTeamName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Team name is required";
+        if (name.Length > 100) return "Team name must not exceed 100 characters";
+        return null;
+    }
+
+    private string? ValidateTeamCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return null; // Optional
+        if (code.Length > 20) return "Team code must not exceed 20 characters";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {

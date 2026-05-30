@@ -40,6 +40,7 @@
                     <MudTh>Code</MudTh>
                     <MudTh>Name</MudTh>
                     <MudTh>Department</MudTh>
+                    <MudTh>Team</MudTh>
                     <MudTh>Position</MudTh>
                     <MudTh>Status</MudTh>
                     <MudTh Style="text-align: right;">Actions</MudTh>
@@ -48,11 +49,13 @@
                     <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
                     <MudTd DataLabel="Name">@context.FullName</MudTd>
                     <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                    <MudTd DataLabel="Team">@context.TeamName</MudTd>
                     <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
                     <MudTd DataLabel="Status">
                         <MudChip T="string" Size="Size.Small" Color="@(context.IsActive == true ? Color.Success : Color.Error)">@(context.IsActive == true ? "Active" : "Inactive")</MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEmployeeDetails(context.EmployeeId))" Title="View Details" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEmployeeEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
                     </MudTd>
@@ -267,7 +270,10 @@
     private bool FilterEmployees(EmployeeDto employee) => 
         string.IsNullOrWhiteSpace(_employeeSearch) || 
         employee.FullName.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase) ||
-        employee.EmployeeCode.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase);
+        employee.EmployeeCode.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase) ||
+        (employee.DepartmentName?.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (employee.TeamName?.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (employee.PositionTitle?.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private bool FilterDepartments(DepartmentDto dept) => 
         string.IsNullOrWhiteSpace(_deptSearch) || 
@@ -346,6 +352,8 @@
     }
 
     private async Task DeleteEmployee(int id) => await ConfirmAndDelete(() => EmployeeService.DeleteEmployeeAsync(id), "Employee");
+
+    private void ViewEmployeeDetails(int id) => Navigation.NavigateTo($"/employees/details/{id}");
 
     private async Task OpenDepartmentAddDialog() => await ShowDialog<DepartmentDialog>("Add Department");
     private async Task OpenDepartmentEditDialog(DepartmentDto dept) => await ShowDialog<DepartmentDialog>("Edit Department", new DialogParameters { ["Id"] = dept.DepartmentId });

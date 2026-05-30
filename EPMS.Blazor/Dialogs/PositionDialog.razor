@@ -23,7 +23,9 @@
                                   HelperText="The official title of the position"
                                   Required="true" 
                                   RequiredError="Position title is required!" 
+                                  Validation="@(new Func<string, string?>(ValidatePositionTitle))"
                                   Variant="Variant.Outlined" 
+                                  Immediate="true"
                                   Adornment="Adornment.Start" 
                                   AdornmentIcon="@Icons.Material.Filled.Work" 
                                   Class="rounded-lg" />
@@ -62,6 +64,13 @@
     private UpdatePositionRequest request = new();
     private List<LevelDto> allLevels = new();
     private MudForm form = null!;
+
+    private string? ValidatePositionTitle(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return "Position title is required";
+        if (title.Length > 100) return "Position title must not exceed 100 characters";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
