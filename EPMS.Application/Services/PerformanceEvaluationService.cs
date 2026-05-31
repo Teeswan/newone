@@ -606,11 +606,13 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         var cycle = eval.CycleId.HasValue ? await _cycleRepository.GetByIdAsync(eval.CycleId.Value) : null;
         var dept = employee?.DepartmentId.HasValue == true ? await _departmentRepository.GetByIdAsync(employee.DepartmentId.Value) : null;
         var responses = await _responseRepository.GetByEvalIdAsync(evalId);
-        var responsesList = responses.ToList();
+        
+        // Map to DTOs first so we can access the RespondentName/Position/Department properties
+        var responsesDtoList = _mapper.Map<List<AppraisalResponseDto>>(responses.ToList());
 
         // Fetch evaluator details for the report (Position/Department)
         var employeeList = (await _employeeRepository.GetAllAsync()).ToList();
-        foreach (var resp in responsesList)
+        foreach (var resp in responsesDtoList)
         {
             if (resp.RespondentId.HasValue)
             {
@@ -625,11 +627,11 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         }
 
         // Calculate totals for report
-        var selfRatings = responsesList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
-        var otherRatings = responsesList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
+        var selfRatings = responsesDtoList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
+        var otherRatings = responsesDtoList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
         
         var selfTotal = selfRatings.Sum(r => r.RatingValue ?? 0);
-        var managerTotal = responsesList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
+        var managerTotal = responsesDtoList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
         
         var activeRatingsForScore = otherRatings.Any() ? otherRatings : selfRatings;
         var totalPoints = activeRatingsForScore.Sum(r => r.RatingValue ?? 0);
@@ -672,7 +674,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             MaxPoints = questionsCount * 5,
             FinalizedByName = finalizer?.FullName ?? "N/A",
             FinalizedByDesignation = finalizer?.Position?.PositionTitle ?? "N/A",
-            Responses = _mapper.Map<List<AppraisalResponseDto>>(responsesList)
+            Responses = responsesDtoList
         };
     }
 
