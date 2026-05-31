@@ -10,6 +10,7 @@
 @inject IFormQuestionBlazorService FormQuestionService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -237,9 +238,15 @@
 
                     @if (!isReadOnlyForUser)
                     {
-                        <MudItem xs="12" Class="d-flex justify-end mt-4">
-                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit">Save Changes</MudButton>
+                        <MudItem xs="12" Class="d-flex justify-end mt-4 gap-2">
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+                            
+                            @if (updateRequest.Status == PerformanceEvaluationStatus.Draft && updateRequest.EmployeeId == currentEmployeeId)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="SubmitSelfAssessment" StartIcon="@Icons.Material.Filled.Send">Submit to Creator</MudButton>
+                            }
+
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit" StartIcon="@Icons.Material.Filled.Save">Save Changes</MudButton>
                         </MudItem>
                     }
                     else
@@ -465,6 +472,23 @@
     {
         evalResponses?.RemoveAll(r => r.RespondentId == employeeId && r.RespondentRole == role);
         StateHasChanged();
+    }
+
+    private async Task SubmitSelfAssessment()
+    {
+        if (updateRequest != null)
+        {
+            var confirmed = await DialogService.ShowMessageBox(
+                "Submit Assessment", 
+                "Are you sure you want to submit your assessment? This will lock your inputs and notify the cycle creator.", 
+                yesText: "Submit", cancelText: "Cancel");
+
+            if (confirmed == true)
+            {
+                updateRequest.Status = PerformanceEvaluationStatus.SelfSubmitted;
+                await HandleValidSubmit();
+            }
+        }
     }
 
     private async Task HandleValidSubmit()

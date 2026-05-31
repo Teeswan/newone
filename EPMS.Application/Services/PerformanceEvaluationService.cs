@@ -606,18 +606,43 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         var cycle = eval.CycleId.HasValue ? await _cycleRepository.GetByIdAsync(eval.CycleId.Value) : null;
         var dept = employee?.DepartmentId.HasValue == true ? await _departmentRepository.GetByIdAsync(employee.DepartmentId.Value) : null;
         var responses = await _responseRepository.GetByEvalIdAsync(evalId);
-        var responsesList = responses.ToList();
+        
+        // Map to DTOs first so we can access the RespondentName/Position/Department properties
+        var responsesDtoList = _mapper.Map<List<AppraisalResponseDto>>(responses.ToList());
+
+        // Fetch evaluator details for the report (Position/Department)
+        var employeeList = (await _employeeRepository.GetAllAsync()).ToList();
+        foreach (var resp in responsesDtoList)
+        {
+            if (resp.RespondentId.HasValue)
+            {
+                var evaluator = employeeList.FirstOrDefault(e => e.EmployeeId == resp.RespondentId.Value);
+                if (evaluator != null)
+                {
+                    resp.RespondentName = evaluator.FullName;
+                    resp.RespondentPosition = evaluator.Position?.PositionTitle;
+                    resp.RespondentDepartment = evaluator.Department?.DepartmentName;
+                }
+            }
+        }
 
         // Calculate totals for report
-        var selfRatings = responsesList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
-        var otherRatings = responsesList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
+        var selfRatings = responsesDtoList.Where(r => r.RespondentRole == "Self" && r.RatingValue.HasValue).ToList();
+        var otherRatings = responsesDtoList.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
         
         var selfTotal = selfRatings.Sum(r => r.RatingValue ?? 0);
-        var managerTotal = responsesList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
+        var managerTotal = responsesDtoList.Where(r => r.RespondentRole == "Manager").Sum(r => r.RatingValue ?? 0);
         
         var activeRatingsForScore = otherRatings.Any() ? otherRatings : selfRatings;
         var totalPoints = activeRatingsForScore.Sum(r => r.RatingValue ?? 0);
         var questionsCount = activeRatingsForScore.Count();
+        
+        // Fetch Finalizer details
+        Employee? finalizer = null;
+        if (eval.CreatedByEmployeeId.HasValue)
+        {
+            finalizer = await _employeeRepository.GetByIdAsync(eval.CreatedByEmployeeId.Value);
+        }
         
         decimal? calculatedScore = questionsCount > 0 ? (decimal)totalPoints / (questionsCount * 5) * 100 : 0;
         var scoreToUse = eval.FinalRatingScore ?? calculatedScore;
@@ -638,10 +663,18 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
             EffectiveDate = cycle != null ? new DateTime(cycle.EndDate.Year, cycle.EndDate.Month, cycle.EndDate.Day) : (DateTime?)null,
             FinalScore = scoreToUse,
             PerformanceBand = band?.Label ?? "N/A",
+            SelfComments = eval.SelfComments,
+            ManagerComments = eval.ManagerComments,
+            CalibrationComments = eval.CalibrationComments,
+            EmployeeLevel = employee?.Position?.LevelId,
+            SelfRating = eval.SelfRating,
+            ManagerRating = eval.ManagerRating,
             TotalPoints = totalPoints,
             AnsweredQuestionsCount = questionsCount,
             MaxPoints = questionsCount * 5,
-            Responses = _mapper.Map<List<AppraisalResponseDto>>(responsesList)
+            FinalizedByName = finalizer?.FullName ?? "N/A",
+            FinalizedByDesignation = finalizer?.Position?.PositionTitle ?? "N/A",
+            Responses = responsesDtoList
         };
     }
 
