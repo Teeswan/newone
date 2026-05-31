@@ -82,14 +82,6 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
-        {
-            entity.HasOne(e => e.TeamKpi)
-                  .WithMany() // Assuming TeamKpi doesn't need to track its employees
-                  .HasForeignKey(e => e.TeamKpiId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        });
-
         // 2. TeamKpi -> DepartmentKpi
         modelBuilder.Entity<TeamKpi>(entity =>
         {
