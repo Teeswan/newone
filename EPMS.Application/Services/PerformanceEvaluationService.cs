@@ -61,10 +61,29 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         return _mapper.Map<IEnumerable<PerformanceEvaluationDto>>(entities);
     }
 
-    public async Task<PerformanceEvaluationDto?> GetByIdAsync(int evalId)
+    public async Task<PerformanceEvaluationDto?> GetByIdAsync(int evalId, int? currentEmployeeId = null)
     {
         var entity = await _repository.GetByIdAsync(evalId);
-        return _mapper.Map<PerformanceEvaluationDto?>(entity);
+        if (entity == null) return null;
+
+        var dto = _mapper.Map<PerformanceEvaluationDto?>(entity);
+        
+        if (dto != null && dto.Responses != null)
+        {
+            foreach (var resp in dto.Responses)
+            {
+                // Enforce anonymity for 360 Feedback
+                // Subject (employee) and others should not see the name of anonymous respondents
+                // Only managers (L02-L06) or Senior Management (L01-L04) might see it depending on policy
+                // For now, if it's marked anonymous, hide it for everyone except creators/admins
+                if (resp.IsAnonymous == true && currentEmployeeId != entity.CreatedByEmployeeId)
+                {
+                    resp.RespondentName = "Anonymous " + resp.RespondentRole;
+                }
+            }
+        }
+
+        return dto;
     }
 
     public async Task<IEnumerable<PerformanceEvaluationDto>> GetByEmployeeIdAsync(int employeeId)
