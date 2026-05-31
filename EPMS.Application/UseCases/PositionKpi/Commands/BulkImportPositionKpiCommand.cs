@@ -71,7 +71,8 @@ public class BulkImportPositionKpiCommandHandler
                     importDto.PositionId,
                     kpi.KpiId,
                     importDto.WeightPercent,
-                    true);
+                    true,
+                    importDto.TargetValue ?? 0);
 
                 await _positionKpiRepository.AddAsync(positionKpi);
 

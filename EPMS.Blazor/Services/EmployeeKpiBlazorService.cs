@@ -1,79 +1,63 @@
 using EPMS.Shared.DTOs;
-using EPMS.Shared.Common;
+using EPMS.Shared.Requests;
+using System.Collections.Generic;
 using System.Net.Http.Json;
-using EPMS.Application.UseCases.KpiAssignment.Commands;
-
-using EPMS.Shared.Enums;
+using System.Threading.Tasks;
 
 namespace EPMS.Blazor.Services
 {
-    public interface IEmployeeKpiBlazorService
-    {
-        Task<IEnumerable<EmployeeKpiAssignmentDto>> GetAssignmentsAsync(int employeeId, int cycleId);
-        Task<KpiScoreSummaryDto?> GetScoreSummaryAsync(int employeeId, int cycleId);
-        Task<bool> AddAdHocAsync(AddAdHocKpiCommand command);
-        Task<bool> AssignMasterAsync(AssignKpiFromMasterCommand command);
-        Task<bool> FinaliseAsync(FinaliseKpiAssignmentCommand command);
-        Task<KpiScoreSummaryDto?> EnterActualAsync(EnterActualValueCommand command);
-        Task<bool> UpdateAsync(int id, UpdateKpiAssignmentCommand command);
-        Task<bool> DeleteAsync(int id);
-        Task<IEnumerable<AggregatedKpiDto>> GetAggregatedSummaryAsync(int cycleId, AggregationType type);
-        Task<bool> ActivateCycleSnapshotAsync(ActivateCycleKpiSnapshotCommand command);
-        Task<BulkImportResultDto?> BulkImportExcelAsync(Stream fileStream, string fileName);
-        Task<byte[]> DownloadTemplateAsync();
-    }
-
     public class EmployeeKpiBlazorService : IEmployeeKpiBlazorService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "api/employee-kpi";
+        private const string BaseUrl = "api/EmployeeKpis";
 
         public EmployeeKpiBlazorService(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<EmployeeKpiAssignmentDto>> GetAssignmentsAsync(int employeeId, int cycleId)
+        public async Task<IEnumerable<EmployeeKpiDto>> GetAllAsync()
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<EmployeeKpiAssignmentDto>>>($"{BaseUrl}/assignments/{employeeId}/{cycleId}");
-            return response?.Data ?? Enumerable.Empty<EmployeeKpiAssignmentDto>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<EmployeeKpiDto>>(BaseUrl) ?? new List<EmployeeKpiDto>();
         }
 
-        public async Task<KpiScoreSummaryDto?> GetScoreSummaryAsync(int employeeId, int cycleId)
+        public async Task<EmployeeKpiDto?> GetByIdAsync(int id)
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<KpiScoreSummaryDto>>($"{BaseUrl}/score-summary/{employeeId}/{cycleId}");
-            return response?.Data;
+            return await _httpClient.GetFromJsonAsync<EmployeeKpiDto>($"{BaseUrl}/{id}");
         }
 
-        public async Task<bool> AddAdHocAsync(AddAdHocKpiCommand command)
+        public async Task<IEnumerable<EmployeeKpiDto>> GetByEmployeeIdAsync(int employeeId)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/ad-hoc", command);
-            return response.IsSuccessStatusCode;
+            return await _httpClient.GetFromJsonAsync<IEnumerable<EmployeeKpiDto>>($"{BaseUrl}/employee/{employeeId}") ?? new List<EmployeeKpiDto>();
         }
 
-        public async Task<bool> AssignMasterAsync(AssignKpiFromMasterCommand command)
+        public async Task<EmployeeKpiDto> CreateAsync(EmployeeKpiRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/assign-master", command);
-            return response.IsSuccessStatusCode;
+            var response = await _httpClient.PostAsJsonAsync(BaseUrl, request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return await response.Content.ReadFromJsonAsync<EmployeeKpiDto>() ?? throw new InvalidOperationException();
         }
 
-        public async Task<bool> FinaliseAsync(FinaliseKpiAssignmentCommand command)
+        public async Task<IEnumerable<EmployeeKpiDto>> CreateBulkAsync(BulkEmployeeKpiRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/finalise", command);
-            return response.IsSuccessStatusCode;
+            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/bulk", request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<EmployeeKpiDto>>() ?? new List<EmployeeKpiDto>();
         }
 
-        public async Task<KpiScoreSummaryDto?> EnterActualAsync(EnterActualValueCommand command)
+        public async Task<EmployeeKpiDto?> UpdateAsync(int id, EmployeeKpiRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/enter-actual", command);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<KpiScoreSummaryDto>>();
-            return result?.Data;
-        }
-
-        public async Task<bool> UpdateAsync(int id, UpdateKpiAssignmentCommand command)
-        {
-            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", command);
-            return response.IsSuccessStatusCode;
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return await response.Content.ReadFromJsonAsync<EmployeeKpiDto>();
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -82,32 +66,15 @@ namespace EPMS.Blazor.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<IEnumerable<AggregatedKpiDto>> GetAggregatedSummaryAsync(int cycleId, AggregationType type)
+        public async Task<IEnumerable<EmployeeKpiDto>> CalculateForEmployeeAsync(int employeeId)
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<AggregatedKpiDto>>>($"{BaseUrl}/aggregated-summary/{cycleId}/{type}");
-            return response?.Data ?? Enumerable.Empty<AggregatedKpiDto>();
-        }
-
-        public async Task<bool> ActivateCycleSnapshotAsync(ActivateCycleKpiSnapshotCommand command)
-        {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/activate-cycle-snapshot", command);
-            return response.IsSuccessStatusCode;
-        }
-
-        public async Task<BulkImportResultDto?> BulkImportExcelAsync(Stream fileStream, string fileName)
-        {
-            using var content = new MultipartFormDataContent();
-            var fileContent = new StreamContent(fileStream);
-            content.Add(fileContent, "file", fileName);
-
-            var response = await _httpClient.PostAsync($"{BaseUrl}/excel-bulk-import", content);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<BulkImportResultDto>>();
-            return result?.Data;
-        }
-
-        public async Task<byte[]> DownloadTemplateAsync()
-        {
-            return await _httpClient.GetByteArrayAsync($"{BaseUrl}/import-template");
+            var response = await _httpClient.PostAsync($"{BaseUrl}/calculate/{employeeId}", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return await response.Content.ReadFromJsonAsync<IEnumerable<EmployeeKpiDto>>() ?? new List<EmployeeKpiDto>();
         }
     }
 }

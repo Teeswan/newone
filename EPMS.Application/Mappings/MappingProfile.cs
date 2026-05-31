@@ -127,19 +127,28 @@ public class MappingProfile : Profile
         CreateMap<DepartmentKpi, DepartmentKpiDto>()
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : null))
             .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.Cycle != null ? src.Cycle.CycleName : null))
-            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.Kpi != null ? src.Kpi.KpiName : null));
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.Kpi != null ? src.Kpi.KpiName : null))
+            .ForMember(dest => dest.ActualValue, opt => opt.MapFrom(src => src.ActualValue ?? 0))
+            .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score))
+            .ForMember(dest => dest.WeightedScore, opt => opt.MapFrom(src => src.WeightedScore))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ?? true));
+
         CreateMap<TeamKpi, TeamKpiDto>()
             .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null))
             .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.DepartmentKpi != null && src.DepartmentKpi.Kpi != null ? src.DepartmentKpi.Kpi.KpiName : null))
-            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.DepartmentKpi != null ? src.DepartmentKpi.DepartmentTarget : 0));
+            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.DepartmentKpi != null ? (src.DepartmentKpi.DepartmentTarget ?? 0) : 0))
+            .ForMember(dest => dest.TeamTarget, opt => opt.MapFrom(src => src.TeamTarget ?? 0))
+            .ForMember(dest => dest.Weight, opt => opt.MapFrom(src => src.Weight ?? 0))
+            .ForMember(dest => dest.ActualValue, opt => opt.MapFrom(src => src.ActualValue ?? 0))
+            .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.ScorePercent ?? 0))
+            .ForMember(dest => dest.WeightedScore, opt => opt.MapFrom(src => src.WeightedScore ?? 0))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ?? true));
+
         CreateMap<EmployeeKpi, EmployeeKpiDto>()
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
-            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.TeamKpi != null && src.TeamKpi.DepartmentKpi != null && src.TeamKpi.DepartmentKpi.Kpi != null ? src.TeamKpi.DepartmentKpi.Kpi.KpiName : null))
-            .ForMember(dest => dest.ParentTarget, opt => opt.MapFrom(src => src.TeamKpi != null ? src.TeamKpi.TeamTarget : 0))
-            .ForMember(dest => dest.Direction, opt => opt.MapFrom(src => src.TeamKpi != null && src.TeamKpi.DepartmentKpi != null && src.TeamKpi.DepartmentKpi.Kpi != null ? src.TeamKpi.DepartmentKpi.Kpi.Direction : KpiDirection.HigherIsBetter))
-            .ForMember(dest => dest.ActualValue, opt => opt.MapFrom(src => src.ActualValue))
-            .ForMember(dest => dest.KpiScore, opt => opt.MapFrom(src => src.KpiScore))
-            .ForMember(dest => dest.WeightedScore, opt => opt.MapFrom(src => src.WeightedScore));
+            .ForMember(dest => dest.CycleName, opt => opt.MapFrom(src => src.AppraisalCycle != null ? src.AppraisalCycle.CycleName : null))
+            .ForMember(dest => dest.KpiName, opt => opt.MapFrom(src => src.Kpi != null ? src.Kpi.KpiName : null));
+        
 
         CreateMap<OneOnOneMeeting, MeetingDto>()
             .ForMember(dest => dest.MeetingId, opt => opt.MapFrom(src => src.MeetingId))
@@ -248,6 +257,9 @@ public class MappingProfile : Profile
 
    .ForMember(dest => dest.WeightPercent,
        opt => opt.MapFrom(src => src.DefaultWeightPercent))
+
+   .ForMember(dest => dest.TargetValue,
+       opt => opt.MapFrom(src => src.TargetValue))
 
    .ForMember(dest => dest.Direction,
        opt => opt.MapFrom(src => src.Kpi.Direction))

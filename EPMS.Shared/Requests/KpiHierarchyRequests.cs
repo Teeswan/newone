@@ -17,6 +17,8 @@ namespace EPMS.Shared.Requests
         public int KpiId { get; set; }
         public decimal DepartmentTarget { get; set; }
         public decimal Weight { get; set; }
+        public decimal ActualValue { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
     public class TeamKpiRequest
@@ -25,15 +27,32 @@ namespace EPMS.Shared.Requests
         public int DeptKpiId { get; set; }
         public decimal TeamTarget { get; set; }
         public decimal Weight { get; set; }
+        public decimal ActualValue { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
     public class EmployeeKpiRequest
     {
         public int EmployeeId { get; set; }
-        public int TeamKpiId { get; set; }
-        public decimal EmployeeTarget { get; set; }
+        public int CycleId { get; set; }
+        public int KpiId { get; set; }
+        public int? PositionKpiId { get; set; }
+        public int? TeamKpiId { get; set; }
+        public decimal TargetValue { get; set; }
         public decimal Weight { get; set; }
         public bool IsActive { get; set; } = true;
-        public decimal? ActualValue { get; set; }
+        public decimal ActualValue { get; set; }
+    }
+
+    public class BulkEmployeeKpiRequest
+    {
+        public List<int> EmployeeIds { get; set; } = new();
+        public int CycleId { get; set; }
+        public int KpiId { get; set; }
+        public int? PositionKpiId { get; set; }
+        public int? TeamKpiId { get; set; }
+        public decimal TargetValue { get; set; }
+        public decimal Weight { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

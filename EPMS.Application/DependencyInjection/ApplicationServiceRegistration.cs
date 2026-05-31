@@ -53,7 +53,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IEmployeeKpiService, EmployeeKpiService>();
 
         // Domain Services
-        services.AddScoped<IKpiScoreCalculator, KpiScoreCalculator>();
+        
         services.AddScoped<KpiWeightValidator>();
 
         // MediatR & FluentValidation

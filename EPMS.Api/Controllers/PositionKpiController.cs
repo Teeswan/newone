@@ -31,12 +31,12 @@ public class PositionKpiController : ControllerBase
 
     [HttpGet]
     [HasPermission(Permissions.Kpis.View)]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PositionKpiDto>>>> GetList([FromQuery] GetPositionKpiListQuery query)
+    public async Task<ActionResult<ApiResponse<PaginatedResult<PositionKpiDto>>>> GetList([FromQuery] GetPositionKpiListQuery query)
      {
         var result = await _mediator.Send(query);
         return result.IsSuccess 
-            ? Ok(ApiResponse<IEnumerable<PositionKpiDto>>.SuccessResponse(result.Value!))
-            : BadRequest(ApiResponse<IEnumerable<PositionKpiDto>>.FailureResponse(result.Message, result.Errors));
+            ? Ok(ApiResponse<PaginatedResult<PositionKpiDto>>.SuccessResponse(result.Value!))
+            : BadRequest(ApiResponse<PaginatedResult<PositionKpiDto>>.FailureResponse(result.Message, result.Errors));
     }
 
     [HttpGet("{id}")]

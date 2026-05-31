@@ -22,6 +22,7 @@ namespace EPMS.Application.Interfaces
         Task<DepartmentKpiDto> CreateAsync(DepartmentKpiRequest request);
         Task<DepartmentKpiDto?> UpdateAsync(int id, DepartmentKpiRequest request);
         Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<DepartmentKpiDto>> CalculateForDepartmentAsync(int departmentId);
     }
 
     public interface ITeamKpiService
@@ -32,6 +33,7 @@ namespace EPMS.Application.Interfaces
         Task<TeamKpiDto> CreateAsync(TeamKpiRequest request);
         Task<TeamKpiDto?> UpdateAsync(int id, TeamKpiRequest request);
         Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<TeamKpiDto>> CalculateForTeamAsync(int teamId);
     }
 
     public interface IEmployeeKpiService
@@ -40,7 +42,9 @@ namespace EPMS.Application.Interfaces
         Task<EmployeeKpiDto?> GetByIdAsync(int id);
         Task<IEnumerable<EmployeeKpiDto>> GetByEmployeeIdAsync(int employeeId);
         Task<EmployeeKpiDto> CreateAsync(EmployeeKpiRequest request);
+        Task<IEnumerable<EmployeeKpiDto>> CreateBulkAsync(BulkEmployeeKpiRequest request);
         Task<EmployeeKpiDto?> UpdateAsync(int id, EmployeeKpiRequest request);
         Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<EmployeeKpiDto>> CalculateForEmployeeAsync(int employeeId);
     }
 }

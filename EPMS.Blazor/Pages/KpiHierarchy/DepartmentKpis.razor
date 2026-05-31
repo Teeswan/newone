@@ -44,13 +44,19 @@
                 <MudTh>KPI Name</MudTh>
                 <MudTh>Target</MudTh>
                 <MudTh>Weight</MudTh>
-                <MudTh>Created At</MudTh>
+                <MudTh>Actual Value</MudTh>
+                <MudTh>Score</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
-                <MudTd DataLabel="Target">@context.DepartmentTarget</MudTd>
-                <MudTd DataLabel="Weight">@context.Weight%</MudTd>
-                <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToShortDateString()</MudTd>
+                <MudTd DataLabel="Target">@(context.DepartmentTarget ?? 0)</MudTd>
+                <MudTd DataLabel="Weight">@(context.Weight ?? 0)%</MudTd>
+                <MudTd DataLabel="Actual Value">@(context.ActualValue ?? 0)</MudTd>
+                <MudTd DataLabel="Score">
+                    <MudText Color="@GetScoreColor(context.Score ?? 0)" Style="font-weight: 600;">
+                        @((context.Score ?? 0).ToString("F2"))%
+                    </MudText>
+                </MudTd>
             </RowTemplate>
         </MudTable>
     }
@@ -94,5 +100,13 @@
         {
             await LoadDeptKpis();
         }
+    }
+
+    private Color GetScoreColor(decimal score)
+    {
+        if (score >= 100) return Color.Success;
+        if (score >= 75) return Color.Info;
+        if (score >= 50) return Color.Warning;
+        return Color.Error;
     }
 }

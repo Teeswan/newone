@@ -20,6 +20,10 @@ public class PositionKpiConfiguration : IEntityTypeConfiguration<PositionKpi>
             .HasColumnType("decimal(5, 2)")
             .IsRequired();
 
+        builder.Property(k => k.TargetValue)
+            .HasColumnType("decimal(18, 2)")
+            .IsRequired();
+
         builder.Property(k => k.IsRequired)
             .HasDefaultValue(true);
 

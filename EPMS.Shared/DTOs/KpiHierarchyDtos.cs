@@ -17,16 +17,19 @@ namespace EPMS.Shared.DTOs
     public class DepartmentKpiDto
     {
         public int DeptKpiId { get; set; }
-        public int DepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
-        public int CycleId { get; set; }
+        public int? CycleId { get; set; }
         public string? CycleName { get; set; }
-        public int KpiId { get; set; }
+        public int? KpiId { get; set; }
         public string? KpiName { get; set; }
-        public decimal DepartmentTarget { get; set; }
-        public decimal Weight { get; set; }
+        public decimal? DepartmentTarget { get; set; }
+        public decimal? ActualValue { get; set; }
+        public decimal? Weight { get; set; }
+        public decimal? Score { get; set; }
+        public decimal? WeightedScore { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
     }
 
     public class TeamKpiDto
@@ -38,7 +41,10 @@ namespace EPMS.Shared.DTOs
         public string? KpiName { get; set; }
         public decimal TeamTarget { get; set; }
         public decimal ParentTarget { get; set; }
+        public decimal ActualValue { get; set; }
         public decimal Weight { get; set; }
+        public decimal Score { get; set; }
+        public decimal WeightedScore { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -48,17 +54,20 @@ namespace EPMS.Shared.DTOs
         public int EmployeeKpiId { get; set; }
         public int EmployeeId { get; set; }
         public string? EmployeeName { get; set; }
-        public int TeamKpiId { get; set; }
+        public int CycleId { get; set; }
+        public string? CycleName { get; set; }
+        public int KpiId { get; set; }
         public string? KpiName { get; set; }
-        public decimal EmployeeTarget { get; set; }
-        public decimal ParentTarget { get; set; }
+        public int? PositionKpiId { get; set; }
+        public int? TeamKpiId { get; set; }
+        public decimal TargetValue { get; set; }
+        public decimal ActualValue { get; set; }
         public decimal Weight { get; set; }
-        public decimal? ActualValue { get; set; }
-        public decimal? KpiScore { get; set; }
-        public decimal? WeightedScore { get; set; }
-        public KpiDirection Direction { get; set; }
+        public decimal Score { get; set; }
+        public decimal WeightedScore { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
-        public int VersionNo { get; set; }
     }
+
+   
 }

@@ -13,15 +13,28 @@ public record GetPositionKpiQuery(int PositionId) : IRequest<Result<IEnumerable<
 public class GetPositionKpiQueryHandler : IRequestHandler<GetPositionKpiQuery, Result<IEnumerable<PositionKpiDto>>>
 {
     private readonly IKpiQueryService _queryService;
+    private readonly IKpiCacheService _cacheService;
 
-    public GetPositionKpiQueryHandler(IKpiQueryService queryService)
+    public GetPositionKpiQueryHandler(IKpiQueryService queryService, IKpiCacheService cacheService)
     {
         _queryService = queryService;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<IEnumerable<PositionKpiDto>>> Handle(GetPositionKpiQuery request, CancellationToken cancellationToken)
     {
-        var kpis = await _queryService.GetKpiByPositionAsync(request.PositionId);
+        var isGlobal = request.PositionId <= 0;
+        var cacheKey = $"positionkpi:by-position:{(isGlobal ? "global" : request.PositionId)}:v1";
+        var cached = await _cacheService.GetAsync<IEnumerable<PositionKpiDto>>(cacheKey);
+        if (cached != null) return Result<IEnumerable<PositionKpiDto>>.Success(cached);
+
+        var kpis = await _queryService.GetKpiByPositionAsync(
+            isGlobal ? null : request.PositionId, 
+            isActive: true, 
+            globalOnly: isGlobal);
+        
+        await _cacheService.SetAsync(cacheKey, kpis, TimeSpan.FromMinutes(10));
+        
         return Result<IEnumerable<PositionKpiDto>>.Success(kpis);
     }
 }

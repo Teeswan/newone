@@ -60,7 +60,7 @@ public class PositionKpiRepository : IPositionKpiRepository
         return await _context.PositionKpis
             .Include(k => k.Kpi)
             .Include(k => k.Position)
-            .Where(k => k.Kpi.IsActive)
+            .Where(k => k.IsActive)
             .AsNoTracking()
             .ToListAsync();
     }

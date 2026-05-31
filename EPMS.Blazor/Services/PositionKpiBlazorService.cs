@@ -12,7 +12,7 @@ namespace EPMS.Blazor.Services
 {
     public interface IPositionKpiBlazorService
     {
-        Task<IEnumerable<PositionKpiDto>> GetPositionKpisAsync();
+        Task<PaginatedResult<PositionKpiDto>> GetPositionKpisAsync(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, int? positionId = null);
         Task<PositionKpiDto?> GetByIdAsync(int id);
         Task<IEnumerable<PositionKpiDto>> GetByPositionAsync(int positionId);
         Task<int> CreateAsync(CreatePositionKpiCommand command);
@@ -32,10 +32,20 @@ namespace EPMS.Blazor.Services
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<PositionKpiDto>> GetPositionKpisAsync()
+        public async Task<PaginatedResult<PositionKpiDto>> GetPositionKpisAsync(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, int? positionId = null)
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<PositionKpiDto>>>(BaseUrl);
-            return response?.Data ?? Enumerable.Empty<PositionKpiDto>();
+            var url = $"{BaseUrl}?pageNumber={pageNumber}&pageSize={pageSize}";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                url += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
+            }
+            if (positionId.HasValue)
+            {
+                url += $"&positionId={positionId.Value}";
+            }
+
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<PaginatedResult<PositionKpiDto>>>(url);
+            return response?.Data ?? new PaginatedResult<PositionKpiDto>();
         }
 
         public async Task<PositionKpiDto?> GetByIdAsync(int id)

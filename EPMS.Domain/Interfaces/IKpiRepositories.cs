@@ -19,5 +19,6 @@ namespace EPMS.Domain.Interfaces
     public interface IEmployeeKpiRepository : IBaseRepository<EmployeeKpi, int>
     {
         Task<IEnumerable<EmployeeKpi>> GetByEmployeeIdAsync(int employeeId);
+        Task<IEnumerable<EmployeeKpi>> GetByTeamKpiIdAsync(int teamKpiId);
     }
 }

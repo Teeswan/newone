@@ -1,26 +1,56 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EPMS.Domain.Entities
 {
+    [Table("TeamKPIs")]
     public class TeamKpi
     {
-        public int TeamKpiId { get; private set; }
-        public int TeamId { get; private set; }
-        public int DeptKpiId { get; private set; }
-        public decimal TeamTarget { get; private set; }
-        public decimal Weight { get; private set; }
-        public bool IsActive { get; private set; }
-        public DateTime CreatedAt { get; private set; }
+        [Key]
+        public int TeamKpiId { get; set; }
 
-        public virtual Team Team { get; private set; } = null!;
-        public virtual DepartmentKpi DepartmentKpi { get; private set; } = null!;
+        public int? TeamId { get; set; }
 
-        public virtual ICollection<EmployeeKpi> EmployeeKpis { get; private set; } = new List<EmployeeKpi>();
+        public int? DeptKpiId { get; set; }
 
-        private TeamKpi() { }
+        public decimal? TeamTarget { get; set; }
 
-        public static TeamKpi Create(int teamId, int deptKpiId, decimal teamTarget, decimal weight)
+        public decimal? Weight { get; set; }
+
+        public bool? IsActive { get; set; }
+
+        public decimal? ActualValue { get; set; }
+
+        public int? VersionNo { get; set; }
+
+        public decimal? SnapshotTarget { get; set; }
+
+        public decimal? SnapshotWeight { get; set; }
+
+        public string? ReasonForRevision { get; set; }
+
+        public string? Status { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public decimal? ScorePercent { get; private set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public decimal? WeightedScore { get; private set; }
+
+        // --- Navigation Properties ---
+
+        [ForeignKey("TeamId")]
+        public virtual Team? Team { get; set; }
+
+        [ForeignKey("DeptKpiId")]
+        public virtual DepartmentKpi? DepartmentKpi { get; set; }
+
+        public virtual ICollection<EmployeeKpi> EmployeeKpis { get; set; } = new List<EmployeeKpi>();
+
+        // Static factory method
+        public static TeamKpi Create(int teamId, int deptKpiId, decimal teamTarget, decimal weight, decimal actualValue = 0)
         {
             return new TeamKpi
             {
@@ -28,15 +58,18 @@ namespace EPMS.Domain.Entities
                 DeptKpiId = deptKpiId,
                 TeamTarget = teamTarget,
                 Weight = weight,
+                ActualValue = actualValue,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                VersionNo = 1,
+                Status = "Draft"
             };
         }
 
-        public void Update(decimal teamTarget, decimal weight)
+        public void Update(decimal teamTarget, decimal weight, decimal actualValue)
         {
             TeamTarget = teamTarget;
             Weight = weight;
+            ActualValue = actualValue;
         }
 
         public void Deactivate() => IsActive = false;

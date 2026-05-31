@@ -5,6 +5,7 @@
 @using EPMS.Blazor.Services
 @using EPMS.Blazor.Dialogs
 @using EPMS.Blazor.Pages.Employees
+@using EPMS.Blazor.Pages.KpiHierarchy
 @inject IEmployeeBlazorService EmployeeService
 @inject ITeamBlazorService TeamService
 @inject IDepartmentBlazorService DepartmentService
@@ -53,8 +54,9 @@
                         <MudChip T="string" Size="Size.Small" Color="@(context.IsActive == true ? Color.Success : Color.Error)">@(context.IsActive == true ? "Active" : "Inactive")</MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEmployeeEditDialog(context))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEmployeeDetails(context.EmployeeId))" Title="View Employee Profile" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEmployeeEditDialog(context))" Title="Edit Employee" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteEmployee(context.EmployeeId))" Title="Delete Employee" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -86,6 +88,7 @@
                     <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
                     <MudTd DataLabel="Parent">@context.ParentDepartmentName</MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Calculate" Color="Color.Info" Size="Size.Small" OnClick="@(() => OpenDepartmentKpiDialog(context))" Title="Calculate Department KPI" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
                     </MudTd>
@@ -121,6 +124,7 @@
                     <MudTd DataLabel="Manager">@context.ManagerName</MudTd>
                     <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Calculate" Color="Color.Info" Size="Size.Small" OnClick="@(() => OpenTeamKpiDialog(context))" Title="Calculate Team KPI" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenTeamEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteTeam(context.TeamId))" />
                     </MudTd>
@@ -328,13 +332,52 @@
     }
 
     private async Task DeleteEmployee(int id) => await ConfirmAndDelete(() => EmployeeService.DeleteEmployeeAsync(id), "Employee");
+    private void ViewEmployeeDetails(int id) => Navigation.NavigateTo($"/employees/details/{id}");
 
     private async Task OpenDepartmentAddDialog() => await ShowDialog<DepartmentDialog>("Add Department");
     private async Task OpenDepartmentEditDialog(DepartmentDto dept) => await ShowDialog<DepartmentDialog>("Edit Department", new DialogParameters { ["Id"] = dept.DepartmentId });
+    private async Task OpenDepartmentKpiDialog(DepartmentDto dept)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["DepartmentId"] = dept.DepartmentId,
+            ["DepartmentName"] = dept.DepartmentName
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<CalculateDepartmentKpiDialog>("Department KPI Performance Entry", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAllData();
+            StateHasChanged();
+        }
+    }
     private async Task DeleteDepartment(int id) => await ConfirmAndDelete(() => DepartmentService.DeleteDepartmentAsync(id), "Department");
 
     private async Task OpenTeamAddDialog() => await ShowDialog<TeamDialog>("Add Team");
     private async Task OpenTeamEditDialog(TeamDto team) => await ShowDialog<TeamDialog>("Edit Team", new DialogParameters { ["Id"] = team.TeamId });
+    
+    private async Task OpenTeamKpiDialog(TeamDto team)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["TeamId"] = team.TeamId,
+            ["TeamName"] = team.TeamName
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<CalculateTeamKpiDialog>("Team KPI Performance Entry", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAllData();
+            StateHasChanged();
+        }
+    }
+
     private async Task DeleteTeam(int id) => await ConfirmAndDelete(() => TeamService.DeleteTeamAsync(id), "Team");
 
     private async Task OpenPositionAddDialog() => await ShowDialog<PositionDialog>("Add Position");
