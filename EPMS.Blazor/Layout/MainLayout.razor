@@ -205,9 +205,11 @@
         // Navigate based on type
         if (notification.RelatedEntityId.HasValue)
         {
-            if (notification.Type == "PerformanceEvaluation" || notification.Type == "360Feedback")
+            if (notification.Type == "PerformanceEvaluation" || 
+                notification.Type == "360Feedback" || 
+                notification.Type == "PerformanceCalibration")
             {
-                Navigation.NavigateTo($"/performance-evaluations/edit/{notification.RelatedEntityId.Value}");
+                Navigation.NavigateTo($"/performanceevaluations/edit/{notification.RelatedEntityId.Value}");
             }
         }
     }

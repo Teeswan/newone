@@ -1,0 +1,117 @@
+@page "/notifications"
+@inject INotificationBlazorService NotificationService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudText Typo="Typo.h4" Class="mb-6">All Notifications</MudText>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+    }
+    else if (_notifications == null || !_notifications.Any())
+    {
+        <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center justify-center">
+            <MudIcon Icon="@Icons.Material.Filled.NotificationsOff" Size="Size.Large" Color="Color.Disabled" />
+            <MudText Typo="Typo.h6" Color="Color.Disabled" Class="mt-4">You have no notifications</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudList T="NotificationDto">
+            @foreach (var notification in _notifications.OrderByDescending(n => n.CreatedAt))
+            {
+                <MudListItem OnClick="@(() => HandleNotificationClick(notification))" Class="mb-2 rounded-lg py-4 px-6 border-l-4" Style="@(notification.IsRead == true ? "" : "border-left-color: var(--mud-palette-primary); background-color: var(--mud-palette-background-grey);")">
+                    <div class="d-flex justify-space-between align-center">
+                        <div class="d-flex flex-column">
+                            <MudText Typo="Typo.subtitle1" Color="@(notification.IsRead == true ? Color.Default : Color.Primary)" Class="@(notification.IsRead == true ? "" : "fw-bold")">
+                                @notification.Title
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @notification.CreatedAt?.ToString("F")
+                            </MudText>
+                        </div>
+                        <div class="d-flex align-center">
+                            @if (notification.IsRead != true)
+                            {
+                                <MudTooltip Text="Mark as read">
+                                    <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" OnClick="@(() => MarkAsRead(notification))" OnClickStopPropagation="true" />
+                                </MudTooltip>
+                            }
+                            <MudIcon Icon="@GetIconForType(notification.Type)" Color="Color.Info" Class="ml-4" />
+                        </div>
+                    </div>
+                </MudListItem>
+            }
+        </MudList>
+    }
+</MudContainer>
+
+@code {
+    private List<NotificationDto> _notifications = new();
+    private bool _loading = true;
+    private int? _userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst("UserId") ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            {
+                _userId = userId;
+                await LoadNotifications();
+            }
+        }
+        _loading = false;
+    }
+
+    private async Task LoadNotifications()
+    {
+        if (_userId.HasValue)
+        {
+            _notifications = await NotificationService.GetUserNotificationsAsync(_userId.Value);
+        }
+    }
+
+    private async Task MarkAsRead(NotificationDto notification)
+    {
+        await NotificationService.MarkAsReadAsync(notification.NotificationId);
+        notification.IsRead = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notification)
+    {
+        if (notification.IsRead != true)
+        {
+            await NotificationService.MarkAsReadAsync(notification.NotificationId);
+        }
+
+        if (notification.RelatedEntityId.HasValue)
+        {
+            if (notification.Type == "PerformanceEvaluation" || 
+                notification.Type == "360Feedback" || 
+                notification.Type == "PerformanceCalibration")
+            {
+                Navigation.NavigateTo($"/performanceevaluations/edit/{notification.RelatedEntityId.Value}");
+            }
+        }
+    }
+
+    private string GetIconForType(string? type)
+    {
+        return type switch
+        {
+            "PerformanceEvaluation" => Icons.Material.Filled.Assessment,
+            "360Feedback" => Icons.Material.Filled.Groups,
+            "PerformanceCalibration" => Icons.Material.Filled.FactCheck,
+            _ => Icons.Material.Filled.Notifications
+        };
+    }
+}

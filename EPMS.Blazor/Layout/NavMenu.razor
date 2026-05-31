@@ -1,4 +1,11 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
 @inject IPermissionCheckerService PermissionChecker
+@inject INotificationBlazorService NotificationService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ICurrentEmployeeStateService CurrentEmployeeState
+@implements IDisposable
 
 <MudNavMenu>
     <div class="nav-header px-4 py-4">
@@ -14,6 +21,15 @@
     </div>
     <MudDivider Class="my-2" />
     <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Href="/notifications" Icon="@Icons.Material.Filled.Notifications" Match="NavLinkMatch.All">
+        <div class="d-flex align-center">
+            Notifications
+            @if (_unreadCount > 0)
+            {
+                <MudBadge Content="@_unreadCount" Color="Color.Error" Overlap="false" Class="ml-auto mr-4" />
+            }
+        </div>
+    </MudNavLink>
     <MudNavLink Href="/debug" Icon="@Icons.Material.Filled.BugReport">Debug</MudNavLink>
     
     @if (ShowOrganizationSection)
@@ -35,7 +51,15 @@
         <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Performance</MudText>
         @if (_canViewPerformanceEvaluations)
         {
-            <MudNavLink Href="/performance-hub" Icon="@Icons.Material.Filled.Assessment" Match="NavLinkMatch.All">Performance Hub</MudNavLink>
+            <MudNavLink Href="/performance-hub" Icon="@Icons.Material.Filled.Assessment" Match="NavLinkMatch.All">
+                <div class="d-flex align-center">
+                    Performance Hub
+                    @if (_unreadCount > 0)
+                    {
+                        <MudBadge Content="@_unreadCount" Color="Color.Error" Overlap="false" Class="ml-auto mr-4" />
+                    }
+                </div>
+            </MudNavLink>
         }
         @if (_canViewAppraisalCycles)
         {
@@ -113,9 +137,58 @@
     private bool _canViewSecurity = false;
     private bool _canManageTeamEmployees = false;
 
+    private int _unreadCount = 0;
+    private int? _userId;
+    private bool _disposed;
+
     protected override async Task OnInitializedAsync()
     {
+        CurrentEmployeeState.CurrentEmployeeChanged += OnCurrentEmployeeChanged;
+        
         await LoadPermissions();
+        await LoadUserId();
+        await LoadNotifications();
+    }
+
+    private async Task LoadUserId()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst("UserId") ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            {
+                _userId = userId;
+            }
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        if (_userId.HasValue)
+        {
+            _unreadCount = await NotificationService.GetUnreadCountAsync(_userId.Value);
+            StateHasChanged();
+        }
+    }
+
+    private void OnCurrentEmployeeChanged()
+    {
+        InvokeAsync(async () => {
+            await LoadNotifications();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            CurrentEmployeeState.CurrentEmployeeChanged -= OnCurrentEmployeeChanged;
+            _disposed = true;
+        }
     }
 
     private async Task LoadPermissions()

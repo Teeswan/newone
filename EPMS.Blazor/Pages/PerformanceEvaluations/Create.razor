@@ -338,30 +338,18 @@
             }
             else if (evaluationType == AppraisalFormType.Feedback360)
             {
-                // 360 Feedback: Auto-add self and manager as starting point
-                AddEvaluatorFeedback(selectedEmployee.EmployeeId, "Self");
-                if (selectedEmployee.ReportsTo.HasValue)
+                // 360 Feedback: Auto-add 5 random people across the entire organization/teams
+                if (employees != null && employees.Any())
                 {
-                    AddEvaluatorFeedback(selectedEmployee.ReportsTo.Value, "Manager");
-                }
+                    var random = new Random();
+                    var randomEvaluators = employees
+                        .Where(e => e.EmployeeId != selectedEmployee.EmployeeId && e.IsActive == true)
+                        .OrderBy(x => random.Next())
+                        .Take(5);
 
-                // Add peers (same level)
-                var peers = employees?.Where(e => e.LevelId == selectedEmployee.LevelId && e.EmployeeId != selectedEmployee.EmployeeId).Take(2);
-                if (peers != null)
-                {
-                    foreach (var peer in peers)
+                    foreach (var eval in randomEvaluators)
                     {
-                        AddEvaluatorFeedback(peer.EmployeeId, "Peer");
-                    }
-                }
-
-                // Add subordinates (those who report to this employee)
-                var subordinates = employees?.Where(e => e.ReportsTo == selectedEmployee.EmployeeId).Take(2);
-                if (subordinates != null)
-                {
-                    foreach (var sub in subordinates)
-                    {
-                        AddEvaluatorFeedback(sub.EmployeeId, "Subordinate");
+                        AddEvaluatorFeedback(eval.EmployeeId, "Peer");
                     }
                 }
             }

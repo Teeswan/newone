@@ -22,6 +22,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
     private readonly IUserRepository _userRepository;
     private readonly IAuditLogService _auditLogService;
     private readonly IAppraisalFormRepository _formRepository;
+    private readonly IFormQuestionRepository _formQuestionRepository;
     private readonly IMapper _mapper;
 
     public PerformanceEvaluationService(
@@ -36,6 +37,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         IUserRepository userRepository,
         IAuditLogService auditLogService,
         IAppraisalFormRepository formRepository,
+        IFormQuestionRepository formQuestionRepository,
         IMapper mapper)
     {
         _repository = repository;
@@ -49,6 +51,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         _userRepository = userRepository;
         _auditLogService = auditLogService;
         _formRepository = formRepository;
+        _formQuestionRepository = formQuestionRepository;
         _mapper = mapper;
     }
 
@@ -133,7 +136,35 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         entity.CreatedByEmployeeId = currentEmployeeId;
         var created = await _repository.CreateAsync(entity);
 
-        if (request.Responses != null && request.Responses.Any())
+        // If no responses provided (e.g., Bulk Start), automatically generate default evaluator/question mappings
+        if (request.Responses == null || !request.Responses.Any())
+        {
+            var form = await _formRepository.GetByIdAsync(request.FormId);
+            var questions = await _formQuestionRepository.GetByFormIdAsync(request.FormId);
+            var subject = await _employeeRepository.GetByIdAsync(request.EmployeeId ?? 0);
+
+            if (form != null && questions.Any() && subject != null)
+            {
+                var evaluators = await GetDefaultEvaluatorsAsync(form.FormType, subject, currentEmployeeId);
+                
+                foreach (var evaluator in evaluators)
+                {
+                    foreach (var q in questions)
+                    {
+                        var resp = new AppraisalResponse
+                        {
+                            EvalId = created.EvalId,
+                            QuestionId = q.QuestionId,
+                            RespondentEmployeeId = evaluator.Id,
+                            RespondentRole = evaluator.Role,
+                            IsAnonymous = form.FormType == AppraisalFormType.Feedback360 && evaluator.Role != "Manager" && evaluator.Role != "Self"
+                        };
+                        await _responseRepository.CreateAsync(resp);
+                    }
+                }
+            }
+        }
+        else
         {
             foreach (var respReq in request.Responses)
             {
@@ -305,27 +336,9 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                 break;
 
             case AppraisalFormType.Feedback360:
-                // Weighted average of all sources
-                // Peers: 40%, Subordinates: 30%, Manager: 20%, External: 10%
-                decimal pAvg = CalculateAverageScore(peerRatings);
-                decimal sAvg = CalculateAverageScore(subRatings);
-                decimal mAvg = CalculateAverageScore(managerRatings);
-                decimal eAvg = CalculateAverageScore(externalRatings);
-
-                int sources = 0;
-                if (peerRatings.Any()) { finalScore += pAvg * 0.4m; sources++; }
-                if (subRatings.Any()) { finalScore += sAvg * 0.3m; sources++; }
-                if (managerRatings.Any()) { finalScore += mAvg * 0.2m; sources++; }
-                if (externalRatings.Any()) { finalScore += eAvg * 0.1m; sources++; }
-
-                // If some sources are missing, re-normalize or just use available
-                if (sources > 0)
-                {
-                    // For 360, we might just want a straight average if weights don't add to 100% due to missing sources
-                    // but standard 360 often just averages all 'other' ratings equally
-                    var allOtherRatings = responses.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
-                    finalScore = CalculateAverageScore(allOtherRatings);
-                }
+                // 360 Feedback: Average across all other sources (Peers)
+                var allOtherRatings = responses.Where(r => r.RespondentRole != "Self" && r.RatingValue.HasValue).ToList();
+                finalScore = CalculateAverageScore(allOtherRatings);
                 break;
 
             case AppraisalFormType.CalibrationReview:
@@ -720,5 +733,58 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
         if (string.IsNullOrEmpty(levelId)) return 99;
         var numericPart = new string(levelId.Where(char.IsDigit).ToArray());
         return int.TryParse(numericPart, out int level) ? level : 99;
+    }
+
+    private async Task<List<(int Id, string Role)>> GetDefaultEvaluatorsAsync(AppraisalFormType type, Employee subject, int? currentEmployeeId)
+    {
+        var evaluators = new List<(int Id, string Role)>();
+
+        switch (type)
+        {
+            case AppraisalFormType.SelfAssessment:
+                evaluators.Add((subject.EmployeeId, "Self"));
+                break;
+
+            case AppraisalFormType.PerformanceAppraisal:
+                // Add Manager
+                if (subject.ReportsTo.HasValue)
+                {
+                    evaluators.Add((subject.ReportsTo.Value, "Manager"));
+                }
+                else if (currentEmployeeId.HasValue)
+                {
+                    evaluators.Add((currentEmployeeId.Value, "Manager"));
+                }
+                // Add Self
+                evaluators.Add((subject.EmployeeId, "Self"));
+                break;
+
+            case AppraisalFormType.Feedback360:
+                // User Requirement: 5 random people across the entire organization/teams (can be anyone)
+                var organizationPool = (await _employeeRepository.GetAllAsync())
+                    .Where(e => e.EmployeeId != subject.EmployeeId && e.IsActive == true)
+                    .ToList();
+
+                if (organizationPool.Any())
+                {
+                    var random = new Random();
+                    var randomEvaluators = organizationPool.OrderBy(x => random.Next()).Take(5);
+                    foreach (var randomEmp in randomEvaluators)
+                    {
+                        // Using "Peer" as the technical role for the multi-rater averaging logic
+                        evaluators.Add((randomEmp.EmployeeId, "Peer"));
+                    }
+                }
+                break;
+
+            case AppraisalFormType.CalibrationReview:
+                if (currentEmployeeId.HasValue)
+                {
+                    evaluators.Add((currentEmployeeId.Value, "Manager"));
+                }
+                break;
+        }
+
+        return evaluators;
     }
 }
