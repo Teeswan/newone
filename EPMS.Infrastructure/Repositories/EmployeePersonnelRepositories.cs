@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EPMS.Infrastructure.Repositories;
@@ -166,6 +168,73 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
             .Include(e => e.ReportsToNavigation)
             .Include(e => e.TeamsNavigation)
             .FirstOrDefaultAsync(e => e.EmployeeId == id && !e.IsDeleted);
+    }
+
+    public async Task<Employee?> GetWithTeamsAsync(int employeeId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(e => e.TeamsNavigation)
+            .FirstOrDefaultAsync(e => e.EmployeeId == employeeId && !e.IsDeleted, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<int>> GetTeamIdsForEmployeeAsync(int employeeId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(e => e.EmployeeId == employeeId && !e.IsDeleted)
+            .SelectMany(e => e.TeamsNavigation.Select(t => t.TeamId))
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Two-step EF Core query: resolve the caller's team IDs, then filter employees via
+    /// <c>e.TeamsNavigation.Any(t =&gt; currentUserTeamIds.Contains(t.TeamId))</c> (TeamMembers M:N).
+    /// </remarks>
+    public async Task<IReadOnlyList<Employee>> GetEmployeesSharingTeamsWithAsync(
+        int currentEmployeeId,
+        CancellationToken cancellationToken = default)
+    {
+        var currentUserTeamIds = await GetTeamIdsForEmployeeAsync(currentEmployeeId, cancellationToken);
+        if (currentUserTeamIds.Count == 0)
+        {
+            return Array.Empty<Employee>();
+        }
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(e => !e.IsDeleted)
+            .Where(e => e.TeamsNavigation.Any(t => currentUserTeamIds.Contains(t.TeamId)))
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .Include(e => e.ReportsToNavigation)
+            .Include(e => e.TeamsNavigation)
+            .OrderBy(e => e.FullName)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> SharesAnyTeamWithAsync(
+        int currentEmployeeId,
+        int targetEmployeeId,
+        CancellationToken cancellationToken = default)
+    {
+        if (currentEmployeeId == targetEmployeeId)
+        {
+            return true;
+        }
+
+        var currentUserTeamIds = await GetTeamIdsForEmployeeAsync(currentEmployeeId, cancellationToken);
+        if (currentUserTeamIds.Count == 0)
+        {
+            return false;
+        }
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(e => e.EmployeeId == targetEmployeeId && !e.IsDeleted)
+            .AnyAsync(e => e.TeamsNavigation.Any(t => currentUserTeamIds.Contains(t.TeamId)), cancellationToken);
     }
 
 }

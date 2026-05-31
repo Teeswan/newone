@@ -27,6 +27,10 @@ public static class Permissions
         public const string Edit = "Permissions.Employees.Edit";
         public const string Delete = "Permissions.Employees.Delete";
         public const string Manage = "Permissions.Employees.Manage";
+        /// <summary>
+        /// Team-scoped employee management: view and manage employees who share at least one team with the current user.
+        /// </summary>
+        public const string TeamEmployeeManagement = "Permissions.Employees.TeamEmployeeManagement";
     }
 
     public static class Levels

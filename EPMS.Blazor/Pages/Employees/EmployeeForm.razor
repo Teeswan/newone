@@ -262,6 +262,7 @@
     [Parameter] public int EmployeeId { get; set; }
     [Parameter] public int? DefaultDepartmentId { get; set; }
     [Parameter] public int? DefaultTeamId { get; set; }
+    [Parameter] public bool TeamScoped { get; set; }
 
     private bool IsActive { get; set; } = true;
     private MudForm form = null!;
@@ -278,6 +279,12 @@
     {
         try
         {
+            if (TeamScoped && IsEdit && EmployeeId > 0)
+            {
+                await LoadTeamScopedEditFormAsync();
+                return;
+            }
+
             // Load dropdown data first to ensure MudSelect can match values
             var deptData = await DeptService.GetAllDepartmentsAsync();
             var teamData = await TeamService.GetAllTeamsAsync();
@@ -299,34 +306,7 @@
             }
             else if (IsEdit && EmployeeId > 0)
             {
-                var employee = await EmployeeService.GetEmployeeDetailsAsync(EmployeeId);
-                if (employee != null)
-                {
-                    originalEmployeeCode = employee.EmployeeCode;
-                    Model = new UpdateEmployeeRequest
-                    {
-                        EmployeeCode = employee.EmployeeCode,
-                        FullName = employee.FullName,
-                        Email = employee.Email,
-                        DepartmentId = employee.DepartmentId,
-                        TeamId = employee.TeamId,
-                        PositionId = employee.PositionId,
-                        ReportsTo = employee.ReportsTo,
-                        JoinDate = employee.JoinDate,
-                        CurrentSalary = employee.CurrentSalary,
-                        Phone = employee.Phone,
-                        Address = employee.Address,
-                        DateOfBirth = employee.DateOfBirth,
-                        EmploymentStatus = employee.EmploymentStatus,
-                        NrcNumber = employee.NrcNumber,
-                        Gender = employee.Gender,
-                        EmergencyContact = employee.EmergencyContact,
-                        EmergencyPhone = employee.EmergencyPhone,
-                        BankName = employee.BankName,
-                        BankAccountNumber = employee.BankAccountNumber
-                    };
-                    IsActive = employee.IsActive ?? false;
-                }
+                await PopulateModelFromEmployeeAsync(await EmployeeService.GetEmployeeDetailsAsync(EmployeeId));
             }
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -339,6 +319,72 @@
         {
             Snackbar.Add("Error loading data: " + ex.Message, Severity.Error, config => { config.Icon = Icons.Material.Filled.ErrorOutline; });
         }
+    }
+
+    private async Task LoadTeamScopedEditFormAsync()
+    {
+        var employee = await EmployeeService.GetTeamScopedManageableEmployeeAsync(EmployeeId);
+        if (employee == null)
+        {
+            Snackbar.Add("Employee not found or not in your teams.", Severity.Error);
+            MudDialog.Cancel();
+            return;
+        }
+
+        await PopulateModelFromEmployeeAsync(employee);
+
+        try
+        {
+            departments = await DeptService.GetAllDepartmentsAsync() ?? new List<DepartmentDto>();
+            teams = await TeamService.GetAllTeamsAsync() ?? new List<TeamDto>();
+            positions = await PosService.GetAllPositionsAsync() ?? new List<PositionDto>();
+            allEmployees = await EmployeeService.GetTeamScopedManageableEmployeesAsync();
+        }
+        catch
+        {
+            // Team leads may lack org-wide View permissions — use current values only
+            departments = employee.DepartmentId.HasValue
+                ? new List<DepartmentDto> { new() { DepartmentId = employee.DepartmentId.Value, DepartmentName = employee.DepartmentName ?? "" } }
+                : new List<DepartmentDto>();
+            teams = employee.TeamId.HasValue
+                ? new List<TeamDto> { new() { TeamId = employee.TeamId.Value, TeamName = employee.TeamName ?? "" } }
+                : new List<TeamDto>();
+            positions = employee.PositionId.HasValue
+                ? new List<PositionDto> { new() { PositionId = employee.PositionId.Value, PositionTitle = employee.PositionTitle ?? "" } }
+                : new List<PositionDto>();
+            allEmployees = await EmployeeService.GetTeamScopedManageableEmployeesAsync();
+        }
+    }
+
+    private async Task PopulateModelFromEmployeeAsync(EmployeeDetailDto? employee)
+    {
+        if (employee == null) return;
+
+        originalEmployeeCode = employee.EmployeeCode;
+        Model = new UpdateEmployeeRequest
+        {
+            EmployeeCode = employee.EmployeeCode,
+            FullName = employee.FullName,
+            Email = employee.Email,
+            DepartmentId = employee.DepartmentId,
+            TeamId = employee.TeamId,
+            PositionId = employee.PositionId,
+            ReportsTo = employee.ReportsTo,
+            JoinDate = employee.JoinDate,
+            CurrentSalary = employee.CurrentSalary,
+            Phone = employee.Phone,
+            Address = employee.Address,
+            DateOfBirth = employee.DateOfBirth,
+            EmploymentStatus = employee.EmploymentStatus,
+            NrcNumber = employee.NrcNumber,
+            Gender = employee.Gender,
+            EmergencyContact = employee.EmergencyContact,
+            EmergencyPhone = employee.EmergencyPhone,
+            BankName = employee.BankName,
+            BankAccountNumber = employee.BankAccountNumber
+        };
+        IsActive = employee.IsActive ?? false;
+        await Task.CompletedTask;
     }
 
     private async Task<string?> ValidateEmployeeCode(string code)

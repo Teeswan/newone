@@ -1,0 +1,166 @@
+@page "/employees/team-scoped/details/{Id:int}"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IEmployeeBlazorService EmployeeService
+@inject IPermissionCheckerService PermissionChecker
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+        <div class="d-flex align-center">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="@(() => Navigation.NavigateTo("/employees/team-scoped"))"
+                           Color="Color.Primary" Size="Size.Large" Class="mr-3" />
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2 mb-n1" Color="Color.Primary" />
+                Team Member Profile
+            </MudText>
+        </div>
+        @if (detail != null)
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Warning"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="OpenEditDialog">
+                Edit
+            </MudButton>
+        }
+    </div>
+
+    @if (_accessDenied)
+    {
+        <MudAlert Severity="Severity.Error">Access Denied — you cannot view this team member.</MudAlert>
+    }
+    else if (detail == null && !_loading)
+    {
+        <MudAlert Severity="Severity.Warning">Employee not found or not in your teams.</MudAlert>
+    }
+    else if (_loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (detail != null)
+    {
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Style="border-radius: 16px;">
+                    <MudCardContent Class="d-flex flex-column align-center py-8">
+                        <MudAvatar Style="height: 120px; width: 120px; font-size: 3rem;" Color="Color.Primary">
+                            @detail.FullName[0]
+                        </MudAvatar>
+                        <MudText Typo="Typo.h5" Class="mt-4 fw-bold">@detail.FullName</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@detail.EmployeeCode</MudText>
+                        <MudChip T="string" Class="mt-2" Color="@(detail.IsActive == true ? Color.Success : Color.Error)" Size="Size.Small">
+                            @(detail.IsActive == true ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" md="8">
+                <MudCard Elevation="2" Style="border-radius: 16px;">
+                    <MudCardContent Class="pa-6">
+                        <MudText Typo="Typo.h6" Class="mb-4">Organization</MudText>
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Department</MudText>
+                                <MudText Typo="Typo.body1">@detail.DepartmentName</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Team</MudText>
+                                <MudText Typo="Typo.body1">@detail.TeamName</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Position</MudText>
+                                <MudText Typo="Typo.body1">@detail.PositionTitle</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
+                                <MudText Typo="Typo.body1">@detail.Email</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Phone</MudText>
+                                <MudText Typo="Typo.body1">@(detail.Phone ?? "—")</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Join Date</MudText>
+                                <MudText Typo="Typo.body1">@detail.JoinDate?.ToString("dd MMM yyyy")</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private EmployeeDetailDto? detail;
+    private bool _loading = true;
+    private bool _accessDenied;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await PermissionChecker.HasTeamEmployeeManagementAsync())
+        {
+            _accessDenied = true;
+            _loading = false;
+            return;
+        }
+
+        await LoadDetail();
+    }
+
+    private async Task LoadDetail()
+    {
+        try
+        {
+            _loading = true;
+            detail = await EmployeeService.GetTeamScopedManageableEmployeeAsync(Id);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _accessDenied = true;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenEditDialog()
+    {
+        if (detail == null) return;
+
+        var parameters = new DialogParameters
+        {
+            ["IsEdit"] = true,
+            ["EmployeeId"] = detail.EmployeeId,
+            ["TeamScoped"] = true
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EmployeeForm>("Update Team Member", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is EPMS.Shared.Requests.UpdateEmployeeRequest request)
+        {
+            try
+            {
+                await EmployeeService.UpdateTeamScopedManageableEmployeeAsync(detail.EmployeeId, request);
+                detail = await EmployeeService.GetTeamScopedManageableEmployeeAsync(Id);
+                Snackbar.Add("Updated successfully.", Severity.Success);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Snackbar.Add("Access Denied.", Severity.Error);
+            }
+        }
+    }
+}

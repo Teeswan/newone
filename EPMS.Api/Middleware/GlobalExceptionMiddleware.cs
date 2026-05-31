@@ -45,6 +45,11 @@ namespace EPMS.Api.Middleware
                     statusCode = HttpStatusCode.BadRequest;
                     message = ex.Message;
                 }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    statusCode = HttpStatusCode.Forbidden;
+                    message = ex.Message;
+                }
 
                 context.Response.StatusCode = (int)statusCode;
 

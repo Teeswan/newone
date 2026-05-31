@@ -121,6 +121,18 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
         return await _innerRepository.GetByIdNoTrackingAsync(id);
     }
 
+    public Task<Employee?> GetWithTeamsAsync(int employeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetWithTeamsAsync(employeeId, cancellationToken);
+
+    public Task<IReadOnlyList<int>> GetTeamIdsForEmployeeAsync(int employeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetTeamIdsForEmployeeAsync(employeeId, cancellationToken);
+
+    public Task<IReadOnlyList<Employee>> GetEmployeesSharingTeamsWithAsync(int currentEmployeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetEmployeesSharingTeamsWithAsync(currentEmployeeId, cancellationToken);
+
+    public Task<bool> SharesAnyTeamWithAsync(int currentEmployeeId, int targetEmployeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.SharesAnyTeamWithAsync(currentEmployeeId, targetEmployeeId, cancellationToken);
+
     private void InvalidateEmployeeCustomCache(Employee employee)
     {
         if (employee.DepartmentId.HasValue)
