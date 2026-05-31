@@ -2,7 +2,6 @@
 @using EPMS.Blazor.Services
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Enums
-@inject IEmployeeKpiBlazorService EmpKpiService
 @inject IAppraisalCycleBlazorService CycleService
 @inject ISnackbar Snackbar
 
@@ -19,7 +18,7 @@
             </MudSelect>
         </MudItem>
         <MudItem xs="12" md="2" Class="d-flex align-end">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadData" FullWidth="true" Style="height: 56px;">View</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Style="height: 56px;">View</MudButton>
         </MudItem>
     </MudGrid>
 </MudPaper>
@@ -68,21 +67,6 @@ else if (_cycleId > 0 && !_loading)
     {
         _cycles = await CycleService.GetAllAppraisalCyclesAsync();
         if (_cycles.Any()) _cycleId = _cycles.First().CycleId;
-    }
-
-    private async Task LoadData()
-    {
-        if (_cycleId <= 0) return;
-
-        _loading = true;
-        try
-        {
-            _summaries = await EmpKpiService.GetAggregatedSummaryAsync(_cycleId, AggregationType.Department);
-        }
-        finally
-        {
-            _loading = false;
-        }
     }
 
     private Color GetScoreColor(decimal score)

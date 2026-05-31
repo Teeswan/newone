@@ -1,0 +1,182 @@
+@using System
+@using System.Threading
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@inject IEmployeeKpiBlazorService EmployeeKpiService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Calculate" Class="mr-3 mb-n1" />
+            KPI Performance Entry - @EmployeeName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <div class="d-flex justify-center py-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else if (!_kpis.Any())
+        {
+            <MudAlert Severity="Severity.Info">No KPIs found for the current active cycle. Please ensure KPIs are assigned first.</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="_kpis" Hover="true" Elevation="0" Dense="true" FixedHeader="true" Height="400px">
+                <HeaderContent>
+                    <MudTh>KPI Name</MudTh>
+                    <MudTh Style="width: 100px;">Weight</MudTh>
+                    <MudTh Style="width: 100px;">Target</MudTh>
+                    <MudTh Style="width: 150px;">Actual Value</MudTh>
+                    <MudTh Style="width: 100px;">Score</MudTh>
+                    <MudTh Style="width: 100px;">Weighted</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="kpi">
+                    <MudTd>@kpi.KpiName</MudTd>
+                    <MudTd>@kpi.Weight%</MudTd>
+                    <MudTd>@kpi.TargetValue</MudTd>
+                    <MudTd>
+                        <MudNumericField T="decimal" Value="@kpi.ActualValue" 
+                                         ValueChanged="@(v => UpdateActual(kpi, v))"
+                                         Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudTd>
+                    <MudTd>
+                        <MudText Color="@GetScoreColor(CalculateScore(kpi))" Style="font-weight: 600;">
+                            @CalculateScore(kpi).ToString("F2")%
+                        </MudText>
+                    </MudTd>
+                    <MudTd>
+                        <MudText Style="font-weight: 600;">
+                            @CalculateWeightedScore(kpi).ToString("F2")
+                        </MudText>
+                    </MudTd>
+                </RowTemplate>
+                <FooterContent>
+                    <MudTFootRow>
+                        <MudTd colspan="5" Style="text-align: right; font-weight: 700;">Total Performance Score:</MudTd>
+                        <MudTd Style="font-weight: 700;">
+                            <MudText Color="Color.Primary" Typo="Typo.h6">
+                                @_kpis.Sum(k => CalculateWeightedScore(k)).ToString("F2")
+                            </MudText>
+                        </MudTd>
+                    </MudTFootRow>
+                </FooterContent>
+            </MudTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(_loading || _processing || !_kpis.Any())">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Saving...</MudText>
+            }
+            else
+            {
+                <MudText>Save Performance</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int EmployeeId { get; set; }
+    [Parameter] public string EmployeeName { get; set; } = "";
+
+    private List<EmployeeKpiDto> _kpis = new();
+    private bool _loading = true;
+    private bool _processing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadKpis();
+    }
+
+    private async Task LoadKpis()
+    {
+        _loading = true;
+        try
+        {
+            // First ensure we have KPIs (sync from position if needed)
+            await EmployeeKpiService.CalculateForEmployeeAsync(EmployeeId);
+            var result = await EmployeeKpiService.GetByEmployeeIdAsync(EmployeeId);
+            _kpis = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading KPIs: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void UpdateActual(EmployeeKpiDto kpi, decimal value)
+    {
+        kpi.ActualValue = value;
+        StateHasChanged();
+    }
+
+    private decimal CalculateScore(EmployeeKpiDto kpi)
+    {
+        if (kpi.TargetValue == 0) return 0;
+        return (kpi.ActualValue / kpi.TargetValue) * 100;
+    }
+
+    private decimal CalculateWeightedScore(EmployeeKpiDto kpi)
+    {
+        return (CalculateScore(kpi) * kpi.Weight) / 100;
+    }
+
+    private Color GetScoreColor(decimal score)
+    {
+        if (score >= 100) return Color.Success;
+        if (score >= 75) return Color.Info;
+        if (score >= 50) return Color.Warning;
+        return Color.Error;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        _processing = true;
+        try
+        {
+            foreach (var kpi in _kpis)
+            {
+                var request = new EmployeeKpiRequest
+                {
+                    EmployeeId = kpi.EmployeeId,
+                    CycleId = kpi.CycleId,
+                    KpiId = kpi.KpiId,
+                    PositionKpiId = kpi.PositionKpiId,
+                    TeamKpiId = kpi.TeamKpiId,
+                    Weight = kpi.Weight,
+                    TargetValue = kpi.TargetValue,
+                    ActualValue = kpi.ActualValue,
+                    IsActive = kpi.IsActive
+                };
+                await EmployeeKpiService.UpdateAsync(kpi.EmployeeKpiId, request);
+            }
+            
+            Snackbar.Add("Performance data saved successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

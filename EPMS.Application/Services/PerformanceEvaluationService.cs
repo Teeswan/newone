@@ -90,12 +90,17 @@ public class PerformanceEvaluationService : IPerformanceEvaluationService
                 var creatorLevel = ParseLevel(creator.Position?.LevelId);
                 var subjectLevel = ParseLevel(subject.Position?.LevelId);
                 
-                // 1. Self-Assessment: Only for self (L02-L09)
+                // 1. Self-Assessment: Only for self (L02-L09) or manager (L02-L06) for direct reports
                 if (form.FormType == AppraisalFormType.SelfAssessment)
                 {
-                    if (creator.EmployeeId != subject.EmployeeId)
-                        throw new UnauthorizedAccessException("Self-assessment can only be initiated for yourself.");
-                    if (creatorLevel < 2 || creatorLevel > 9)
+                    bool isSelf = creator.EmployeeId == subject.EmployeeId;
+                    bool isManager = subject.ReportsTo == creator.EmployeeId && creatorLevel <= 6;
+                    bool isSeniorMgmt = creatorLevel <= 4;
+
+                    if (!isSelf && !isManager && !isSeniorMgmt)
+                        throw new UnauthorizedAccessException("Self-assessment can only be initiated for yourself or your direct reports.");
+                    
+                    if (isSelf && (creatorLevel < 2 || creatorLevel > 9))
                         throw new UnauthorizedAccessException("You are not eligible for self-assessment based on your level.");
                 }
                 

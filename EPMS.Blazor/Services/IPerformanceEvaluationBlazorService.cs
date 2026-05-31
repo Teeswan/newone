@@ -16,5 +16,8 @@ namespace EPMS.Blazor.Services
         Task<bool> DeletePerformanceEvaluationAsync(int id);
         Task<int> CreateBulkPerformanceEvaluationsAsync(BulkPerformanceEvaluationRequest request);
         Task<IEnumerable<CalibrationTrendDto>> GetCalibrationTrendAsync();
+        Task<byte[]> Download360FeedbackRdlcAsync(int id);
+        Task<byte[]> DownloadPerformanceAppraisalRdlcAsync(int id);
+        Task<byte[]> DownloadSelfAssessmentRdlcAsync(int id);
     }
 }

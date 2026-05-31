@@ -69,7 +69,14 @@ public class KpiCacheService : IKpiCacheService
 
     public async Task RemoveAsync(string key)
     {
-        await _cache.RemoveAsync(key);
+        try
+        {
+            await _cache.RemoveAsync(key);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove cache key: {Key}", key);
+        }
     }
 
     public Task RemoveByPatternAsync(string pattern)

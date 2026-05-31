@@ -10,9 +10,16 @@ using MediatR;
 
 namespace EPMS.Application.UseCases.PositionKpi.Queries;
 
-public record GetPositionKpiListQuery(int? PositionId, bool IsActive = true, string? Category = null) : IRequest<Result<IEnumerable<PositionKpiDto>>>;
+public record GetPositionKpiListQuery(
+    int? PositionId = null, 
+    bool IsActive = true, 
+    string? Category = null,
+    int PageNumber = 1,
+    int PageSize = 10,
+    string? SearchTerm = null
+) : IRequest<Result<PaginatedResult<PositionKpiDto>>>;
 
-public class GetPositionKpiListQueryHandler : IRequestHandler<GetPositionKpiListQuery, Result<IEnumerable<PositionKpiDto>>>
+public class GetPositionKpiListQueryHandler : IRequestHandler<GetPositionKpiListQuery, Result<PaginatedResult<PositionKpiDto>>>
 {
     private readonly IKpiQueryService _queryService;
     private readonly IKpiCacheService _cacheService;
@@ -23,21 +30,20 @@ public class GetPositionKpiListQueryHandler : IRequestHandler<GetPositionKpiList
         _cacheService = cacheService;
     }
 
-    public async Task<Result<IEnumerable<PositionKpiDto>>> Handle(GetPositionKpiListQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResult<PositionKpiDto>>> Handle(GetPositionKpiListQuery request, CancellationToken cancellationToken)
     {
-        var cacheKey = $"positionkpi:list:pos:{request.PositionId ?? 0}:act:{request.IsActive}:cat:{request.Category ?? "all"}:v5";
-        var cached = await _cacheService.GetAsync<IEnumerable<PositionKpiDto>>(cacheKey);
-        if (cached != null) return Result<IEnumerable<PositionKpiDto>>.Success(cached);
+        var cacheKey = $"positionkpi:paged:pos:{request.PositionId ?? 0}:act:{request.IsActive}:p:{request.PageNumber}:s:{request.PageSize}:q:{request.SearchTerm ?? "none"}:v1";
+        var cached = await _cacheService.GetAsync<PaginatedResult<PositionKpiDto>>(cacheKey);
+        if (cached != null) return Result<PaginatedResult<PositionKpiDto>>.Success(cached);
 
-        var kpis = await _queryService.GetKpiByPositionAsync(request.PositionId, request.IsActive);
-        
-        if (!string.IsNullOrWhiteSpace(request.Category))
-        {
-            kpis = kpis.Where(k => k.Category != null && 
-                                k.Category.Equals(request.Category, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
+        var result = await _queryService.GetPagedPositionKpiAsync(
+            request.PositionId, 
+            request.IsActive, 
+            request.PageNumber, 
+            request.PageSize, 
+            request.SearchTerm);
 
-        await _cacheService.SetAsync(cacheKey, kpis, TimeSpan.FromMinutes(10));
-        return Result<IEnumerable<PositionKpiDto>>.Success(kpis);
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(5));
+        return Result<PaginatedResult<PositionKpiDto>>.Success(result);
     }
 }

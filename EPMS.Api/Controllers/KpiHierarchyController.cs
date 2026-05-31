@@ -16,18 +16,16 @@ namespace EPMS.Api.Controllers
         private readonly IKpiService _kpiService;
         private readonly IDepartmentKpiService _deptKpiService;
         private readonly ITeamKpiService _teamKpiService;
-        private readonly IEmployeeKpiService _empKpiService;
 
         public KpiHierarchyController(
             IKpiService kpiService,
             IDepartmentKpiService deptKpiService,
-            ITeamKpiService teamKpiService,
-            IEmployeeKpiService empKpiService)
+            ITeamKpiService teamKpiService
+            )
         {
             _kpiService = kpiService;
             _deptKpiService = deptKpiService;
             _teamKpiService = teamKpiService;
-            _empKpiService = empKpiService;
         }
 
         // Master KPIs
@@ -87,6 +85,29 @@ namespace EPMS.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPut("department/{id}")]
+        [HasPermission(Permissions.Kpis.Manage)]
+        public async Task<ActionResult<DepartmentKpiDto>> UpdateDept(int id, DepartmentKpiRequest request)
+        {
+            var result = await _deptKpiService.UpdateAsync(id, request);
+            return result == null ? NotFound() : Ok(result);
+        }
+
+        [HttpPost("department/calculate/{deptId}")]
+        [HasPermission(Permissions.Kpis.Manage)]
+        public async Task<ActionResult<IEnumerable<DepartmentKpiDto>>> CalculateDepartment(int deptId)
+        {
+            try
+            {
+                var result = await _deptKpiService.CalculateForDepartmentAsync(deptId);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // Team KPIs
         [HttpGet("team")]
         [HasPermission(Permissions.Kpis.View)]
@@ -104,21 +125,30 @@ namespace EPMS.Api.Controllers
             return Ok(result);
         }
 
-        // Employee KPIs
-        [HttpGet("employee")]
-        [HasPermission(Permissions.Kpis.View)]
-        public async Task<ActionResult<IEnumerable<EmployeeKpiDto>>> GetAllEmp() => Ok(await _empKpiService.GetAllAsync());
-
-        [HttpGet("employee/by-emp/{empId}")]
-        [HasPermission(Permissions.Kpis.View)]
-        public async Task<ActionResult<IEnumerable<EmployeeKpiDto>>> GetEmpByEmp(int empId) => Ok(await _empKpiService.GetByEmployeeIdAsync(empId));
-
-        [HttpPost("employee")]
+        [HttpPut("team/{id}")]
         [HasPermission(Permissions.Kpis.Manage)]
-        public async Task<ActionResult<EmployeeKpiDto>> CreateEmp(EmployeeKpiRequest request)
+        public async Task<ActionResult<TeamKpiDto>> UpdateTeam(int id, TeamKpiRequest request)
         {
-            var result = await _empKpiService.CreateAsync(request);
-            return Ok(result);
+            var result = await _teamKpiService.UpdateAsync(id, request);
+            return result == null ? NotFound() : Ok(result);
         }
+
+        [HttpPost("team/calculate/{teamId}")]
+        [HasPermission(Permissions.Kpis.Manage)]
+        public async Task<ActionResult<IEnumerable<TeamKpiDto>>> CalculateTeam(int teamId)
+        {
+            try
+            {
+                var result = await _teamKpiService.CalculateForTeamAsync(teamId);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+       
+       
     }
 }

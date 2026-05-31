@@ -61,6 +61,24 @@ namespace EPMS.Blazor.Services
             return await response.Content.ReadFromJsonAsync<DepartmentKpiDto>() ?? throw new InvalidOperationException();
         }
 
+        public async Task<DepartmentKpiDto?> UpdateDeptAsync(int id, DepartmentKpiRequest request)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/department/{id}", request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<DepartmentKpiDto>();
+        }
+
+        public async Task<IEnumerable<DepartmentKpiDto>> CalculateDepartmentAsync(int deptId)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/department/calculate/{deptId}", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return await response.Content.ReadFromJsonAsync<IEnumerable<DepartmentKpiDto>>() ?? new List<DepartmentKpiDto>();
+        }
+
         public async Task<IEnumerable<TeamKpiDto>> GetAllTeamAsync()
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<TeamKpiDto>>($"{BaseUrl}/team") ?? new List<TeamKpiDto>();
@@ -78,21 +96,22 @@ namespace EPMS.Blazor.Services
             return await response.Content.ReadFromJsonAsync<TeamKpiDto>() ?? throw new InvalidOperationException();
         }
 
-        public async Task<IEnumerable<EmployeeKpiDto>> GetAllEmpAsync()
+        public async Task<TeamKpiDto?> UpdateTeamAsync(int id, TeamKpiRequest request)
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<EmployeeKpiDto>>($"{BaseUrl}/employee") ?? new List<EmployeeKpiDto>();
-        }
-
-        public async Task<IEnumerable<EmployeeKpiDto>> GetEmpByEmpAsync(int empId)
-        {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<EmployeeKpiDto>>($"{BaseUrl}/employee/by-emp/{empId}") ?? new List<EmployeeKpiDto>();
-        }
-
-        public async Task<EmployeeKpiDto> CreateEmpAsync(EmployeeKpiRequest request)
-        {
-            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/employee", request);
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/team/{id}", request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<EmployeeKpiDto>() ?? throw new InvalidOperationException();
+            return await response.Content.ReadFromJsonAsync<TeamKpiDto>();
+        }
+
+        public async Task<IEnumerable<TeamKpiDto>> CalculateTeamAsync(int teamId)
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/team/calculate/{teamId}", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return await response.Content.ReadFromJsonAsync<IEnumerable<TeamKpiDto>>() ?? new List<TeamKpiDto>();
         }
     }
 }

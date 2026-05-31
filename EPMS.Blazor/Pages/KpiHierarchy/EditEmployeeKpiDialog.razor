@@ -1,0 +1,130 @@
+@using System
+@using System.Threading
+@using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
+@using EPMS.Shared.Requests
+@inject IEmployeeKpiBlazorService EmployeeKpiService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudCard Elevation="0" Outlined="true" Class="pa-2 grey lighten-5">
+                        <MudCardContent>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">KPI Details (Read-only)</MudText>
+                            <MudText Typo="Typo.h6">@_kpiName</MudText>
+                            <MudText Typo="Typo.body2"><b>Cycle:</b> @_cycleName</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" @bind-Value="_request.Weight" Label="Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" @bind-Value="_request.TargetValue" Label="Target Value" Min="0" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" @bind-Value="_request.ActualValue" Label="Actual Value" Min="0" Variant="Variant.Outlined" />
+                </MudItem>
+
+                @if (_request.TargetValue > 0)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.body2">
+                            <b>Score Preview:</b> @((_request.ActualValue / _request.TargetValue * 100).ToString("F2"))%
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.body2">
+                            <b>Weighted Score:</b> @((_request.ActualValue / _request.TargetValue * _request.Weight).ToString("F2"))
+                        </MudText>
+                    </MudItem>
+                }
+
+                <MudItem xs="12" sm="6">
+                    <MudSwitch @bind-Value="_request.IsActive" Label="Is Active" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_isValid || _processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Processing</MudText>
+            }
+            else
+            {
+                <MudText>Save Changes</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public EmployeeKpiDto Kpi { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+    private EmployeeKpiRequest _request = new();
+    private string _kpiName = "";
+    private string? _cycleName;
+
+    protected override void OnInitialized()
+    {
+        if (Kpi != null)
+        {
+            _kpiName = Kpi.KpiName ?? "Unknown KPI";
+            _cycleName = Kpi.CycleName;
+
+            _request = new EmployeeKpiRequest
+            {
+                EmployeeId = Kpi.EmployeeId,
+                CycleId = Kpi.CycleId,
+                KpiId = Kpi.KpiId,
+                PositionKpiId = Kpi.PositionKpiId,
+                TeamKpiId = Kpi.TeamKpiId,
+                Weight = Kpi.Weight,
+                TargetValue = Kpi.TargetValue,
+                ActualValue = Kpi.ActualValue,
+                IsActive = Kpi.IsActive
+            };
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        try
+        {
+            var result = await EmployeeKpiService.UpdateAsync(Kpi.EmployeeKpiId, _request);
+            if (result != null)
+            {
+                Snackbar.Add("KPI assignment updated successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

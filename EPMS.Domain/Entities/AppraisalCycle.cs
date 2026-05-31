@@ -20,4 +20,8 @@ public partial class AppraisalCycle
     public virtual ICollection<PerformanceEvaluation> PerformanceEvaluations { get; set; } = new List<PerformanceEvaluation>();
 
     public virtual ICollection<PerformanceOutcome> PerformanceOutcomes { get; set; } = new List<PerformanceOutcome>();
+
+    public virtual ICollection<DepartmentKpi> DepartmentKpis { get; set; } = new List<DepartmentKpi>();
+
+    public virtual ICollection<EmployeeKpi> EmployeeKpis { get; set; } = new List<EmployeeKpi>();
 }

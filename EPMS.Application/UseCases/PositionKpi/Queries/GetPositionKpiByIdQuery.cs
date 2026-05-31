@@ -6,6 +6,7 @@ using EPMS.Application.Interfaces;
 using EPMS.Domain.Interfaces;
 using EPMS.Shared.Common;
 using MediatR;
+using AutoMapper;
 
 namespace EPMS.Application.UseCases.PositionKpi.Queries;
 
@@ -15,11 +16,13 @@ public class GetPositionKpiByIdQueryHandler : IRequestHandler<GetPositionKpiById
 {
     private readonly IPositionKpiRepository _repository;
     private readonly IKpiCacheService _cacheService;
+    private readonly IMapper _mapper;
 
-    public GetPositionKpiByIdQueryHandler(IPositionKpiRepository repository, IKpiCacheService cacheService)
+    public GetPositionKpiByIdQueryHandler(IPositionKpiRepository repository, IKpiCacheService cacheService, IMapper mapper)
     {
         _repository = repository;
         _cacheService = cacheService;
+        _mapper = mapper;
     }
 
     public async Task<Result<PositionKpiDto>> Handle(GetPositionKpiByIdQuery request, CancellationToken cancellationToken)
@@ -31,20 +34,7 @@ public class GetPositionKpiByIdQueryHandler : IRequestHandler<GetPositionKpiById
         var kpi = await _repository.GetByIdAsync(request.Id);
         if (kpi == null) return Result<PositionKpiDto>.Failure("KPI not found.");
 
-        var dto = new PositionKpiDto
-        {
-            PositionKpiId = kpi.PositionKpiId,
-            KpiId = kpi.KpiId,
-            KpiName = kpi.Kpi.KpiName,
-            Category = kpi.Kpi.Category,
-            Unit = kpi.Kpi.Unit,
-            WeightPercent = kpi.DefaultWeightPercent,
-            Direction = kpi.Kpi.Direction,
-            PositionId = kpi.PositionId,
-            PositionName = kpi.Position?.PositionTitle,
-            IsRequired = kpi.IsRequired,
-            IsActive = kpi.Kpi.IsActive
-        };
+        var dto = _mapper.Map<PositionKpiDto>(kpi);
 
         await _cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(30));
         return Result<PositionKpiDto>.Success(dto);

@@ -1,6 +1,5 @@
 using System;
 using EPMS.Domain.Enums;
-using EPMS.Domain.Exceptions;
 
 namespace EPMS.Domain.Entities;
 
@@ -18,10 +17,13 @@ public class PositionKpi
 
     public bool IsActive { get; private set; }
 
+    public decimal TargetValue { get; set; }
+
     public virtual Position? Position { get; private set; }
 
     public virtual Kpi Kpi { get; private set; } = null!;
 
+    public virtual ICollection<EmployeeKpi> EmployeeKpis { get; set; } = new List<EmployeeKpi>();
 
     private PositionKpi() { }
 
@@ -29,7 +31,8 @@ public class PositionKpi
         int? positionId,
         int kpiId,
         decimal defaultWeightPercent,
-        bool isRequired)
+        bool isRequired,
+        decimal targetValue)
     {
         return new PositionKpi
         {
@@ -37,16 +40,19 @@ public class PositionKpi
             KpiId = kpiId,
             DefaultWeightPercent = defaultWeightPercent,
             IsRequired = isRequired,
+            TargetValue = targetValue,
             IsActive = true
         };
     }
 
     public void Update(
         decimal defaultWeightPercent,
-        bool isRequired)
+        bool isRequired,
+        decimal targetValue)
     {
         DefaultWeightPercent = defaultWeightPercent;
         IsRequired = isRequired;
+        TargetValue = targetValue;
     }
 
     public void Activate() => IsActive = true;

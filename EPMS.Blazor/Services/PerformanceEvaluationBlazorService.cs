@@ -89,5 +89,20 @@ namespace EPMS.Blazor.Services
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<CalibrationTrendDto>>($"{BaseUrl}/calibration-trend") ?? new List<CalibrationTrendDto>();
         }
+
+        public async Task<byte[]> Download360FeedbackRdlcAsync(int id)
+        {
+            return await _httpClient.GetByteArrayAsync($"{BaseUrl}/{id}/report/rdlc/360");
+        }
+
+        public async Task<byte[]> DownloadPerformanceAppraisalRdlcAsync(int id)
+        {
+            return await _httpClient.GetByteArrayAsync($"{BaseUrl}/{id}/report/rdlc/appraisal");
+        }
+
+        public async Task<byte[]> DownloadSelfAssessmentRdlcAsync(int id)
+        {
+            return await _httpClient.GetByteArrayAsync($"{BaseUrl}/{id}/report/rdlc/self-assessment");
+        }
     }
 }

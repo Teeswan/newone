@@ -91,4 +91,6 @@ public partial class Employee : ISoftDelete
     public virtual User? User { get; set; }
 
     public virtual ICollection<Team> TeamsNavigation { get; set; } = new List<Team>();
+
+    public virtual ICollection<EmployeeKpi> EmployeeKpis { get; set; } = new List<EmployeeKpi>();
 }

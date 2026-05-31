@@ -4,6 +4,8 @@
 @using EPMS.Domain.Enums
 @using Microsoft.AspNetCore.Components.Authorization
 
+@inject IJSRuntime JSRuntime
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     @if (eval == null)
     {
@@ -135,6 +137,11 @@
 
                     <MudItem xs="12" Class="d-flex justify-end mt-8 gap-4">
                         <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">Back to List</MudButton>
+                        
+                        @if (eval != null)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="DownloadReport" StartIcon="@Icons.Material.Filled.Download">Download RDLC Report</MudButton>
+                        }
 
                         @if (eval.Status != PerformanceEvaluationStatus.Finalized && eval.CreatedByEmployeeId == currentEmployeeId)
                         {
@@ -209,6 +216,44 @@
 
     private void BackToList() => NavigationManager.NavigateTo("/performance-hub");
     private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceevaluations/edit/{Id}");
+
+    private async Task DownloadReport()
+    {
+        if (eval == null) return;
+
+        try
+        {
+            byte[] fileBytes;
+            string fileName;
+
+            switch (eval.FormType)
+            {
+                case AppraisalFormType.SelfAssessment:
+                    fileBytes = await PerformanceEvaluationService.DownloadSelfAssessmentRdlcAsync(eval.EvalId);
+                    fileName = $"SelfAssessment_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+                case AppraisalFormType.Feedback360:
+                    fileBytes = await PerformanceEvaluationService.Download360FeedbackRdlcAsync(eval.EvalId);
+                    fileName = $"360Feedback_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+                default:
+                    fileBytes = await PerformanceEvaluationService.DownloadPerformanceAppraisalRdlcAsync(eval.EvalId);
+                    fileName = $"PerformanceAppraisal_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+            }
+
+            if (fileBytes != null && fileBytes.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(fileBytes);
+                await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+                Snackbar.Add("Report downloaded successfully!", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error downloading report: {ex.Message}", Severity.Error);
+        }
+    }
 
     private async Task FinalizeEvaluation()
     {

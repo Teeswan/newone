@@ -16,6 +16,8 @@ public class PositionKpiDto
 
     public decimal WeightPercent { get; set; }
 
+    public decimal TargetValue { get; set; }
+
     public KpiDirection Direction { get; set; }
 
     public int? PositionId { get; set; }

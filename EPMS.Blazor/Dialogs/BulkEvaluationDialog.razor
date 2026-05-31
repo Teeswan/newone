@@ -7,6 +7,8 @@
 @inject IAppraisalFormBlazorService AppraisalFormService
 @inject IEmployeeBlazorService EmployeeService
 @inject ISnackbar Snackbar
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudDialog>
     <TitleContent>
@@ -27,7 +29,7 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect T="int" Label="Appraisal Form" @bind-Value="request.FormId" Required="true" RequiredError="Form is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Class="rounded-lg">
+                    <MudSelect T="int" Label="Appraisal Form" Value="request.FormId" ValueChanged="OnFormChanged" Required="true" RequiredError="Form is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Class="rounded-lg">
                         @foreach (var formItem in _forms)
                         {
                             <MudSelectItem Value="@formItem.FormId">@formItem.FormName (@GetTypeName(formItem.FormType))</MudSelectItem>
@@ -68,6 +70,7 @@
     private List<AppraisalCycleDto> _cycles = new();
     private List<AppraisalFormDto> _forms = new();
     private List<EmployeeDto> _employees = new();
+    private EmployeeDto? _currentUserEmployee;
     private HashSet<int> _selectedEmployees = new();
     private string _employeeSearch = "";
     private MudForm form = null!;
@@ -76,6 +79,10 @@
     {
         try
         {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var empIdClaim = user.FindFirst("EmployeeId")?.Value;
+
             var cyclesTask = AppraisalCycleService.GetAllAppraisalCyclesAsync();
             var formsTask = AppraisalFormService.GetAllAppraisalFormsAsync();
             var employeesTask = EmployeeService.GetEmployeesAsync();
@@ -85,6 +92,11 @@
             _cycles = (await cyclesTask).ToList();
             _forms = (await formsTask).Where(f => f.IsActive == true).ToList();
             _employees = (await employeesTask).ToList();
+
+            if (int.TryParse(empIdClaim, out int empId))
+            {
+                _currentUserEmployee = _employees.FirstOrDefault(e => e.EmployeeId == empId);
+            }
         }
         catch (Exception ex)
         {
@@ -94,8 +106,46 @@
 
     private IEnumerable<EmployeeDto> GetFilteredEmployees()
     {
-        if (string.IsNullOrWhiteSpace(_employeeSearch)) return _employees;
-        return _employees.Where(e => e.FullName.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase));
+        if (_currentUserEmployee == null) return Enumerable.Empty<EmployeeDto>();
+
+        var userLevel = ParseLevel(_currentUserEmployee.LevelId);
+        var selectedForm = _forms.FirstOrDefault(f => f.FormId == request.FormId);
+
+        IEnumerable<EmployeeDto> baseList = _employees;
+
+        if (selectedForm != null)
+        {
+            baseList = selectedForm.FormType switch
+            {
+                AppraisalFormType.SelfAssessment => 
+                    // Managers (L02-L06) can start for direct reports + self
+                    (userLevel >= 2 && userLevel <= 6)
+                        ? _employees.Where(e => e.EmployeeId == _currentUserEmployee.EmployeeId || e.ReportsTo == _currentUserEmployee.EmployeeId)
+                        : _employees.Where(e => e.EmployeeId == _currentUserEmployee.EmployeeId),
+
+                AppraisalFormType.PerformanceAppraisal => 
+                    // Managers (L02-L06) can start for direct reports
+                    (userLevel >= 2 && userLevel <= 6)
+                        ? _employees.Where(e => e.ReportsTo == _currentUserEmployee.EmployeeId)
+                        : (userLevel <= 4 ? _employees : Enumerable.Empty<EmployeeDto>()),
+
+                AppraisalFormType.CalibrationReview =>
+                    // Senior Management (L01-L04) can see all
+                    (userLevel <= 4) ? _employees : Enumerable.Empty<EmployeeDto>(),
+
+                _ => _employees
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(_employeeSearch)) return baseList;
+        return baseList.Where(e => e.FullName.Contains(_employeeSearch, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private int ParseLevel(string? levelId)
+    {
+        if (string.IsNullOrEmpty(levelId)) return 99;
+        var numericPart = new string(levelId.Where(char.IsDigit).ToArray());
+        return int.TryParse(numericPart, out int level) ? level : 99;
     }
 
     private bool IsSelected(int id) => _selectedEmployees.Contains(id);
@@ -104,6 +154,13 @@
     {
         if (selected) _selectedEmployees.Add(id);
         else _selectedEmployees.Remove(id);
+    }
+
+    private void OnFormChanged(int formId)
+    {
+        request.FormId = formId;
+        _selectedEmployees.Clear();
+        StateHasChanged();
     }
 
     private void SelectAll()

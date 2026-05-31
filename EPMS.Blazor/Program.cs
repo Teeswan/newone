@@ -81,13 +81,13 @@ builder.Services.AddHttpClient<IFormQuestionBlazorService, FormQuestionBlazorSer
 builder.Services.AddHttpClient<IPositionKpiBlazorService, PositionKpiBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-builder.Services.AddHttpClient<IEmployeeKpiBlazorService, EmployeeKpiBlazorService>(client => client.BaseAddress = apiBaseUrl)
-    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
-
 builder.Services.AddHttpClient<IMeetingBlazorService, MeetingBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddHttpClient<IKpiHierarchyBlazorService, KpiHierarchyBlazorService>(client => client.BaseAddress = apiBaseUrl)
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+
+builder.Services.AddHttpClient<IEmployeeKpiBlazorService, EmployeeKpiBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddHttpClient<IReportBlazorService, ReportBlazorService>(client => client.BaseAddress = apiBaseUrl)

@@ -276,16 +276,18 @@
         return evaluationType switch
         {
             AppraisalFormType.SelfAssessment => 
-                // Self-Assessment: L02 – L09
+                // Self-Assessment: L02 – L09 can do for self, Managers (L02-L06) can do for direct reports
                 (userLevel >= 2 && userLevel <= 9) 
-                    ? employees.Where(e => e.EmployeeId == currentUserEmployee.EmployeeId) 
-                    : Enumerable.Empty<EmployeeDto>(),
+                    ? (userLevel <= 6 
+                        ? employees.Where(e => e.EmployeeId == currentUserEmployee.EmployeeId || e.ReportsTo == currentUserEmployee.EmployeeId)
+                        : employees.Where(e => e.EmployeeId == currentUserEmployee.EmployeeId))
+                    : (userLevel <= 4 ? employees : Enumerable.Empty<EmployeeDto>()),
 
             AppraisalFormType.PerformanceAppraisal => 
                 // Performance Appraisal: L02 – L06 (Managers submit for direct reports)
                 (userLevel >= 2 && userLevel <= 6) 
                     ? employees.Where(e => e.ReportsTo == currentUserEmployee.EmployeeId) 
-                    : Enumerable.Empty<EmployeeDto>(),
+                    : (userLevel <= 4 ? employees : Enumerable.Empty<EmployeeDto>()),
 
             AppraisalFormType.Feedback360 => 
                 // 360-Feedback: L02 – L08

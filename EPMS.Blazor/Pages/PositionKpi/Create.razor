@@ -4,30 +4,42 @@
 @using EPMS.Application.UseCases.PositionKpi.Commands
 @using EPMS.Domain.Enums
 @inject IPositionKpiBlazorService KpiService
+@inject IKpiHierarchyBlazorService KpiHierarchyService
 @inject IPositionBlazorService PositionService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
-    <MudText Typo="Typo.h4" Class="mb-6">Create Position KPI Template</MudText>
+    <MudText Typo="Typo.h4" Class="mb-6">Assign KPI to Position</MudText>
 
     <MudPaper Class="pa-6">
         <MudForm @ref="_form" @bind-IsValid="_isValid">
-            <MudGrid>
+            <MudGrid Spacing="3">
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_command.KpiName" Label="KPI Name" Required="true" RequiredError="KPI Name is required" Variant="Variant.Outlined" />
-                </MudItem>
-                
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_command.Category" Label="Category" Required="true" RequiredError="Category is required" Variant="Variant.Outlined" />
-                </MudItem>
-                
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_command.Unit" Label="Unit (e.g. %, USD, Count)" Variant="Variant.Outlined" />
+                    <MudAutocomplete T="KpiDto" Label="Select Master KPI" @bind-Value="_selectedKpi"
+                                     SearchFunc="@SearchMasterKpis" ToStringFunc="@(k => k?.KpiName)"
+                                     Placeholder="Search for a KPI to assign..."
+                                     Required="true" RequiredError="You must select a KPI"
+                                     ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="true"
+                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" Variant="Variant.Outlined" />
                 </MudItem>
 
-                <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Assign to Position (Optional)" @bind-Value="_command.PositionId" Variant="Variant.Outlined" Clearable="true">
+                @if (_selectedKpi != null)
+                {
+                    <MudItem xs="12">
+                        <MudCard Elevation="0" Outlined="true" Class="pa-2 grey lighten-5">
+                            <MudCardContent>
+                                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Selected KPI Details</MudText>
+                                <MudText Typo="Typo.body2"><b>Category:</b> @_selectedKpi.Category</MudText>
+                                <MudText Typo="Typo.body2"><b>Unit:</b> @_selectedKpi.Unit</MudText>
+                                <MudText Typo="Typo.body2"><b>Direction:</b> @_selectedKpi.Direction</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudSelect T="int?" Label="Position" @bind-Value="_command.PositionId" Variant="Variant.Outlined" Required="true" RequiredError="Position is required">
                         <MudSelectItem T="int?" Value="null">Global KPI (All Positions)</MudSelectItem>
                         @foreach (var pos in _positions)
                         {
@@ -37,14 +49,11 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="KpiDirection" Label="Measurement Direction" @bind-Value="_command.Direction" Variant="Variant.Outlined">
-                        <MudSelectItem Value="KpiDirection.HigherIsBetter">Higher is Better</MudSelectItem>
-                        <MudSelectItem Value="KpiDirection.LowerIsBetter">Lower is Better</MudSelectItem>
-                    </MudSelect>
+                    <MudNumericField T="decimal" @bind-Value="_command.WeightPercent" Label="Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" Required="true" />
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudNumericField @bind-Value="_command.WeightPercent" Label="Default Weight (%)" Min="0" Max="100" Variant="Variant.Outlined" />
+                    <MudNumericField T="decimal" @bind-Value="_command.TargetValue" Label="Standard Target" Min="0" Variant="Variant.Outlined" Required="true" />
                 </MudItem>
 
                 <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
@@ -57,7 +66,7 @@
                         }
                         else
                         {
-                            <MudText>Create KPI Template</MudText>
+                            <MudText>Assign KPI</MudText>
                         }
                     </MudButton>
                 </MudItem>
@@ -69,10 +78,25 @@
 @code {
     private CreatePositionKpiCommand _command = new() 
     { 
-        Direction = KpiDirection.HigherIsBetter,
-        WeightPercent = 10
+        WeightPercent = 10,
+        TargetValue = 0
     };
+
+    private KpiDto? _selectedKpi { 
+        get => _tempSelectedKpi;
+        set {
+            _tempSelectedKpi = value;
+            if (value != null) {
+                _command.KpiId = value.KpiId;
+            } else {
+                _command.KpiId = 0;
+            }
+        }
+    }
+    private KpiDto? _tempSelectedKpi;
+
     private IEnumerable<PositionDto> _positions = new List<PositionDto>();
+    private IEnumerable<KpiDto> _masterKpis = new List<KpiDto>();
     private MudForm _form = null!;
     private bool _isValid;
     private bool _processing;
@@ -81,31 +105,40 @@
     {
         try
         {
-            _positions = await PositionService.GetAllPositionsAsync();
+            var positionsTask = PositionService.GetAllPositionsAsync();
+            var kpisTask = KpiHierarchyService.GetAllMasterAsync();
+            
+            await Task.WhenAll(positionsTask, kpisTask);
+            
+            _positions = positionsTask.Result;
+            _masterKpis = kpisTask.Result;
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading positions: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
         }
+    }
+
+    private async Task<IEnumerable<KpiDto>> SearchMasterKpis(string value, CancellationToken token)
+    {
+        // Performance optimization: Using local filtering for better UX
+        if (string.IsNullOrEmpty(value)) return _masterKpis;
+        return _masterKpis.Where(x => x.KpiName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     private async Task Submit()
     {
         await _form.Validate();
-        if (!_form.IsValid) return;
+        if (!_form.IsValid || _command.KpiId == 0) return;
 
         _processing = true;
         try
         {
-            var newId = await KpiService.CreateAsync(_command);
-            if (newId > 0)
+            var result = await KpiService.CreateAsync(_command);
+            if (result > 0)
             {
-                Snackbar.Add("Position KPI template created successfully", Severity.Success);
+                Snackbar.Add("KPI assigned to position successfully", Severity.Success);
                 NavigationManager.NavigateTo("/position-kpi");
-            }
-            else
-            {
-                Snackbar.Add("Failed to create KPI template", Severity.Error);
             }
         }
         catch (Exception ex)

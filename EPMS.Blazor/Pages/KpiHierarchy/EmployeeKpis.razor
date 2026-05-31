@@ -1,63 +1,96 @@
 @page "/kpi-hierarchy/employee"
+@using System
+@using System.Threading
 @using EPMS.Blazor.Services
 @using EPMS.Shared.DTOs
 @using EPMS.Shared.Requests
-@using EPMS.Shared.Constants
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
-@inject IKpiHierarchyBlazorService KpiService
+@inject IEmployeeKpiBlazorService EmployeeKpiService
 @inject IEmployeeBlazorService EmployeeService
+@inject IKpiHierarchyBlazorService KpiService
+@inject IAppraisalCycleBlazorService CycleService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    <MudText Typo="Typo.h4" GutterBottom="true">Employee KPIs</MudText>
-    
-    <MudGrid Class="mb-4">
-        <MudItem xs="12" sm="6">
-            <MudAutocomplete T="EmployeeDto" Label="Employee" SearchFunc="@SearchEmployees"
-                            Value="@_selectedEmployee" ValueChanged="@OnEmployeeChanged"
-                            ToStringFunc="@(e => e?.FullName)"
-                            AnchorOrigin="Origin.BottomCenter" />
+    <MudText Typo="Typo.h4" GutterBottom="true">Employee KPI Assignments</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4">
+                <MudAutocomplete T="EmployeeDto" Label="Select Employee" Value="_selectedEmployee"
+                                 ValueChanged="OnEmployeeChanged"
+                                 SearchFunc="@SearchEmployees" ToStringFunc="@(e => e == null ? null : $"{e.FullName} ({e.EmployeeCode})")"
+                                 ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="true"
+                                 AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+                
+                @if (_selectedEmployee != null)
+                {
+                    <MudCard Class="mt-4" Elevation="0" Outlined="true">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@_selectedEmployee.FullName</MudText>
+                            <MudText Typo="Typo.body2">Code: @_selectedEmployee.EmployeeCode</MudText>
+                            <MudText Typo="Typo.body2">Department: @_selectedEmployee.DepartmentName</MudText>
+                            <MudText Typo="Typo.body2">Position: @_selectedEmployee.PositionTitle</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                    
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+                               OnClick="OpenAssignDialog" Class="mt-4" FullWidth="true">
+                        Assign New KPI
+                    </MudButton>
+                }
+            </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="6" Class="d-flex align-end">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadEmployeeKpis" Disabled="@(_selectedEmployee == null)">Load KPIs</MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Class="ml-2" OnClick="OpenAssignDialog" Disabled="@(_selectedEmployee == null)">Assign KPI</MudButton>
+
+        <MudItem xs="12" md="8">
+            <MudPaper Class="pa-4">
+                @if (_selectedEmployee == null)
+                {
+                    <MudAlert Severity="Severity.Info">Please select an employee to view their KPI assignments.</MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="_employeeKpis" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>KPI Name</MudTh>
+                            <MudTh>Cycle</MudTh>
+                            <MudTh>Weight (%)</MudTh>
+                            <MudTh>Target</MudTh>
+                            <MudTh>Date Assigned</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
+                            <MudTd DataLabel="Cycle">@context.CycleName</MudTd>
+                            <MudTd DataLabel="Weight (%)">@context.Weight</MudTd>
+                            <MudTd DataLabel="Target">@context.TargetValue</MudTd>
+                            <MudTd DataLabel="Date Assigned">@context.CreatedAt.ToLocalTime().ToString("g")</MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">
+                                    @(context.IsActive ? "Active" : "Inactive")
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteKpi(context.EmployeeKpiId))" />
+                            </MudTd>
+                        </RowTemplate>
+                        <NoRecordsContent>
+                            <MudText>No KPIs assigned to this employee.</MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+                }
+            </MudPaper>
         </MudItem>
     </MudGrid>
-
-    @if (_employeeKpis != null && _employeeKpis.Any())
-    {
-        <MudTable Items="@_employeeKpis" Hover="true" Breakpoint="Breakpoint.Sm">
-            <HeaderContent>
-                <MudTh>KPI Name</MudTh>
-                <MudTh>Target</MudTh>
-                <MudTh>Weight</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Created At</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
-                <MudTd DataLabel="Target">@context.EmployeeTarget</MudTd>
-                <MudTd DataLabel="Weight">@context.Weight%</MudTd>
-                <MudTd DataLabel="Status">
-                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">@(context.IsActive ? "Active" : "Inactive")</MudChip>
-                </MudTd>
-                <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToShortDateString()</MudTd>
-            </RowTemplate>
-        </MudTable>
-    }
-    else if (_hasLoaded)
-    {
-        <MudAlert Severity="Severity.Info">No KPIs assigned to this employee.</MudAlert>
-    }
 </MudContainer>
 
 @code {
-    private IEnumerable<EmployeeDto> _employees = new List<EmployeeDto>();
-    private IEnumerable<EmployeeKpiDto> _employeeKpis = new List<EmployeeKpiDto>();
     private EmployeeDto? _selectedEmployee;
-    private bool _hasLoaded;
+    private List<EmployeeKpiDto> _employeeKpis = new();
+    private bool _loading = false;
+    private List<EmployeeDto> _employees = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,36 +101,105 @@
     {
         if (string.IsNullOrEmpty(value))
             return _employees;
-        return _employees.Where(x => x.FullName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
-    }
-
-    private void OnEmployeeChanged(EmployeeDto employee)
-    {
-        _selectedEmployee = employee;
-        _hasLoaded = false;
-        _employeeKpis = new List<EmployeeKpiDto>();
+        return _employees.Where(x => x.FullName.Contains(value, StringComparison.InvariantCultureIgnoreCase) || 
+                                     x.EmployeeCode.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     private async Task LoadEmployeeKpis()
     {
         if (_selectedEmployee == null) return;
-        _employeeKpis = await KpiService.GetEmpByEmpAsync(_selectedEmployee.EmployeeId);
-        _hasLoaded = true;
+        _loading = true;
+        StateHasChanged();
+        try
+        {
+            var result = await EmployeeKpiService.GetByEmployeeIdAsync(_selectedEmployee.EmployeeId);
+            _employeeKpis = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading KPIs: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
     }
 
     private async Task OpenAssignDialog()
     {
         if (_selectedEmployee == null) return;
-        var parameters = new DialogParameters 
-        { 
-            ["EmployeeId"] = _selectedEmployee.EmployeeId 
-        };
-        var dialog = DialogService.Show<AssignEmployeeKpiDialog>("Assign KPI to Employee", parameters);
+
+        var parameters = new DialogParameters { ["EmployeeId"] = _selectedEmployee.EmployeeId };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        
+        var dialog = await DialogService.ShowAsync<AssignEmployeeKpiDialog>("Assign KPI", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadEmployeeKpis();
+        }
+    }
+
+    private async Task OpenEditDialog(EmployeeKpiDto kpi)
+    {
+        var parameters = new DialogParameters { ["Kpi"] = kpi };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        
+        var dialog = await DialogService.ShowAsync<EditEmployeeKpiDialog>("Edit KPI Assignment", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadEmployeeKpis();
+        }
+    }
+
+    private async Task DeleteKpi(int id)
+    {
+        bool? confirm = await DialogService.ShowMessageBox("Confirm Delete", "Are you sure you want to remove this KPI assignment?", yesText: "Delete", cancelText: "Cancel");
+        if (confirm == true)
+        {
+            var success = await EmployeeKpiService.DeleteAsync(id);
+            if (success)
+            {
+                Snackbar.Add("KPI removed successfully", Severity.Success);
+                await LoadEmployeeKpis();
+            }
+            else
+            {
+                Snackbar.Add("Failed to remove KPI", Severity.Error);
+            }
+        }
+    }
+
+    private async Task OnEmployeeChanged(EmployeeDto? employee)
+    {
+        _selectedEmployee = employee;
+        if (_selectedEmployee != null)
+        {
+            try 
+            {
+                _loading = true;
+                StateHasChanged();
+                await EmployeeKpiService.CalculateForEmployeeAsync(_selectedEmployee.EmployeeId);
+                await LoadEmployeeKpis();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error calculating KPIs: {ex.Message}", Severity.Error);
+                _employeeKpis.Clear();
+            }
+            finally
+            {
+                _loading = false;
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            _employeeKpis.Clear();
         }
     }
 }

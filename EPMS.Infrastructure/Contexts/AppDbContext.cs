@@ -66,7 +66,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Team> Teams { get; set; }
 
     public virtual DbSet<PositionKpi> PositionKpis { get; set; }
-    public virtual DbSet<EmployeeKpiAssignment> EmployeeKpiAssignments { get; set; }
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<SystemSetting> SystemSettings { get; set; }
@@ -83,22 +82,6 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        modelBuilder.Entity<AuditLog>(entity =>
-        {
-            entity.HasKey(e => e.AuditId);
-            entity.HasOne(d => d.ChangedByEmployee)
-                .WithMany()
-                .HasForeignKey(d => d.ChangedByEmployeeId);
-        });
-
-        modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
-        {
-            entity.HasOne(e => e.TeamKpi)
-                  .WithMany() // Assuming TeamKpi doesn't need to track its employees
-                  .HasForeignKey(e => e.TeamKpiId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        });
-
         // 2. TeamKpi -> DepartmentKpi
         modelBuilder.Entity<TeamKpi>(entity =>
         {
@@ -114,12 +97,13 @@ public partial class AppDbContext : DbContext
             entity.ToTable("KPIs");
             entity.HasKey(k => k.KpiId);
             entity.Property(k => k.KpiId).HasColumnName("KpiID");
-            entity.Property(k => k.KpiName).HasColumnName("KPIName").IsRequired().HasMaxLength(255);
-            entity.Property(k => k.Direction).HasConversion<int>();
+            entity.Property(k => k.KpiName).HasColumnName("KPIName").IsRequired(false).HasMaxLength(255);
+            entity.Property(k => k.Direction).HasConversion<int>().IsRequired(false);
             
             // Ignore properties not in database
             entity.Ignore(k => k.CreatedAt);
             entity.Ignore(k => k.CreatedByEmployeeId);
+            entity.Property(k => k.IsActive).IsRequired(false);
         });
                 
         modelBuilder.Entity<DepartmentKpi>(entity =>
@@ -132,28 +116,32 @@ public partial class AppDbContext : DbContext
             
             entity.Property(d => d.DepartmentTarget)
                 .HasColumnType("decimal(18, 4)")
-                .IsRequired();
+                .IsRequired(false);
+            
+            entity.Property(d => d.ActualValue)
+                .HasColumnType("decimal(18, 4)")
+                .IsRequired(false);
             
             entity.Property(d => d.Weight)
                 .HasColumnType("decimal(5, 2)")
-                .IsRequired();
+                .IsRequired(false);
             
             // Ignore properties not in database
             entity.Ignore(d => d.IsActive);
             entity.Ignore(d => d.CreatedAt);
             
             entity.HasOne(d => d.Kpi)
-                  .WithMany()
+                  .WithMany(p => p.DepartmentKpis)
                   .HasForeignKey(d => d.KpiId)
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(d => d.Department)
-                  .WithMany()
+                  .WithMany(p => p.DepartmentKpis)
                   .HasForeignKey(d => d.DepartmentId)
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(d => d.Cycle)
-                  .WithMany()
+                  .WithMany(p => p.DepartmentKpis)
                   .HasForeignKey(d => d.CycleId)
                   .OnDelete(DeleteBehavior.Restrict);
             
@@ -163,63 +151,115 @@ public partial class AppDbContext : DbContext
         // 4. TeamKpi
         modelBuilder.Entity<TeamKpi>(entity =>
         {
-            entity.ToTable("TeamKpis");
+            entity.ToTable("TeamKPIs");
             entity.HasKey(t => t.TeamKpiId);
-            entity.Property(t => t.TeamKpiId).HasColumnName("TeamKpiID");
+            entity.Property(t => t.TeamKpiId).HasColumnName("TeamKPIID");
             entity.Property(t => t.TeamId).HasColumnName("TeamID");
-            entity.Property(t => t.DeptKpiId).HasColumnName("DeptKpiID");
+            entity.Property(t => t.DeptKpiId).HasColumnName("DeptKPIID");
             
             entity.Property(t => t.TeamTarget)
                 .HasColumnType("decimal(18, 4)")
-                .IsRequired();
+                .IsRequired(false);
             
             entity.Property(t => t.Weight)
                 .HasColumnType("decimal(5, 2)")
-                .IsRequired();
+                .IsRequired(false);
 
-            // Ignore properties not in database
-            entity.Ignore(t => t.CreatedAt);
+            entity.Property(t => t.ActualValue)
+                .HasColumnType("decimal(18, 4)")
+                .IsRequired(false);
+
+            entity.Property(t => t.VersionNo).HasColumnName("VersionNo");
+            entity.Property(t => t.SnapshotTarget).HasColumnType("decimal(18, 4)");
+            entity.Property(t => t.SnapshotWeight).HasColumnType("decimal(5, 2)");
+            entity.Property(t => t.ReasonForRevision).HasMaxLength(500);
+            entity.Property(t => t.Status).HasMaxLength(20);
+
+            entity.Property(t => t.ScorePercent)
+                .HasColumnName("ScorePercent")
+                .HasColumnType("decimal(18, 2)")
+                .ValueGeneratedOnAddOrUpdate();
+
+            entity.Property(t => t.WeightedScore)
+                .HasColumnName("WeightedScore")
+                .HasColumnType("decimal(18, 2)")
+                .ValueGeneratedOnAddOrUpdate();
 
             entity.HasOne(t => t.Team)
-                  .WithMany()
+                  .WithMany(p => p.TeamKpis)
                   .HasForeignKey(t => t.TeamId)
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(t => t.DepartmentKpi)
-                  .WithMany()
+                  .WithMany(p => p.TeamKpis)
                   .HasForeignKey(t => t.DeptKpiId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<EmployeeKpi>(entity =>
         {
-            entity.ToTable("EmployeeKpis");
+            entity.ToTable("EmployeeKpi");
             entity.HasKey(e => e.EmployeeKpiId);
-            entity.Property(e => e.EmployeeKpiId).HasColumnName("EmployeeKpiID");
-            entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
-            entity.Property(e => e.TeamKpiId).HasColumnName("TeamKpiID");
-            
-            entity.Property(e => e.EmployeeTarget)
-                .HasColumnName("TargetValue")
-                .HasColumnType("decimal(18, 4)")
-                .IsRequired();
-            
+
+            entity.Property(e => e.EmployeeId).HasColumnName("EmployeeId").IsRequired();
+            entity.Property(e => e.CycleId).HasColumnName("CycleId").IsRequired();
+            entity.Property(e => e.KpiId).HasColumnName("KpiId").IsRequired();
+            entity.Property(e => e.PositionKpiId).HasColumnName("PositionKpiId").IsRequired(false);
+            entity.Property(e => e.TeamKpiId).HasColumnName("TeamKpiId").IsRequired(false);
+
             entity.Property(e => e.Weight)
-                .HasColumnName("WeightPercent")
                 .HasColumnType("decimal(5, 2)")
+                .IsRequired(false);
+
+            entity.Property(e => e.TargetValue)
+                .HasColumnType("decimal(18, 2)")
+                .IsRequired(false);
+
+            entity.Property(e => e.ActualValue)
+                .HasColumnType("decimal(18, 2)")
+                .HasDefaultValue(0.00m)
+                .IsRequired(false);
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
                 .IsRequired();
 
-            // Ignore properties not in database
-            entity.Ignore(e => e.IsActive);
-            entity.Ignore(e => e.CreatedAt);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("getdate()")
+                .IsRequired();
+
+            entity.Property(e => e.Score)
+                .HasColumnName("Score")
+                .HasColumnType("decimal(18, 2)")
+                .ValueGeneratedOnAddOrUpdate();
+
+            entity.Property(e => e.WeightedScore)
+                .HasColumnName("WeightedScore")
+                .HasColumnType("decimal(18, 2)")
+                .ValueGeneratedOnAddOrUpdate();
 
             entity.HasOne(e => e.Employee)
-                  .WithMany()
+                  .WithMany(p => p.EmployeeKpis)
                   .HasForeignKey(e => e.EmployeeId)
                   .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(e => e.AppraisalCycle)
+                  .WithMany(p => p.EmployeeKpis)
+                  .HasForeignKey(e => e.CycleId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Kpi)
+                  .WithMany(p => p.EmployeeKpis)
+                  .HasForeignKey(e => e.KpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.PositionKpi)
+                  .WithMany(p => p.EmployeeKpis)
+                  .HasForeignKey(e => e.PositionKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasOne(e => e.TeamKpi)
-                  .WithMany()
+                  .WithMany(p => p.EmployeeKpis)
                   .HasForeignKey(e => e.TeamKpiId)
                   .OnDelete(DeleteBehavior.Restrict);
         });

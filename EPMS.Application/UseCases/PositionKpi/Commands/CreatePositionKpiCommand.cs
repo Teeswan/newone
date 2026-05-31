@@ -12,11 +12,9 @@ namespace EPMS.Application.UseCases.PositionKpi.Commands;
 
 public record CreatePositionKpiCommand : IRequest<Result<int>>
 {
-    public string KpiName { get; set; } = null!;
-    public string? Category { get; set; }
-    public string? Unit { get; set; }
+    public int KpiId { get; set; }
     public decimal WeightPercent { get; set; }
-    public KpiDirection Direction { get; set; }
+    public decimal TargetValue { get; set; }
     public int? PositionId { get; set; }
     public int? CreatedByEmployeeId { get; set; }
 
@@ -24,8 +22,7 @@ public record CreatePositionKpiCommand : IRequest<Result<int>>
     {
         public Validator()
         {
-            RuleFor(x => x.KpiName).NotEmpty().MaximumLength(255);
-            RuleFor(x => x.Category).NotEmpty();
+            RuleFor(x => x.KpiId).GreaterThan(0);
             RuleFor(x => x.WeightPercent).InclusiveBetween(0, 100);
         }
     }
@@ -52,30 +49,20 @@ public class CreatePositionKpiCommandHandler : IRequestHandler<CreatePositionKpi
 
     public async Task<Result<int>> Handle(CreatePositionKpiCommand request, CancellationToken cancellationToken)
     {
-        if (await _repository.ExistsDuplicateAsync(request.KpiName, request.Category, request.PositionId))
-        {
-            return Result<int>.Failure("A KPI with the same name and category already exists for this position.");
-        }
-
-        var kpiMaster = Domain.Entities.Kpi.Create(
-            request.KpiName,
-            request.Category,
-            request.Unit,
-            request.Direction,
-            request.CreatedByEmployeeId);
-
-        await _kpiRepository.CreateAsync(kpiMaster);
+        var existingKpi = await _kpiRepository.GetByIdAsync(request.KpiId);
+        if (existingKpi == null) return Result<int>.Failure("Master KPI not found.");
 
         var positionKpi = Domain.Entities.PositionKpi.Create(
             request.PositionId,
-            kpiMaster.KpiId,
+            request.KpiId,
             request.WeightPercent,
-            true); // Defaulting to IsRequired = true
+            true, // Defaulting to IsRequired = true
+            request.TargetValue);
 
         await _repository.AddAsync(positionKpi);
 
-        await _cacheService.RemoveByPatternAsync("positionkpi:list:*");
-        await _auditLogService.LogAsync("PositionKpi", "Create", positionKpi.PositionKpiId, $"Created KPI: {request.KpiName}", request.CreatedByEmployeeId);
+        await _cacheService.RemoveByPatternAsync("positionkpi:*");
+        await _auditLogService.LogAsync("PositionKpi", "Create", positionKpi.PositionKpiId, $"Assigned KPI '{existingKpi.KpiName}' to position", request.CreatedByEmployeeId);
 
         return Result<int>.Success(positionKpi.PositionKpiId);
     }

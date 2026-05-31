@@ -1,157 +1,155 @@
 @page "/position-kpi"
+@using System
+@using System.Threading
 @using EPMS.Blazor.Services
 @using EPMS.Shared.DTOs
 @using EPMS.Domain.Enums
+@using EPMS.Shared.Common
 @inject IPositionKpiBlazorService KpiService
+@inject IPositionBlazorService PositionService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
-@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 
-<MudText Typo="Typo.h4" Class="mb-4">Position KPI Management</MudText>
-
-<MudPaper Class="pa-4 mb-4">
-    <MudStack Row="true" Spacing="2">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/position-kpi/create">
-            Add New KPI
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="d-flex justify-space-between align-center mb-6">
+        <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827; letter-spacing: -0.025em;">
+            <MudIcon Icon="@Icons.Material.Filled.LibraryBooks" Class="mr-3 mb-2" Size="Size.Large" Color="Color.Primary" />
+            Position KPI Templates
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+                   Href="/position-kpi/create" Class="rounded-lg px-6 py-2 shadow-lg">
+            Create Position KPI
         </MudButton>
-        <MudSpacer />
-        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile" Accept=".xlsx">
-            <ActivatorContent>
-                <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.UploadFile">
-                    Bulk Import Excel
-                </MudButton>
-            </ActivatorContent>
-        </MudFileUpload>
-        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Download" OnClick="DownloadTemplate">
-            Download Template
-        </MudButton>
-    </MudStack>
-</MudPaper>
+    </div>
 
-<MudTable Items="@_kpis" Loading="@_loading" Hover="true" Bordered="true" Striped="true" Filter="new Func<PositionKpiDto,bool>(FilterFunc)">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">KPI Templates</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString" Placeholder="Search by name or category" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh>KPI Name</MudTh>
-        <MudTh>Position</MudTh>
-        <MudTh>Category</MudTh>
-        <MudTh>Weight (%)</MudTh>
-        <MudTh>Direction</MudTh>
-        <MudTh>Active</MudTh>
-        <MudTh>Actions</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="KPI Name">@context.KpiName</MudTd>
-        <MudTd DataLabel="Position">@(context.PositionName ?? "Global")</MudTd>
-        <MudTd DataLabel="Category">@context.Category</MudTd>
-        <MudTd DataLabel="Weight (%)">@context.WeightPercent%</MudTd>
-        <MudTd DataLabel="Direction">@context.Direction</MudTd>
-        <MudTd DataLabel="Active">
-            <MudIcon Icon="@(context.IsActive ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" 
-                     Color="@(context.IsActive ? Color.Success : Color.Error)" />
-        </MudTd>
-        <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Href="@($"/position-kpi/edit/{context.PositionKpiId}")" />
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteKpi(context))" />
-        </MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
+    <MudPaper Elevation="4" Class="pa-6 rounded-xl overflow-hidden">
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_searchTerm" Placeholder="Search by KPI name or Position..." 
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" 
+                              OnClearClick="@(() => OnSearch(""))" Immediate="true" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudSelect T="int?" Label="Filter by Position" Value="_selectedPositionId" ValueChanged="OnPositionFilterChanged" 
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true">
+                    <MudSelectItem T="int?" Value="null">All Positions</MudSelectItem>
+                    @foreach (var pos in _positions)
+                    {
+                        <MudSelectItem T="int?" Value="@pos.PositionId">@pos.PositionTitle</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="2" Class="d-flex align-center">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadKpis" FullWidth="true">Search</MudButton>
+            </MudItem>
+        </MudGrid>
+
+        <MudTable ServerData="@(new Func<TableState, CancellationToken, Task<TableData<PositionKpiDto>>>(ServerReload))"
+                  Hover="true" Breakpoint="Breakpoint.Sm" @ref="_table" Elevation="0" Class="rounded-lg">
+            <HeaderContent>
+                <MudTh><MudTableSortLabel T="PositionKpiDto" SortLabel="KpiName">KPI Name</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel T="PositionKpiDto" SortLabel="Position">Position</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel T="PositionKpiDto" SortLabel="Weight">Weight (%)</MudTableSortLabel></MudTh>
+                <MudTh>Target</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh Style="text-align: right;">Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="KPI Name">
+                    <MudText Style="font-weight: 600;">@context.KpiName</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Category</MudText>
+                </MudTd>
+                <MudTd DataLabel="Position">
+                    @(string.IsNullOrEmpty(context.PositionName) ? "Global" : context.PositionName)
+                </MudTd>
+                <MudTd DataLabel="Weight (%)">@context.WeightPercent%</MudTd>
+                <MudTd DataLabel="Target">@context.TargetValue</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Filled">
+                        @(context.IsActive ? "Active" : "Inactive")
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Actions" Style="text-align: right;">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" Href="@($"/position-kpi/edit/{context.PositionKpiId}")" Title="Edit" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteKpi(context))" Title="Delete" />
+                </MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <div class="pa-8 d-flex flex-column align-center justify-center">
+                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" Class="mb-2" />
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">No KPI templates found matching your criteria.</MudText>
+                </div>
+            </NoRecordsContent>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+</MudContainer>
 
 @code {
-    private IEnumerable<PositionKpiDto> _kpis = new List<PositionKpiDto>();
-    private bool _loading = true;
-    private string _searchString = "";
+    private MudTable<PositionKpiDto> _table = null!;
+    private string _searchTerm = "";
+    private int? _selectedPositionId;
+    private List<PositionDto> _positions = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        try 
+        {
+            _positions = (await PositionService.GetAllPositionsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading positions: {ex.Message}", Severity.Error);
+        }
     }
 
-    private async Task LoadData()
+    private async Task<TableData<PositionKpiDto>> ServerReload(TableState state, CancellationToken token)
     {
-        _loading = true;
         try
         {
-            _kpis = await KpiService.GetPositionKpisAsync();
+            var result = await KpiService.GetPositionKpisAsync(state.Page + 1, state.PageSize, _searchTerm, _selectedPositionId);
+            return new TableData<PositionKpiDto>() { TotalItems = result.TotalCount, Items = result.Items };
         }
-        finally
+        catch (Exception ex)
         {
-            _loading = false;
+            Snackbar.Add($"Error loading KPIs: {ex.Message}", Severity.Error);
+            return new TableData<PositionKpiDto>() { TotalItems = 0, Items = new List<PositionKpiDto>() };
         }
     }
 
-    private bool FilterFunc(PositionKpiDto kpi)
+    private Task OnSearch(string text)
     {
-        if (string.IsNullOrWhiteSpace(_searchString)) return true;
-        if (kpi.KpiName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) return true;
-        if (kpi.Category?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true) return true;
-        return false;
+        _searchTerm = text;
+        return _table.ReloadServerData();
     }
 
-    private Color GetPriorityColor(PriorityLevel priority) => priority switch
+    private Task OnPositionFilterChanged(int? positionId)
     {
-        PriorityLevel.Critical => Color.Error,
-        PriorityLevel.High => Color.Warning,
-        PriorityLevel.Medium => Color.Info,
-        PriorityLevel.Lower => Color.Default,
-        _ => Color.Default
-    };
+        _selectedPositionId = positionId;
+        return _table.ReloadServerData();
+    }
+
+    private Task LoadKpis() => _table.ReloadServerData();
 
     private async Task DeleteKpi(PositionKpiDto kpi)
     {
-        bool? result = await DialogService.ShowMessageBox("Confirm Deletion", $"Are you sure you want to delete {kpi.KpiName}?", yesText: "Delete", noText: "Cancel");
+        bool? result = await DialogService.ShowMessageBox("Confirm Deletion", $"Are you sure you want to delete {kpi.KpiName} for {kpi.PositionName ?? "Global"}?", yesText: "Delete", noText: "Cancel");
         if (result == true)
         {
             var success = await KpiService.DeleteAsync(kpi.PositionKpiId);
             if (success)
             {
-                Snackbar.Add("KPI deleted successfully", Severity.Success);
-                await LoadData();
+                Snackbar.Add("KPI template removed successfully", Severity.Success);
+                await _table.ReloadServerData();
             }
             else
             {
-                Snackbar.Add("Failed to delete KPI. It might be referenced in an appraisal cycle.", Severity.Error);
+                Snackbar.Add("Failed to remove KPI template", Severity.Error);
             }
-        }
-    }
-
-    private async Task DownloadTemplate()
-    {
-        var bytes = await KpiService.DownloadTemplateAsync();
-        var fileName = "Position_KPI_Import_Template.xlsx";
-        await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, Convert.ToBase64String(bytes));
-    }
-
-    private async Task UploadFile(IBrowserFile file)
-    {
-        if (file == null) return;
-
-        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        var result = await KpiService.BulkImportExcelAsync(stream, file.Name);
-
-        if (result != null)
-        {
-            string message = $"Import complete: {result.Imported} success, {result.Rejected} failed.";
-            Severity severity = result.Rejected > 0 ? Severity.Warning : Severity.Success;
-            Snackbar.Add(message, severity);
-            
-            if (result.Errors.Any())
-            {
-                // Optionally show errors in a dialog
-                await DialogService.ShowMessageBox("Import Details", string.Join("\n", result.Errors.Take(10)));
-            }
-            
-            await LoadData();
-        }
-        else
-        {
-            Snackbar.Add("Failed to import Excel file", Severity.Error);
         }
     }
 }

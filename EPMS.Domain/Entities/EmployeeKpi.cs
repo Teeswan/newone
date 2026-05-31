@@ -1,42 +1,58 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EPMS.Domain.Entities
 {
+    [Table("EmployeeKpi")]
     public class EmployeeKpi
     {
-        public int EmployeeKpiId { get; private set; }
-        public int EmployeeId { get; private set; }
-        public int TeamKpiId { get; private set; }
-        public decimal EmployeeTarget { get; private set; }
-        public decimal Weight { get; private set; }
-        public bool IsActive { get; private set; }
-        public DateTime CreatedAt { get; private set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int EmployeeKpiId { get; set; }
 
-        public virtual Employee Employee { get; private set; } = null!;
-        public virtual TeamKpi TeamKpi { get; private set; } = null!;
+        public int EmployeeId { get; set; }
 
-        private EmployeeKpi() { }
+        public int CycleId { get; set; }
 
-        public static EmployeeKpi Create(int employeeId, int teamKpiId, decimal employeeTarget, decimal weight)
-        {
-            return new EmployeeKpi
-            {
-                EmployeeId = employeeId,
-                TeamKpiId = teamKpiId,
-                EmployeeTarget = employeeTarget,
-                Weight = weight,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-        }
+        public int KpiId { get; set; }
 
-        public void Update(decimal employeeTarget, decimal weight)
-        {
-            EmployeeTarget = employeeTarget;
-            Weight = weight;
-        }
+        public int? PositionKpiId { get; set; } 
 
-        public void Deactivate() => IsActive = false;
-        public void Activate() => IsActive = true;
+        public int? TeamKpiId { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public decimal? Weight { get; set; }
+
+        public decimal? TargetValue { get; set; }
+
+        public decimal? ActualValue { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public decimal? Score { get; private set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public decimal? WeightedScore { get; private set; }
+
+        // --- Navigation Properties ---
+
+        [ForeignKey("EmployeeId")]
+        public virtual Employee? Employee { get; set; }
+
+        [ForeignKey("CycleId")]
+        public virtual AppraisalCycle? AppraisalCycle { get; set; }
+
+        [ForeignKey("KpiId")]
+        public virtual Kpi? Kpi { get; set; }
+
+        [ForeignKey("PositionKpiId")]
+        public virtual PositionKpi? PositionKpi { get; set; }
+
+        [ForeignKey("TeamKpiId")]
+        public virtual TeamKpi? TeamKpi { get; set; } 
     }
 }

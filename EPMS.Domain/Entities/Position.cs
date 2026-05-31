@@ -25,4 +25,6 @@ public partial class Position : ISoftDelete
     public virtual ICollection<PerformanceOutcome> PerformanceOutcomeOldPositions { get; set; } = new List<PerformanceOutcome>();
 
     public virtual ICollection<PositionPermission> PositionPermissions { get; set; } = new List<PositionPermission>();
+
+    public virtual ICollection<PositionKpi> PositionKpis { get; set; } = new List<PositionKpi>();
 }

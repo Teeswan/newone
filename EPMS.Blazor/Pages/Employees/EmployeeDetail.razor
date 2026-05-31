@@ -1,7 +1,10 @@
 @page "/employees/details/{Id:int}"
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
+@using EPMS.Blazor.Pages.KpiHierarchy
 @inject IEmployeeBlazorService EmployeeService
+@inject IEmployeeKpiBlazorService EmployeeKpiService
+@inject IAppraisalCycleBlazorService CycleService
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -20,6 +23,23 @@
             </MudText>
         </div>
         <div class="d-flex gap-3">
+            <MudTooltip Text="Calculate KPI performance" Arrow="true">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Calculate"
+                           OnClick="CalculateKpi"
+                           Disabled="@(_processingKpi || detail == null)"
+                           Class="rounded-lg">
+                    @if (_processingKpi)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">Processing</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Calculate KPI</MudText>
+                    }
+                </MudButton>
+            </MudTooltip>
             <MudTooltip Text="Edit employee" Arrow="true">
                 <MudButton Variant="Variant.Outlined" Color="Color.Warning"
                            StartIcon="@Icons.Material.Filled.Edit"
@@ -247,6 +267,50 @@
                                     </MudItem>
                                 </MudGrid>
                             </MudTabPanel>
+
+                            @* Tab 4: KPI Performance *@
+                            <MudTabPanel Text="KPI Performance" Icon="@Icons.Material.Filled.PieChart">
+                                <MudText Typo="Typo.h6" Class="mb-6 mt-2" Style="font-weight: 600; color: #111827;">
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="mr-2" Color="Color.Info" />
+                                    KPI Performance Metrics
+                                </MudText>
+                                
+                                @if (_employeeKpis == null || !_employeeKpis.Any())
+                                {
+                                    <MudAlert Severity="Severity.Info">No KPIs found for the current active cycle. Click 'Calculate KPI' to synchronize from Position templates.</MudAlert>
+                                }
+                                else
+                                {
+                                    <MudTable Items="_employeeKpis" Hover="true" Elevation="0" Dense="true" Class="rounded-lg">
+                                        <HeaderContent>
+                                            <MudTh>KPI Name</MudTh>
+                                            <MudTh>Weight</MudTh>
+                                            <MudTh>Target</MudTh>
+                                            <MudTh>Actual</MudTh>
+                                            <MudTh>Score</MudTh>
+                                            <MudTh>Weighted</MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate Context="kpi">
+                                            <MudTd>@kpi.KpiName</MudTd>
+                                            <MudTd>@kpi.Weight%</MudTd>
+                                            <MudTd>@kpi.TargetValue</MudTd>
+                                            <MudTd>@kpi.ActualValue</MudTd>
+                                            <MudTd>
+                                                <MudText Color="@(kpi.Score >= 100 ? Color.Success : kpi.Score >= 70 ? Color.Warning : Color.Error)" Style="font-weight: 600;">
+                                                    @kpi.Score.ToString("F2")%
+                                                </MudText>
+                                            </MudTd>
+                                            <MudTd>@kpi.WeightedScore.ToString("F2")</MudTd>
+                                        </RowTemplate>
+                                        <FooterContent>
+                                            <MudTFootRow>
+                                                <MudTd colspan="4" Style="text-align: right; font-weight: 700;">Total Score:</MudTd>
+                                                <MudTd Style="font-weight: 700;">@_employeeKpis.Sum(k => k.WeightedScore).ToString("F2")</MudTd>
+                                            </MudTFootRow>
+                                        </FooterContent>
+                                    </MudTable>
+                                }
+                            </MudTabPanel>
                         </MudTabs>
                     </MudCardContent>
                 </MudCard>
@@ -258,12 +322,18 @@
 @code {
     [Parameter] public int Id { get; set; }
     private EmployeeDetailDto? detail;
+    private List<EmployeeKpiDto> _employeeKpis = new();
+    private bool _processingKpi = false;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             detail = await EmployeeService.GetEmployeeDetailsAsync(Id);
+            if (detail != null)
+            {
+                await LoadEmployeeKpis();
+            }
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
@@ -277,7 +347,41 @@
         }
     }
 
+    private async Task LoadEmployeeKpis()
+    {
+        if (detail == null) return;
+        try 
+        {
+            _employeeKpis = (await EmployeeKpiService.GetByEmployeeIdAsync(detail.EmployeeId)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading KPIs: {ex.Message}");
+        }
+    }
+
     private void GoBack() => Navigation.NavigateTo("/employees");
+
+    private async Task CalculateKpi()
+    {
+        if (detail == null) return;
+        
+        var parameters = new DialogParameters 
+        { 
+            ["EmployeeId"] = detail.EmployeeId,
+            ["EmployeeName"] = detail.FullName
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<CalculateEmployeeKpiDialog>("KPI Performance Entry", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadEmployeeKpis();
+            StateHasChanged();
+        }
+    }
 
     private async Task OpenEditDialog()
     {

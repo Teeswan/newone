@@ -1,19 +1,23 @@
 using System;
+using System.Collections.Generic;
 using EPMS.Domain.Enums;
-using EPMS.Domain.Exceptions;
 
 namespace EPMS.Domain.Entities
 {
     public class Kpi
     {
         public int KpiId { get; private set; }
-        public string KpiName { get; private set; } = null!;
+        public string? KpiName { get; private set; }
         public string? Category { get; private set; }
         public string? Unit { get; private set; }
-        public bool IsActive { get; private set; }
-        public KpiDirection Direction { get; private set; }
-        public DateTime CreatedAt { get; private set; }
+        public bool? IsActive { get; private set; }
+        public KpiDirection? Direction { get; private set; }
+        public DateTime? CreatedAt { get; private set; }
         public int? CreatedByEmployeeId { get; private set; }
+
+        public virtual ICollection<PositionKpi> PositionKpis { get; private set; } = new List<PositionKpi>();
+        public virtual ICollection<DepartmentKpi> DepartmentKpis { get; private set; } = new List<DepartmentKpi>();
+        public virtual ICollection<EmployeeKpi> EmployeeKpis { get; private set; } = new List<EmployeeKpi>();
 
         private Kpi() { }
 
@@ -24,8 +28,6 @@ namespace EPMS.Domain.Entities
             KpiDirection direction,
             int? createdByEmployeeId)
         {
-            ArgumentNullException.ThrowIfNull(kpiName);
-
             return new Kpi
             {
                 KpiName = kpiName,
@@ -44,8 +46,6 @@ namespace EPMS.Domain.Entities
             string? unit,
             KpiDirection direction)
         {
-            ArgumentNullException.ThrowIfNull(kpiName);
-
             KpiName = kpiName;
             Category = category;
             Unit = unit;

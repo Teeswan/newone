@@ -14,6 +14,7 @@
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Performance Management Hub</PageTitle>
 
@@ -76,6 +77,7 @@
                         @if (context.EvalId.HasValue)
                         {
                             <MudIconButton Icon="@Icons.Material.Filled.Description" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEvaluation(context.EvalId.Value))" Title="View Finalized Form" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Success" Size="Size.Small" OnClick="@(() => DownloadReportById(context.EvalId.Value))" Title="Download RDLC Report" />
                         }
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenOutcomeEditDialog(context))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteOutcome(context.OutcomeId))" />
@@ -147,6 +149,7 @@
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
                         <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewEvaluation(context.EvalId))" Title="View Details" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Success" Size="Size.Small" OnClick="@(() => DownloadReport(context))" Title="Download RDLC Report" />
                         @if (CanEditEvaluation(context))
                         {
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenEvaluationEditDialog(context))" Title="Edit" />
@@ -370,6 +373,60 @@
     private async Task OpenEvaluationAddDialog(AppraisalFormType type) => NavigationManager.NavigateTo($"/performanceevaluations/create?type={(int)type}");
     private async Task OpenEvaluationEditDialog(PerformanceEvaluationDto eval) => NavigationManager.NavigateTo($"/performanceevaluations/edit/{eval.EvalId}");
     private void ViewEvaluation(int id) => NavigationManager.NavigateTo($"/performanceevaluations/details/{id}");
+    
+    private async Task DownloadReportById(int evalId)
+    {
+        var eval = _evaluations.FirstOrDefault(e => e.EvalId == evalId);
+        if (eval == null)
+        {
+            eval = await EvaluationService.GetPerformanceEvaluationByIdAsync(evalId);
+        }
+
+        if (eval != null)
+        {
+            await DownloadReport(eval);
+        }
+        else
+        {
+            Snackbar.Add("Could not find evaluation details for download.", Severity.Warning);
+        }
+    }
+
+    private async Task DownloadReport(PerformanceEvaluationDto eval)
+    {
+        try
+        {
+            byte[] fileBytes;
+            string fileName;
+
+            switch (eval.FormType)
+            {
+                case AppraisalFormType.SelfAssessment:
+                    fileBytes = await EvaluationService.DownloadSelfAssessmentRdlcAsync(eval.EvalId);
+                    fileName = $"SelfAssessment_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+                case AppraisalFormType.Feedback360:
+                    fileBytes = await EvaluationService.Download360FeedbackRdlcAsync(eval.EvalId);
+                    fileName = $"360Feedback_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+                default:
+                    fileBytes = await EvaluationService.DownloadPerformanceAppraisalRdlcAsync(eval.EvalId);
+                    fileName = $"PerformanceAppraisal_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+            }
+
+            if (fileBytes != null && fileBytes.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(fileBytes);
+                await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+                Snackbar.Add("Report downloaded successfully!", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error downloading report: {ex.Message}", Severity.Error);
+        }
+    }
     private async Task DeleteEvaluation(int id) => await ConfirmAndDelete(() => EvaluationService.DeletePerformanceEvaluationAsync(id), "Evaluation");
 
     private async Task OpenOutcomeAddDialog() => NavigationManager.NavigateTo("/performanceoutcomes/create");
