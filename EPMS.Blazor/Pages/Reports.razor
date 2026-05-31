@@ -1,8 +1,11 @@
 @page "/reports"
 @page "/reports/{reportType}"
 @using EPMS.Blazor.Services
+@using EPMS.Shared.DTOs
 @layout MainLayout
 @inject IReportBlazorService ReportService
+@inject IAppraisalCycleBlazorService CycleService
+@inject IEmployeeBlazorService EmployeeService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
 
@@ -10,9 +13,20 @@
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     <MudPaper Class="pa-6 mb-6" Elevation="0">
-        <MudStack Row="false" Gap="4">
-            <MudText Typo="Typo.h4" Class="text-gray-900">Performance Reports</MudText>
-            <MudText Typo="Typo.body1" Class="text-gray-600">Generate and download performance reports in PDF format</MudText>
+        <MudStack Row="true" Gap="4" AlignItems="AlignItems.Center">
+            <MudStack Row="false" Gap="1" Style="flex-grow: 1;">
+                <MudText Typo="Typo.h4" Class="text-gray-900">Performance Reports</MudText>
+                <MudText Typo="Typo.body1" Class="text-gray-600">Generate and download performance reports in PDF format</MudText>
+            </MudStack>
+            
+            <MudItem xs="12" sm="4">
+                <MudSelect T="int?" Label="Appraisal Cycle" @bind-Value="_selectedCycleId" Variant="Variant.Outlined" Dense="true" Placeholder="Select Cycle">
+                    @foreach (var cycle in _cycles)
+                    {
+                        <MudSelectItem T="int?" Value="@cycle.CycleId">@cycle.CycleName</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
         </MudStack>
     </MudPaper>
 
@@ -21,15 +35,17 @@
             <MudPaper Class="pa-6" Elevation="2">
                 <MudStack Row="false" Gap="3" AlignItems="AlignItems.Stretch">
                     <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6">Employee Performance Summary</MudText>
-                    <MudText Typo="Typo.body2" Class="text-gray-600">Generate a detailed performance report for an individual employee</MudText>
-                    <MudSpacer />
-                    <MudStack Row="true" Gap="2">
-                        <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" OnClick="GenerateEmployeeReport">
-                            <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
-                            Generate Report
-                        </MudButton>
-                    </MudStack>
+                    <MudText Typo="Typo.h6">Employee Summary</MudText>
+                    
+                    <MudAutocomplete T="EmployeeDto" Label="Select Employee" @bind-Value="_selectedEmployee" 
+                                    SearchFunc="@SearchEmployees" ToStringFunc="@(e => e?.FullName)"
+                                    Variant="Variant.Outlined" Dense="true" Class="mb-2" />
+
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" OnClick="GenerateEmployeeReport" 
+                               Disabled="@(_selectedCycleId == null || _selectedEmployee == null || isLoading)">
+                        <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
+                        Generate
+                    </MudButton>
                 </MudStack>
             </MudPaper>
         </MudItem>
@@ -38,15 +54,14 @@
             <MudPaper Class="pa-6" Elevation="2">
                 <MudStack Row="false" Gap="3" AlignItems="AlignItems.Stretch">
                     <MudIcon Icon="@Icons.Material.Filled.Domain" Size="Size.Large" Color="Color.Secondary" />
-                    <MudText Typo="Typo.h6">Department Comparison</MudText>
-                    <MudText Typo="Typo.body2" Class="text-gray-600">Compare performance scores across all departments</MudText>
+                    <MudText Typo="Typo.h6">Dept Comparison</MudText>
+                    <MudText Typo="Typo.body2" Class="text-gray-600">Compare scores across departments</MudText>
                     <MudSpacer />
-                    <MudStack Row="true" Gap="2">
-                        <MudButton Color="Color.Secondary" Variant="Variant.Filled" FullWidth="true" OnClick="GenerateDepartmentReport">
-                            <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
-                            Generate Report
-                        </MudButton>
-                    </MudStack>
+                    <MudButton Color="Color.Secondary" Variant="Variant.Filled" FullWidth="true" OnClick="GenerateDepartmentReport"
+                               Disabled="@(_selectedCycleId == null || isLoading)">
+                        <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
+                        Generate
+                    </MudButton>
                 </MudStack>
             </MudPaper>
         </MudItem>
@@ -55,15 +70,14 @@
             <MudPaper Class="pa-6" Elevation="2">
                 <MudStack Row="false" Gap="3" AlignItems="AlignItems.Stretch">
                     <MudIcon Icon="@Icons.Material.Filled.Leaderboard" Size="Size.Large" Color="Color.Success" />
-                    <MudText Typo="Typo.h6">High & Low Performers</MudText>
-                    <MudText Typo="Typo.body2" Class="text-gray-600">Ranked list of employees by performance score</MudText>
+                    <MudText Typo="Typo.h6">High & Low</MudText>
+                    <MudText Typo="Typo.body2" Class="text-gray-600">Ranked list of performers</MudText>
                     <MudSpacer />
-                    <MudStack Row="true" Gap="2">
-                        <MudButton Color="Color.Success" Variant="Variant.Filled" FullWidth="true" OnClick="GenerateHighLowReport">
-                            <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
-                            Generate Report
-                        </MudButton>
-                    </MudStack>
+                    <MudButton Color="Color.Success" Variant="Variant.Filled" FullWidth="true" OnClick="GenerateHighLowReport"
+                               Disabled="@(_selectedCycleId == null || isLoading)">
+                        <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
+                        Generate
+                    </MudButton>
                 </MudStack>
             </MudPaper>
         </MudItem>
@@ -72,31 +86,14 @@
             <MudPaper Class="pa-6" Elevation="2">
                 <MudStack Row="false" Gap="3" AlignItems="AlignItems.Stretch">
                     <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Info" />
-                    <MudText Typo="Typo.h6">Promotion Recommendations</MudText>
-                    <MudText Typo="Typo.body2" Class="text-gray-600">List employees eligible for promotion or increment</MudText>
+                    <MudText Typo="Typo.h6">Recommendations</MudText>
+                    <MudText Typo="Typo.body2" Class="text-gray-600">Promotion and increment list</MudText>
                     <MudSpacer />
-                    <MudStack Row="true" Gap="2">
-                        <MudButton Color="Color.Info" Variant="Variant.Filled" FullWidth="true" OnClick="GeneratePromotionReport">
-                            <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
-                            Generate Report
-                        </MudButton>
-                    </MudStack>
-                </MudStack>
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4" lg="3">
-            <MudPaper Class="pa-6" Elevation="2">
-                <MudStack Row="false" Gap="3" AlignItems="AlignItems.Stretch">
-                    <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Large" Color="Color.Warning" />
-                    <MudText Typo="Typo.h6">Appraisal Reports</MudText>
-                    <MudText Typo="Typo.body2" Class="text-gray-600">360°, Performance Appraisal, and Self-Assessment reports</MudText>
-                    <MudSpacer />
-                    <MudStack Row="true" Gap="2">
-                        <MudButton Color="Color.Warning" Variant="Variant.Filled" FullWidth="true" OnClick="@(() => NavManager.NavigateTo("/performanceevaluations"))">
-                            <MudIcon Icon="@Icons.Material.Filled.List" Class="mr-2" />
-                            Go to Evaluations
-                        </MudButton>
-                    </MudStack>
+                    <MudButton Color="Color.Info" Variant="Variant.Filled" FullWidth="true" OnClick="GeneratePromotionReport"
+                               Disabled="@(_selectedCycleId == null || isLoading)">
+                        <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-2" />
+                        Generate
+                    </MudButton>
                 </MudStack>
             </MudPaper>
         </MudItem>
@@ -104,143 +101,100 @@
 </MudContainer>
 
 @code {
-    [Parameter]
-    public string? ReportType { get; set; }
+    [Parameter] public string? ReportType { get; set; }
 
     private bool isLoading = false;
+    private List<AppraisalCycleDto> _cycles = new();
+    private List<EmployeeDto> _employees = new();
+    private int? _selectedCycleId;
+    private EmployeeDto? _selectedEmployee;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-        
-        if (!string.IsNullOrEmpty(ReportType))
+        try 
         {
-            await Task.Delay(500);
-            switch (ReportType.ToLower())
-            {
-                case "employee":
-                    await GenerateEmployeeReport();
-                    break;
-                case "department":
-                    await GenerateDepartmentReport();
-                    break;
-                case "performers":
-                    await GenerateHighLowReport();
-                    break;
-                case "promotion":
-                    await GeneratePromotionReport();
-                    break;
-            }
+            _cycles = (await CycleService.GetAllAppraisalCyclesAsync()).ToList();
+            _employees = (await EmployeeService.GetEmployeesAsync()).ToList();
+            
+            if (_cycles.Any()) _selectedCycleId = _cycles.First().CycleId;
         }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading cycles: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task<IEnumerable<EmployeeDto>> SearchEmployees(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value)) return _employees;
+        return _employees.Where(x => x.FullName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     private async Task GenerateEmployeeReport()
     {
+        if (_selectedCycleId == null || _selectedEmployee == null) return;
         try
         {
             isLoading = true;
-            
-            var sampleReportData = new EmployeePerformanceSummaryReportDto
-            {
-                EmployeeCode = "EMP-001",
-                FullName = "John Doe",
-                PositionTitle = "Senior Software Engineer",
-                LevelName = "Level 4",
-                DepartmentName = "Engineering",
-                ReviewPeriod = "Q1 2025",
-                ReviewStartDate = new DateTime(2025, 1, 1),
-                ReviewEndDate = new DateTime(2025, 3, 31),
-                TotalWeightedScore = 88.5m,
-                AchievementPercentage = 88.5m,
-                FinalRating = 4.4m,
-                PerformanceLevel = "Exceeds Expectations",
-                PromotionEligibility = true,
-                HasActivePip = false,
-                MeetingsCompletedCount = 12,
-                KpiCategoryScores = new List<KpiCategoryScoreDto>
-                {
-                    new KpiCategoryScoreDto { CategoryName = "Technical Skills", Score = 90, WeightedScore = 36 },
-                    new KpiCategoryScoreDto { CategoryName = "Leadership", Score = 85, WeightedScore = 17 },
-                    new KpiCategoryScoreDto { CategoryName = "Teamwork", Score = 92, WeightedScore = 18.4m },
-                    new KpiCategoryScoreDto { CategoryName = "Communication", Score = 87, WeightedScore = 17.4m }
-                },
-                FeedbackCriteria = new List<FeedbackCriterionDto>
-                {
-                    new FeedbackCriterionDto { CriterionName = "Problem Solving", AverageScore = 4.3m, RespondentCount = 8 },
-                    new FeedbackCriterionDto { CriterionName = "Communication", AverageScore = 4.1m, RespondentCount = 8 },
-                    new FeedbackCriterionDto { CriterionName = "Collaboration", AverageScore = 4.5m, RespondentCount = 8 }
-                }
-            };
-
-            var pdfBytes = await ReportService.GenerateEmployeePerformanceSummaryReportAsync(sampleReportData);
-            await ReportService.DownloadPdfAsync(pdfBytes, "Employee_Performance_Summary.pdf");
-            
+            var pdfBytes = await ReportService.GenerateEmployeePerformanceSummaryReportAsync(_selectedEmployee.EmployeeId, _selectedCycleId.Value);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"Summary_{_selectedEmployee.FullName}_{DateTime.Now:yyyyMMdd}.pdf");
             Snackbar.Add("Employee Performance Summary report downloaded successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
         }
-        finally
-        {
-            isLoading = false;
-        }
+        finally { isLoading = false; }
     }
 
     private async Task GenerateDepartmentReport()
     {
+        if (_selectedCycleId == null) return;
         try
         {
             isLoading = true;
-            var pdfBytes = await ReportService.GenerateDepartmentPerformanceComparisonReportAsync();
-            await ReportService.DownloadPdfAsync(pdfBytes, "Department_Performance_Comparison.pdf");
+            var pdfBytes = await ReportService.GenerateDepartmentPerformanceComparisonReportAsync(_selectedCycleId.Value);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"Department_Comparison_{DateTime.Now:yyyyMMdd}.pdf");
             Snackbar.Add("Department Performance Comparison report downloaded successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
         }
-        finally
-        {
-            isLoading = false;
-        }
+        finally { isLoading = false; }
     }
 
     private async Task GenerateHighLowReport()
     {
+        if (_selectedCycleId == null) return;
         try
         {
             isLoading = true;
-            var pdfBytes = await ReportService.GenerateHighLowPerformerReportAsync();
-            await ReportService.DownloadPdfAsync(pdfBytes, "High_Low_Performers.pdf");
+            var pdfBytes = await ReportService.GenerateHighLowPerformerReportAsync(_selectedCycleId.Value);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"High_Low_Performers_{DateTime.Now:yyyyMMdd}.pdf");
             Snackbar.Add("High & Low Performers report downloaded successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
         }
-        finally
-        {
-            isLoading = false;
-        }
+        finally { isLoading = false; }
     }
 
     private async Task GeneratePromotionReport()
     {
+        if (_selectedCycleId == null) return;
         try
         {
             isLoading = true;
-            var pdfBytes = await ReportService.GeneratePromotionIncrementRecommendationReportAsync();
-            await ReportService.DownloadPdfAsync(pdfBytes, "Promotion_Increment_Recommendations.pdf");
+            var pdfBytes = await ReportService.GeneratePromotionIncrementRecommendationReportAsync(_selectedCycleId.Value);
+            await ReportService.DownloadPdfAsync(pdfBytes, $"Promotion_Recommendations_{DateTime.Now:yyyyMMdd}.pdf");
             Snackbar.Add("Promotion & Increment Recommendations report downloaded successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error generating report: {ex.Message}", Severity.Error);
         }
-        finally
-        {
-            isLoading = false;
-        }
+        finally { isLoading = false; }
     }
 }

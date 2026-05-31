@@ -16,30 +16,30 @@ public class ReportBlazorService : IReportBlazorService
         _jsRuntime = jsRuntime;
     }
 
-    public async Task<byte[]> GenerateEmployeePerformanceSummaryReportAsync(EmployeePerformanceSummaryReportDto reportData)
+    public async Task<byte[]> GenerateEmployeePerformanceSummaryReportAsync(int employeeId, int cycleId)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/reports/employee-performance-summary", reportData);
+        var response = await _httpClient.GetAsync($"api/reports/employee-performance-summary/{employeeId}/{cycleId}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
-    public async Task<byte[]> GenerateDepartmentPerformanceComparisonReportAsync()
+    public async Task<byte[]> GenerateDepartmentPerformanceComparisonReportAsync(int cycleId)
     {
-        var response = await _httpClient.GetAsync("api/reports/department-performance-comparison");
+        var response = await _httpClient.GetAsync($"api/reports/department-performance-comparison/{cycleId}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
-    public async Task<byte[]> GenerateHighLowPerformerReportAsync()
+    public async Task<byte[]> GenerateHighLowPerformerReportAsync(int cycleId)
     {
-        var response = await _httpClient.GetAsync("api/reports/high-low-performers");
+        var response = await _httpClient.GetAsync($"api/reports/high-low-performers/{cycleId}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
-    public async Task<byte[]> GeneratePromotionIncrementRecommendationReportAsync()
+    public async Task<byte[]> GeneratePromotionIncrementRecommendationReportAsync(int cycleId)
     {
-        var response = await _httpClient.GetAsync("api/reports/promotion-increment-recommendations");
+        var response = await _httpClient.GetAsync($"api/reports/promotion-increment-recommendations/{cycleId}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
