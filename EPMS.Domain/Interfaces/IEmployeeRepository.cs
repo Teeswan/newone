@@ -30,4 +30,15 @@ public interface IEmployeeRepository : IBaseRepository<Employee, int>
     /// True when <paramref name="targetEmployeeId"/> shares at least one team with <paramref name="currentEmployeeId"/>.
     /// </summary>
     Task<bool> SharesAnyTeamWithAsync(int currentEmployeeId, int targetEmployeeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Read-only: employees who belong to at least one team in the department (Department → Teams → Employees).
+    /// Distinct by EmployeeId when an employee is on multiple teams in the same department.
+    /// </summary>
+    Task<IReadOnlyList<Employee>> GetDepartmentEmployeesAsync(int departmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Read-only: single employee when they are a member of a team in the given department.
+    /// </summary>
+    Task<Employee?> GetByIdInDepartmentTeamsReadOnlyAsync(int employeeId, int departmentId, CancellationToken cancellationToken = default);
 }

@@ -44,6 +44,11 @@
         {
             <MudNavLink Href="/employees/team-scoped" Icon="@Icons.Material.Filled.Groups">My Team Members</MudNavLink>
         }
+        @if (_canDepartmentScopedManagement)
+        {
+            <MudNavLink Href="/teams/department-scoped" Icon="@Icons.Material.Filled.Groups">My Department Teams</MudNavLink>
+            <MudNavLink Href="/employees/department-scoped" Icon="@Icons.Material.Filled.People">Department Team Members</MudNavLink>
+        }
     }
     
     @if (ShowPerformanceSection)
@@ -123,7 +128,7 @@
     [Parameter]
     public Action? CloseDrawer { get; set; }
 
-    private bool ShowOrganizationSection => _canViewDepartments || _canManageTeamEmployees;
+    private bool ShowOrganizationSection => _canViewDepartments || _canManageTeamEmployees || _canDepartmentScopedManagement;
     private bool ShowPerformanceSection => _canViewPerformanceEvaluations || _canViewAppraisalCycles || _canViewMeetings;
     private bool ShowKpiSection => _canViewKpis;
     private bool ShowSecuritySection => _canViewSecurity;
@@ -136,6 +141,7 @@
     private bool _canViewKpis = false;
     private bool _canViewSecurity = false;
     private bool _canManageTeamEmployees = false;
+    private bool _canDepartmentScopedManagement = false;
 
     private int _unreadCount = 0;
     private int? _userId;
@@ -201,5 +207,6 @@
         _canViewKpis = await PermissionChecker.HasViewPermissionAsync("Kpis");
         _canViewSecurity = await PermissionChecker.HasViewPermissionAsync("Security");
         _canManageTeamEmployees = await PermissionChecker.HasTeamEmployeeManagementAsync();
+        _canDepartmentScopedManagement = await PermissionChecker.HasDepartmentScopedManagementAsync();
     }
 }

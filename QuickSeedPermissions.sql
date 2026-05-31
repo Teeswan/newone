@@ -19,6 +19,8 @@ INSERT INTO Permissions (PermissionCode, Description)
 SELECT 'Permissions.Employees.Manage', 'Manage Employees' WHERE NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Employees.Manage');
 INSERT INTO Permissions (PermissionCode, Description) 
 SELECT 'Permissions.Employees.TeamEmployeeManagement', 'Team-Scoped Employee Management' WHERE NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Employees.TeamEmployeeManagement');
+INSERT INTO Permissions (PermissionCode, Description) 
+SELECT 'Permissions.DepartmentScopedManagement', 'Department-Scoped Management (teams + read-only employees in department)' WHERE NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.DepartmentScopedManagement');
 
 INSERT INTO Permissions (PermissionCode, Description) 
 SELECT 'Permissions.Departments.View', 'View Departments' WHERE NOT EXISTS (SELECT 1 FROM Permissions WHERE PermissionCode = 'Permissions.Departments.View');

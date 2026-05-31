@@ -1,0 +1,117 @@
+@page "/teams/department-scoped"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Dialogs
+@inject ITeamBlazorService TeamService
+@inject IPermissionCheckerService PermissionChecker
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>My Department Teams</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="mb-8">
+        <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827;">
+            <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-3 mb-2" Color="Color.Primary" />
+            My Department Teams
+        </MudText>
+        <MudText Typo="Typo.body2" Class="text-secondary mt-1">
+            Manage teams in your department (Department → Teams)
+        </MudText>
+    </div>
+
+    @if (_accessDenied)
+    {
+        <MudAlert Severity="Severity.Error">
+            You need <strong>Department Scoped Management</strong> permission on your position.
+        </MudAlert>
+    }
+    else if (_isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+            <MudTable Items="_teams" T="TeamDto" Hover="true" Breakpoint="Breakpoint.Sm">
+                <HeaderContent>
+                    <MudTh>Code</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Manager</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.TeamIdName</MudTd>
+                    <MudTd>@context.TeamName</MudTd>
+                    <MudTd>@(context.ManagerName ?? "—")</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd Style="text-align: right;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small"
+                                       OnClick="@(() => OpenEditDialog(context))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private List<TeamDto> _teams = new();
+    private bool _isLoading = true;
+    private bool _accessDenied;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await PermissionChecker.HasDepartmentScopedManagementAsync())
+        {
+            _accessDenied = true;
+            _isLoading = false;
+            return;
+        }
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            _teams = await TeamService.GetDepartmentScopedManageableTeamsAsync();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _accessDenied = true;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenEditDialog(TeamDto team)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Id"] = team.TeamId,
+            ["DepartmentScoped"] = true
+        };
+        var dialog = await DialogService.ShowAsync<TeamDialog>("Update Team", parameters);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add("Team updated.", Severity.Success);
+        }
+    }
+}

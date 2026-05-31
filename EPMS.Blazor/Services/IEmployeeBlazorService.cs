@@ -22,5 +22,8 @@ namespace EPMS.Blazor.Services
         Task<EmployeeDetailDto?> GetTeamScopedManageableEmployeeAsync(int id);
         Task<bool> UpdateTeamScopedManageableEmployeeAsync(int id, UpdateEmployeeRequest request);
         Task<bool> DeleteTeamScopedManageableEmployeeAsync(int id);
+
+        Task<List<EmployeeDto>> GetDepartmentScopedViewableEmployeesAsync();
+        Task<EmployeeDetailDto?> GetDepartmentScopedViewableEmployeeAsync(int id);
     }
 }

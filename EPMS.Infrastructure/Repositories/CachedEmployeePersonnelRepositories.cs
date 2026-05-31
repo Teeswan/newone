@@ -133,6 +133,12 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
     public Task<bool> SharesAnyTeamWithAsync(int currentEmployeeId, int targetEmployeeId, CancellationToken cancellationToken = default)
         => _innerRepository.SharesAnyTeamWithAsync(currentEmployeeId, targetEmployeeId, cancellationToken);
 
+    public Task<IReadOnlyList<Employee>> GetDepartmentEmployeesAsync(int departmentId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetDepartmentEmployeesAsync(departmentId, cancellationToken);
+
+    public Task<Employee?> GetByIdInDepartmentTeamsReadOnlyAsync(int employeeId, int departmentId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetByIdInDepartmentTeamsReadOnlyAsync(employeeId, departmentId, cancellationToken);
+
     private void InvalidateEmployeeCustomCache(Employee employee)
     {
         if (employee.DepartmentId.HasValue)

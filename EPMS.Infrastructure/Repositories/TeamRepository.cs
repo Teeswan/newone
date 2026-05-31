@@ -57,4 +57,27 @@ public class TeamRepository : BaseRepository<Team, int>, ITeamRepository
         string sql = "SELECT * FROM Teams WHERE TeamId = @Id AND IsDeleted = 0";
         return await db.QueryFirstOrDefaultAsync<Team>(sql, new { Id = id });
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Team>> GetDepartmentTeamsAsync(int departmentId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted && t.DepartmentId == departmentId)
+            .Include(t => t.Manager)
+            .Include(t => t.Department)
+            .OrderBy(t => t.TeamName)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<Team?> GetByIdInDepartmentAsync(int teamId, int departmentId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(t => t.TeamId == teamId && !t.IsDeleted && t.DepartmentId == departmentId)
+            .Include(t => t.Manager)
+            .Include(t => t.Department)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
