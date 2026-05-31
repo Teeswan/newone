@@ -1,9 +1,12 @@
 @page "/performanceoutcomes/details/{Id:int}"
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
+@using EPMS.Domain.Enums
 @inject IPerformanceOutcomeBlazorService PerformanceOutcomeService
+@inject IPerformanceEvaluationBlazorService EvaluationService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
     <MudPaper Class="pa-8" Elevation="3">
@@ -63,6 +66,10 @@
 
                 <MudItem xs="12" Class="d-flex justify-end mt-6">
                     <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList" Class="mr-2">Back to List</MudButton>
+                    @if (outcome?.EvalId.HasValue == true)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="DownloadEvaluationReport" StartIcon="@Icons.Material.Filled.Download" Class="mr-2">Download Eval RDLC</MudButton>
+                    }
                     <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit">Edit</MudButton>
                 </MudItem>
             </MudGrid>
@@ -96,6 +103,51 @@
 
     private void BackToList() => NavigationManager.NavigateTo("/performanceoutcomes");
     private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceoutcomes/edit/{Id}");
+
+    private async Task DownloadEvaluationReport()
+    {
+        if (outcome?.EvalId == null) return;
+
+        try
+        {
+            var eval = await EvaluationService.GetPerformanceEvaluationByIdAsync(outcome.EvalId.Value);
+            if (eval == null)
+            {
+                Snackbar.Add("Could not find related evaluation details.", Severity.Warning);
+                return;
+            }
+
+            byte[] fileBytes;
+            string fileName;
+
+            switch (eval.FormType)
+            {
+                case AppraisalFormType.SelfAssessment:
+                    fileBytes = await EvaluationService.DownloadSelfAssessmentRdlcAsync(eval.EvalId);
+                    fileName = $"SelfAssessment_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+                case AppraisalFormType.Feedback360:
+                    fileBytes = await EvaluationService.Download360FeedbackRdlcAsync(eval.EvalId);
+                    fileName = $"360Feedback_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+                default:
+                    fileBytes = await EvaluationService.DownloadPerformanceAppraisalRdlcAsync(eval.EvalId);
+                    fileName = $"PerformanceAppraisal_{eval.EmployeeName}_{DateTime.Now:yyyyMMdd}.pdf";
+                    break;
+            }
+
+            if (fileBytes != null && fileBytes.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(fileBytes);
+                await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+                Snackbar.Add("Report downloaded successfully!", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error downloading report: {ex.Message}", Severity.Error);
+        }
+    }
 
     private Color GetStatusColor(string? status)
     {
