@@ -7,6 +7,7 @@
 @inject IAppraisalFormBlazorService AppraisalFormService
 @inject IEmployeeBlazorService EmployeeService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -178,6 +179,13 @@
         await form.Validate();
         if (form.IsValid && _selectedEmployees.Any())
         {
+            var confirm = await DialogService.ShowMessageBox(
+                "Confirm Bulk Start",
+                $"Are you sure you want to start evaluations for {_selectedEmployees.Count} employees?",
+                yesText: "Start", cancelText: "Cancel");
+
+            if (confirm != true) return;
+
             try
             {
                 request.EmployeeIds = _selectedEmployees.ToList();

@@ -6,7 +6,7 @@ namespace EPMS.Application.Interfaces;
 public interface IPerformanceEvaluationService
 {
     Task<IEnumerable<PerformanceEvaluationDto>> GetAllAsync();
-    Task<PerformanceEvaluationDto?> GetByIdAsync(int evalId);
+    Task<PerformanceEvaluationDto?> GetByIdAsync(int evalId, int? currentEmployeeId = null);
     Task<IEnumerable<PerformanceEvaluationDto>> GetByEmployeeIdAsync(int employeeId);
     Task<IEnumerable<PerformanceEvaluationDto>> GetByCycleIdAsync(int cycleId);
     Task<PerformanceEvaluationDto> CreateAsync(CreatePerformanceEvaluationRequest request, int? currentEmployeeId = null);

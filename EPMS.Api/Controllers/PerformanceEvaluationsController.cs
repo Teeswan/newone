@@ -36,7 +36,7 @@ public class PerformanceEvaluationsController : ControllerBase
     [HasPermission(Permissions.PerformanceEvaluations.View)]
     public async Task<ActionResult<PerformanceEvaluationDto>> GetById(int id)
     {
-        var result = await _service.GetByIdAsync(id);
+        var result = await _service.GetByIdAsync(id, GetCurrentEmployeeId());
         if (result == null) return NotFound();
         return Ok(result);
     }

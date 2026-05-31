@@ -1,29 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition">
-  <Width>6in</Width>
-  <Body>
-    <ReportItems>
-      <Textbox Name="Title">
-        <CanGrow>true</CanGrow>
-        <Value>Employee Performance Summary Report</Value>
-        <Style>
-          <FontSize>18pt</FontSize>
-          <FontWeight>Bold</FontWeight>
-        </Style>
-        <Height>0.5in</Height>
-        <Width>6in</Width>
-        <Left>0in</Left>
-        <Top>0in</Top>
-      </Textbox>
-    </ReportItems>
-    <Height>8in</Height>
-  </Body>
-  <Page>
-    <LeftMargin>1in</LeftMargin>
-    <RightMargin>1in</RightMargin>
-    <TopMargin>1in</TopMargin>
-    <BottomMargin>1in</BottomMargin>
-    <PageHeight>11in</PageHeight>
-    <PageWidth>8.5in</PageWidth>
-  </Page>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSets>
+    <DataSet Name="CategoryScores">
+      <Query>
+        <DataSourceName>EPMS</DataSourceName>
+        <CommandText>/* Local Query */</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="CategoryName"><DataField>CategoryName</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="Score"><DataField>Score</DataField><rd:TypeName>System.Decimal</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Textbox Name="Title">
+            <Paragraphs><Paragraph><TextRuns><TextRun><Value>Employee Performance Summary Report</Value><Style><FontSize>18pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+            <Height>0.4in</Height><Width>6in</Width>
+          </Textbox>
+          <Textbox Name="EmpInfo">
+            <Paragraphs>
+              <Paragraph><TextRuns><TextRun><Value>="Employee: " + Parameters!EmployeeName.Value + " (" + Parameters!EmployeeCode.Value + ")"</Value></TextRun></TextRuns></Paragraph>
+              <Paragraph><TextRuns><TextRun><Value>="Department: " + Parameters!DepartmentName.Value</Value></TextRun></TextRuns></Paragraph>
+              <Paragraph><TextRuns><TextRun><Value>="Cycle: " + Parameters!CycleName.Value</Value></TextRun></TextRuns></Paragraph>
+            </Paragraphs>
+            <Top>0.5in</Top><Height>0.6in</Height><Width>6in</Width>
+          </Textbox>
+          <Textbox Name="ScoreInfo">
+            <Paragraphs>
+              <Paragraph><TextRuns><TextRun><Value>="Final Score: " + Parameters!FinalScore.Value</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph>
+              <Paragraph><TextRuns><TextRun><Value>="Performance Level: " + Parameters!PerformanceLevel.Value</Value></TextRun></TextRuns></Paragraph>
+            </Paragraphs>
+            <Top>1.2in</Top><Height>0.4in</Height><Width>6in</Width>
+          </Textbox>
+        </ReportItems>
+        <Height>4in</Height>
+      </Body>
+      <Width>6.5in</Width>
+      <Page>
+        <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+        <LeftMargin>1in</LeftMargin><RightMargin>1in</RightMargin><TopMargin>1in</TopMargin><BottomMargin>1in</BottomMargin>
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <ReportParameters>
+    <ReportParameter Name="EmployeeName"><DataType>String</DataType><Prompt>EmployeeName</Prompt></ReportParameter>
+    <ReportParameter Name="EmployeeCode"><DataType>String</DataType><Prompt>EmployeeCode</Prompt></ReportParameter>
+    <ReportParameter Name="DepartmentName"><DataType>String</DataType><Prompt>DepartmentName</Prompt></ReportParameter>
+    <ReportParameter Name="CycleName"><DataType>String</DataType><Prompt>CycleName</Prompt></ReportParameter>
+    <ReportParameter Name="FinalScore"><DataType>String</DataType><Prompt>FinalScore</Prompt></ReportParameter>
+    <ReportParameter Name="PerformanceLevel"><DataType>String</DataType><Prompt>PerformanceLevel</Prompt></ReportParameter>
+  </ReportParameters>
 </Report>
