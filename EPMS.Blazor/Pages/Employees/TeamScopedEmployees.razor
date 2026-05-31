@@ -1,0 +1,220 @@
+@page "/employees/team-scoped"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@using EPMS.Blazor.Pages.Employees
+@inject IEmployeeBlazorService EmployeeService
+@inject IPermissionCheckerService PermissionChecker
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>My Team Members</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="d-flex justify-space-between align-center mb-8">
+        <div>
+            <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827;">
+                <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-3 mb-2" Color="Color.Primary" />
+                My Team Members
+            </MudText>
+            <MudText Typo="Typo.body2" Class="text-secondary mt-1">
+                Employees who share at least one of your teams
+            </MudText>
+        </div>
+    </div>
+
+    @if (_accessDenied)
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+            You do not have permission to manage team employees. Contact your administrator to assign
+            <strong>Team Employee Management</strong> to your position.
+        </MudAlert>
+    }
+    else if (_isLoading)
+    {
+        <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+            <MudSkeleton Animation="Animation.Wave" Height="40px" Class="mb-4" />
+            <MudSkeleton Animation="Animation.Wave" Height="40px" Class="mb-4" />
+            <MudSkeleton Animation="Animation.Wave" Height="40px" />
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+            <MudTextField @bind-Value="_search" Placeholder="Search team members..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+        </MudPaper>
+
+        @if (_employees.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info">
+                No team members found. Ensure you are assigned to at least one team and that teammates are linked via Team Members.
+            </MudAlert>
+        }
+        else
+        {
+            <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+                <MudTable Items="_filteredEmployees" T="EmployeeDto" Hover="true" Breakpoint="Breakpoint.Sm"
+                          Filter="new Func<EmployeeDto,bool>(Filter)" Class="rounded-lg">
+                    <HeaderContent>
+                        <MudTh>Code</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Department</MudTh>
+                        <MudTh>Team</MudTh>
+                        <MudTh>Position</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh Style="text-align: right;">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Code">@context.EmployeeCode</MudTd>
+                        <MudTd DataLabel="Name">@context.FullName</MudTd>
+                        <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                        <MudTd DataLabel="Team">@context.TeamName</MudTd>
+                        <MudTd DataLabel="Position">@context.PositionTitle</MudTd>
+                        <MudTd DataLabel="Status">
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(context.IsActive == true ? Color.Success : Color.Error)">
+                                @(context.IsActive == true ? "Active" : "Inactive")
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Actions" Style="text-align: right;">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small"
+                                           Title="View profile"
+                                           OnClick="@(() => Navigation.NavigateTo($"/employees/team-scoped/details/{context.EmployeeId}"))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small"
+                                           Title="Edit"
+                                           OnClick="@(() => OpenEditDialog(context))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                           Title="Delete"
+                                           OnClick="@(() => DeleteEmployee(context.EmployeeId))" />
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+            </MudPaper>
+        }
+    }
+</MudContainer>
+
+@code {
+    private List<EmployeeDto> _employees = new();
+    private bool _isLoading = true;
+    private bool _accessDenied;
+    private string _search = "";
+
+    private IEnumerable<EmployeeDto> _filteredEmployees => _employees;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await PermissionChecker.HasTeamEmployeeManagementAsync())
+        {
+            _accessDenied = true;
+            _isLoading = false;
+            return;
+        }
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            _employees = await EmployeeService.GetTeamScopedManageableEmployeesAsync();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _accessDenied = true;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading team members: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private bool Filter(EmployeeDto employee) =>
+        string.IsNullOrWhiteSpace(_search) ||
+        employee.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+        employee.EmployeeCode.Contains(_search, StringComparison.OrdinalIgnoreCase);
+
+    private async Task OpenEditDialog(EmployeeDto employee)
+    {
+        var parameters = new DialogParameters
+        {
+            ["EmployeeId"] = employee.EmployeeId,
+            ["IsEdit"] = true,
+            ["TeamScoped"] = true
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<EmployeeForm>("Update Team Member", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is EPMS.Shared.Requests.UpdateEmployeeRequest request)
+        {
+            try
+            {
+                var success = await EmployeeService.UpdateTeamScopedManageableEmployeeAsync(employee.EmployeeId, request);
+                if (success)
+                {
+                    Snackbar.Add("Team member updated successfully.", Severity.Success);
+                    await LoadData();
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Snackbar.Add("Access Denied — this employee is not in your teams.", Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Update failed: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Remove this employee from the organization? This action cannot be undone." },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = DialogService.Show<EPMS.Blazor.Layout.MessageBox>("Delete Confirmation", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            try
+            {
+                var success = await EmployeeService.DeleteTeamScopedManageableEmployeeAsync(id);
+                if (success)
+                {
+                    Snackbar.Add("Employee deleted successfully.", Severity.Success);
+                    await LoadData();
+                }
+                else
+                {
+                    Snackbar.Add("Employee not found.", Severity.Warning);
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Snackbar.Add("Access Denied — this employee is not in your teams.", Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

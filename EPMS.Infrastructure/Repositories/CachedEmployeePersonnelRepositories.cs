@@ -70,6 +70,17 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
         return entities ?? new List<Employee>();
     }
 
+    public async Task<IEnumerable<Employee>> GetEmployeesByTeamAsync(int teamId)
+    {
+        string key = GetTeamCacheKey(teamId);
+        if (!_cache.TryGetValue(key, out IEnumerable<Employee>? entities))
+        {
+            entities = await _innerRepository.GetEmployeesByTeamAsync(teamId);
+            _cache.Set(key, entities, _cacheDuration);
+        }
+        return entities ?? new List<Employee>();
+    }
+
     public async Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId)
     {
         string key = GetDirectReportsCacheKey(managerId);
@@ -110,6 +121,18 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
         return await _innerRepository.GetByIdNoTrackingAsync(id);
     }
 
+    public Task<Employee?> GetWithTeamsAsync(int employeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetWithTeamsAsync(employeeId, cancellationToken);
+
+    public Task<IReadOnlyList<int>> GetTeamIdsForEmployeeAsync(int employeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetTeamIdsForEmployeeAsync(employeeId, cancellationToken);
+
+    public Task<IReadOnlyList<Employee>> GetEmployeesSharingTeamsWithAsync(int currentEmployeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetEmployeesSharingTeamsWithAsync(currentEmployeeId, cancellationToken);
+
+    public Task<bool> SharesAnyTeamWithAsync(int currentEmployeeId, int targetEmployeeId, CancellationToken cancellationToken = default)
+        => _innerRepository.SharesAnyTeamWithAsync(currentEmployeeId, targetEmployeeId, cancellationToken);
+
     private void InvalidateEmployeeCustomCache(Employee employee)
     {
         if (employee.DepartmentId.HasValue)
@@ -134,6 +157,7 @@ public class CachedEmployeeRepository : CachedBaseRepository<Employee, int>, IEm
     }
 
     private string GetDepartmentCacheKey(int departmentId) => $"{_cacheKeyPrefix}_Dept_{departmentId}";
+    private string GetTeamCacheKey(int teamId) => $"{_cacheKeyPrefix}_Team_{teamId}";
     private string GetDirectReportsCacheKey(int managerId) => $"{_cacheKeyPrefix}_Reports_{managerId}";
     private string GetCodeCacheKey(string employeeCode) => $"{_cacheKeyPrefix}_Code_{employeeCode}";
     private string GetEmailCacheKey(string email) => $"{_cacheKeyPrefix}_Email_{email}";

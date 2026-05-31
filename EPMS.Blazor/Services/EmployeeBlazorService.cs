@@ -1,13 +1,13 @@
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
 using System.Net.Http.Json;
-using static System.Net.WebRequestMethods;
 
 namespace EPMS.Blazor.Services
 {
     public class EmployeeBlazorService : IEmployeeBlazorService
     {
         private readonly HttpClient _httpClient;
+        private const string TeamScopedBase = "api/employees/team-scoped/manageable";
 
         public EmployeeBlazorService(HttpClient httpClient)
         {
@@ -30,6 +30,12 @@ namespace EPMS.Blazor.Services
         {
             // Hierarchy အတွက် Backend Endpoint
             var response = await _httpClient.GetFromJsonAsync<List<EmployeeDto>>("api/employees/hierarchy");
+            return response ?? new List<EmployeeDto>();
+        }
+
+        public async Task<List<EmployeeDto>> GetEmployeesByTeamAsync(int teamId)
+        {
+            var response = await _httpClient.GetFromJsonAsync<List<EmployeeDto>>($"api/employees/team/{teamId}");
             return response ?? new List<EmployeeDto>();
         }
 
@@ -101,6 +107,50 @@ namespace EPMS.Blazor.Services
 
             var resultStr = await response.Content.ReadAsStringAsync();
             return int.Parse(resultStr);
+        }
+
+        public async Task<List<EmployeeDto>> GetTeamScopedManageableEmployeesAsync()
+        {
+            var response = await _httpClient.GetAsync(TeamScopedBase);
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<List<EmployeeDto>>() ?? new List<EmployeeDto>();
+        }
+
+        public async Task<EmployeeDetailDto?> GetTeamScopedManageableEmployeeAsync(int id)
+        {
+            var response = await _httpClient.GetAsync($"{TeamScopedBase}/{id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return null;
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<EmployeeDetailDto>();
+        }
+
+        public async Task<bool> UpdateTeamScopedManageableEmployeeAsync(int id, UpdateEmployeeRequest request)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{TeamScopedBase}/{id}", request);
+            await EnsureSuccessOrThrowAsync(response);
+            return true;
+        }
+
+        public async Task<bool> DeleteTeamScopedManageableEmployeeAsync(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"{TeamScopedBase}/{id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return false;
+            await EnsureSuccessOrThrowAsync(response);
+            return true;
+        }
+
+        private static async Task EnsureSuccessOrThrowAsync(HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode)
+                return;
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                throw new UnauthorizedAccessException(string.IsNullOrWhiteSpace(errorContent) ? "Access Denied" : errorContent);
+
+            throw new HttpRequestException(errorContent ?? response.ReasonPhrase, null, response.StatusCode);
         }
     }
 }

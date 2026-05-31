@@ -1,0 +1,200 @@
+@page "/organization-explorer"
+@attribute [Authorize]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IEmployeeBlazorService EmployeeService
+@inject ITeamBlazorService TeamService
+@inject IDepartmentBlazorService DepartmentService
+@inject ISnackbar Snackbar
+
+<PageTitle>Organization Explorer</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h3" Class="mb-8" Style="font-weight: 800; color: #111827; letter-spacing: -0.025em;">
+        <MudIcon Icon="@Icons.Material.Filled.HomeWork" Class="mr-3 mb-2" Size="Size.Large" Color="Color.Primary" />
+        Organization Explorer
+    </MudText>
+
+    <MudGrid Spacing="4">
+        @* Departments Panel *@
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="2" Class="pa-4" Rounded="true">
+                <div class="d-flex justify-space-between align-center mb-4">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">
+                        <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" />
+                        Departments
+                    </MudText>
+                    @if (_selectedDepartment != null)
+                    {
+                        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="ClearSelection">Clear</MudButton>
+                    }
+                </div>
+
+                <MudList T="DepartmentDto" Clickable="true">
+                    @foreach (var dept in _departments)
+                    {
+                        <MudListItem T="DepartmentDto" Value="@dept" 
+                            OnClick="@(() => SelectDepartment(dept))" 
+                            Selected="@(_selectedDepartment?.DepartmentId == dept.DepartmentId)"
+                            Rounded="true">
+                            <MudListItemIcon Icon="@Icons.Material.Filled.Business" />
+                            <MudListItemText Primary="@dept.DepartmentName" Secondary="@dept.DepartmentIdName" />
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        </MudItem>
+
+        @* Teams Panel *@
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="2" Class="pa-4" Rounded="true">
+                <div class="d-flex justify-space-between align-center mb-4">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">
+                        <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" />
+                        Teams @(_selectedDepartment != null ? $"- {_selectedDepartment.DepartmentName}" : "")
+                    </MudText>
+                    @if (_selectedTeam != null)
+                    {
+                        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="ClearTeamSelection">Clear</MudButton>
+                    }
+                </div>
+
+                @if (_selectedDepartment == null)
+                {
+                    <MudAlert Severity="Severity.Info" Class="mt-4">
+                        <MudIcon Icon="@Icons.Material.Filled.TouchApp" Class="mr-2" />
+                        Select a department to view its teams
+                    </MudAlert>
+                }
+                else if (_filteredTeams.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Warning" Class="mt-4">
+                        No teams found for this department
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudList T="TeamDto" Clickable="true">
+                        @foreach (var team in _filteredTeams)
+                        {
+                            <MudListItem T="TeamDto" Value="@team" 
+                                OnClick="@(() => SelectTeam(team))" 
+                                Selected="@(_selectedTeam?.TeamId == team.TeamId)"
+                                Rounded="true">
+                                <MudListItemIcon Icon="@Icons.Material.Filled.Groups" />
+                                <MudListItemText Primary="@team.TeamName" Secondary="@team.ManagerName" />
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* Employees Panel *@
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="2" Class="pa-4" Rounded="true">
+                <div class="d-flex justify-space-between align-center mb-4">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">
+                        <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Class="mr-2" />
+                        Employees @(_selectedTeam != null ? $"- {_selectedTeam.TeamName}" : "")
+                    </MudText>
+                </div>
+
+                @if (_selectedTeam == null)
+                {
+                    <MudAlert Severity="Severity.Info" Class="mt-4">
+                        <MudIcon Icon="@Icons.Material.Filled.TouchApp" Class="mr-2" />
+                        Select a team to view its employees
+                    </MudAlert>
+                }
+                else if (_filteredEmployees.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Warning" Class="mt-4">
+                        No employees found for this team
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudList T="EmployeeDto" Clickable="true">
+                        @foreach (var emp in _filteredEmployees)
+                        {
+                            <MudListItem T="EmployeeDto" Rounded="true">
+                                <MudListItemIcon Icon="@Icons.Material.Filled.Person" />
+                                <MudListItemText Primary="@emp.FullName" Secondary="@emp.EmployeeCode" />
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
+    private List<EmployeeDto> _employees = new();
+    private List<TeamDto> _filteredTeams = new();
+    private List<EmployeeDto> _filteredEmployees = new();
+
+    private DepartmentDto? _selectedDepartment;
+    private TeamDto? _selectedTeam;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var deptTask = DepartmentService.GetAllDepartmentsAsync();
+            var teamTask = TeamService.GetAllTeamsAsync();
+            var empTask = EmployeeService.GetEmployeesAsync();
+
+            await Task.WhenAll(deptTask, teamTask, empTask);
+
+            _departments = (await deptTask).ToList();
+            _teams = (await teamTask).ToList();
+            _employees = await empTask;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void SelectDepartment(DepartmentDto department)
+    {
+        _selectedDepartment = department;
+        _selectedTeam = null;
+        _filteredEmployees.Clear();
+        
+        _filteredTeams = _teams.Where(t => t.DepartmentId == department.DepartmentId).ToList();
+        StateHasChanged();
+    }
+
+    private void SelectTeam(TeamDto team)
+    {
+        _selectedTeam = team;
+        _filteredEmployees = _employees.Where(e => e.TeamId == team.TeamId).ToList();
+        StateHasChanged();
+    }
+
+    private void ClearSelection()
+    {
+        _selectedDepartment = null;
+        _selectedTeam = null;
+        _filteredTeams.Clear();
+        _filteredEmployees.Clear();
+        StateHasChanged();
+    }
+
+    private void ClearTeamSelection()
+    {
+        _selectedTeam = null;
+        _filteredEmployees.Clear();
+        StateHasChanged();
+    }
+}

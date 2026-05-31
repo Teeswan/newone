@@ -82,6 +82,23 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        modelBuilder.Entity<EmployeeKpiAssignment>(entity =>
+        {
+            entity.HasOne(e => e.TeamKpi)
+                  .WithMany() // Assuming TeamKpi doesn't need to track its employees
+                  .HasForeignKey(e => e.TeamKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 2. TeamKpi -> DepartmentKpi
+        modelBuilder.Entity<TeamKpi>(entity =>
+        {
+            entity.HasOne(t => t.DepartmentKpi)
+                  .WithMany()
+                  .HasForeignKey(t => t.DeptKpiId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // 3. DepartmentKpi -> Kpi (Master)
         modelBuilder.Entity<Kpi>(entity =>
         {
@@ -446,6 +463,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("LevelID");
             entity.Property(e => e.LevelName).HasMaxLength(100);
+            entity.Property(e => e.LevelDescription).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<MeetingNote>(entity =>

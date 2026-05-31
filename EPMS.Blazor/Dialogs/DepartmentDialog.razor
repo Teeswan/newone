@@ -3,6 +3,7 @@
 @using EPMS.Blazor.Services
 @inject IDepartmentBlazorService DepartmentService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -15,13 +16,42 @@
         <MudForm @ref="form" Model="request">
             <MudGrid Spacing="4">
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.DepartmentIdName" Label="Department Code" Variant="Variant.Outlined" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Code" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.DepartmentIdName" 
+                                  Label="Department Code" 
+                                  Placeholder="e.g., HQ-01, TECH-02"
+                                  HelperText="Unique short code for the department"
+                                  Validation="@(new Func<string, string?>(ValidateDepartmentCode))"
+                                  Variant="Variant.Outlined" 
+                                  Immediate="true" 
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Code" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.DepartmentName" Label="Department Name" Required="true" RequiredError="Department name is required!" Variant="Variant.Outlined" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.DepartmentName" 
+                                  Label="Department Name" 
+                                  Placeholder="e.g., Human Resources, IT Dept"
+                                  HelperText="The full name of the department"
+                                  Required="true" 
+                                  RequiredError="Department name is required!" 
+                                  Validation="@(new Func<string, string?>(ValidateDepartmentName))"
+                                  Variant="Variant.Outlined" 
+                                  Immediate="true" 
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Business" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.ParentDepartmentId" Label="Parent Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountTree" Class="rounded-lg" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect @bind-Value="request.ParentDepartmentId" 
+                               Label="Parent Department" 
+                               Placeholder="Select parent if applicable"
+                               HelperText="Organize departments into a hierarchy"
+                               Variant="Variant.Outlined" 
+                               T="int?" 
+                               Adornment="Adornment.Start" 
+                               AdornmentIcon="@Icons.Material.Filled.AccountTree" 
+                               Class="rounded-lg" 
+                               AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">None (Top Level)</MudSelectItem>
                         @if (allDepartments != null)
                         {
@@ -51,6 +81,20 @@
     private UpdateDepartmentRequest request = new() { IsActive = true };
     private IEnumerable<DepartmentDto>? allDepartments;
     private MudForm form = null!;
+
+    private string? ValidateDepartmentCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return null; // Optional
+        if (code.Length > 20) return "Department code must not exceed 20 characters";
+        return null;
+    }
+
+    private string? ValidateDepartmentName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Department name is required";
+        if (name.Length > 100) return "Department name must not exceed 100 characters";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,7 +143,10 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                await DialogService.ShowMessageBox(
+                    "Error", 
+                    (MarkupString)$"<b>Operation failed:</b><br />{ex.Message}", 
+                    yesText: "OK");
             }
         }
     }

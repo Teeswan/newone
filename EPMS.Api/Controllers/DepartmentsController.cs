@@ -1,5 +1,6 @@
 using EPMS.Application.Interfaces;
 using EPMS.Infrastructure.Authorization;
+using EPMS.Shared.Common;
 using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
@@ -22,45 +23,45 @@ public class DepartmentsController : ControllerBase
 
     [HttpGet]
     [HasPermission(Permissions.Departments.View)]                
-    public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<DepartmentDto>>>> GetAll()
     {
         var result = await _service.GetAllAsync();
-        return Ok(result);
+        return Ok(ApiResponse<IEnumerable<DepartmentDto>>.SuccessResponse(result));
     }
 
     [HttpGet("{id}")]
     [HasPermission(Permissions.Departments.View)]                   
-    public async Task<ActionResult<DepartmentDto>> GetById(int id)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);
-        if (result == null) return NotFound();
-        return Ok(result);
+        if (result == null) return NotFound(ApiResponse<DepartmentDto>.FailureResponse("Department not found."));
+        return Ok(ApiResponse<DepartmentDto>.SuccessResponse(result));
     }
 
     [HttpPost]
     [HasPermission(Permissions.Departments.Manage)]                     
-    public async Task<ActionResult<DepartmentDto>> Create(CreateDepartmentRequest request)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> Create(CreateDepartmentRequest request)
     {
         var result = await _service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.DepartmentId }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result.DepartmentId }, ApiResponse<DepartmentDto>.SuccessResponse(result, "Department created successfully."));
     }
 
     [HttpPut("{id}")]
     [HasPermission(Permissions.Departments.Manage)]                     
-    public async Task<ActionResult<DepartmentDto>> Update(int id, UpdateDepartmentRequest request)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> Update(int id, UpdateDepartmentRequest request)
     {
         var result = await _service.UpdateAsync(id, request);
-        if (result == null) return NotFound();
-        return Ok(result);
+        if (result == null) return NotFound(ApiResponse<DepartmentDto>.FailureResponse("Department not found."));
+        return Ok(ApiResponse<DepartmentDto>.SuccessResponse(result, "Department updated successfully."));
     }
 
     [HttpDelete("{id}")]
     [HasPermission(Permissions.Departments.Manage)]                
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);
-        if (!deleted) return NotFound();
-        return NoContent();
+        if (!deleted) return NotFound(ApiResponse<bool>.FailureResponse("Department not found."));
+        return Ok(ApiResponse<bool>.SuccessResponse(true, "Department deleted successfully."));
     }
 
     [HttpGet("tree")]

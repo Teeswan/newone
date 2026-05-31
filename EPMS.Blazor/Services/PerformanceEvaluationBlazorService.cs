@@ -78,6 +78,13 @@ namespace EPMS.Blazor.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<int> CreateBulkPerformanceEvaluationsAsync(BulkPerformanceEvaluationRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/bulk", request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<int>();
+        }
+
         public async Task<IEnumerable<CalibrationTrendDto>> GetCalibrationTrendAsync()
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<CalibrationTrendDto>>($"{BaseUrl}/calibration-trend") ?? new List<CalibrationTrendDto>();

@@ -5,6 +5,7 @@
 @inject IDepartmentBlazorService DepartmentService
 @inject IEmployeeBlazorService EmployeeService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -17,13 +18,42 @@
         <MudForm @ref="form" Model="request">
             <MudGrid Spacing="4">
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.TeamName" Label="Team Name" Required="true" RequiredError="Team name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Groups" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.TeamName" 
+                                  Label="Team Name" 
+                                  Placeholder="e.g., Development Team, Sales Hub"
+                                  HelperText="The descriptive name of the team"
+                                  Required="true" 
+                                  RequiredError="Team name is required!" 
+                                  Validation="@(new Func<string, string?>(ValidateTeamName))"
+                                  Variant="Variant.Outlined" 
+                                  Immediate="true"
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Groups" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.TeamIdName" Label="Team ID/Code" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.TeamIdName" 
+                                  Label="Team ID/Code" 
+                                  Placeholder="e.g., DEV-01, MKT-A"
+                                  HelperText="Unique identifier or short code"
+                                  Validation="@(new Func<string, string?>(ValidateTeamCode))"
+                                  Variant="Variant.Outlined" 
+                                  Immediate="true"
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Badge" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.DepartmentId" Label="Department" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Class="rounded-lg" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect @bind-Value="request.DepartmentId" 
+                               Label="Department" 
+                               Placeholder="Select the parent department"
+                               HelperText="The department this team belongs to"
+                               Variant="Variant.Outlined" 
+                               T="int?" 
+                               Adornment="Adornment.Start" 
+                               AdornmentIcon="@Icons.Material.Filled.Business" 
+                               Class="rounded-lg" 
+                               AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Department</MudSelectItem>
                         @foreach (var dept in allDepartments)
                         {
@@ -32,7 +62,16 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.ManagerId" Label="Team Manager" Variant="Variant.Outlined" T="int?" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" Class="rounded-lg" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect @bind-Value="request.ManagerId" 
+                               Label="Team Manager" 
+                               Placeholder="Assign a manager"
+                               HelperText="The person leading this team"
+                               Variant="Variant.Outlined" 
+                               T="int?" 
+                               Adornment="Adornment.Start" 
+                               AdornmentIcon="@Icons.Material.Filled.Person" 
+                               Class="rounded-lg" 
+                               AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="int?" Value="@((int?)null)">Select Manager</MudSelectItem>
                         @foreach (var emp in allEmployees)
                         {
@@ -55,11 +94,26 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public int? Id { get; set; }
+    [Parameter] public int? DefaultDepartmentId { get; set; }
 
     private UpdateTeamRequest request = new() { IsActive = true };
     private List<DepartmentDto> allDepartments = new();
     private List<EmployeeDto> allEmployees = new();
     private MudForm form = null!;
+
+    private string? ValidateTeamName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Team name is required";
+        if (name.Length > 100) return "Team name must not exceed 100 characters";
+        return null;
+    }
+
+    private string? ValidateTeamCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return null; // Optional
+        if (code.Length > 20) return "Team code must not exceed 20 characters";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,6 +134,10 @@
                     IsActive = team.IsActive
                 };
             }
+        }
+        else if (DefaultDepartmentId.HasValue)
+        {
+            request.DepartmentId = DefaultDepartmentId.Value;
         }
     }
 
@@ -112,7 +170,10 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                await DialogService.ShowMessageBox(
+                    "Error", 
+                    (MarkupString)$"<b>Operation failed:</b><br />{ex.Message}", 
+                    yesText: "OK");
             }
         }
     }

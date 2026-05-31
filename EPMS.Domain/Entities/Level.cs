@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace EPMS.Domain.Entities;
 
@@ -8,6 +9,11 @@ public partial class Level
     public string LevelId { get; set; } = null!;
 
     public string? LevelName { get; set; }
+
+    public string? LevelDescription { get; set; }
+
+    [DefaultValue(true)]
+    public bool IsActive { get; set; } = true;
 
     public virtual ICollection<Position> Positions { get; set; } = new List<Position>();
 

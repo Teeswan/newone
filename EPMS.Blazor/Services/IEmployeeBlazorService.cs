@@ -9,6 +9,7 @@ namespace EPMS.Blazor.Services
         Task<List<EmployeeDto>> GetEmployeesAsync();
         Task<EmployeeDetailDto?> GetEmployeeDetailsAsync(int id);
         Task<List<EmployeeDto>> GetHierarchyAsync();
+        Task<List<EmployeeDto>> GetEmployeesByTeamAsync(int teamId);
         Task<bool> CreateEmployeeAsync(CreateEmployeeRequest request);
         Task<bool> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request);
         Task<bool> DeleteEmployeeAsync(int id);
@@ -16,5 +17,10 @@ namespace EPMS.Blazor.Services
         Task<byte[]> ExportToExcelAsync();
         Task<byte[]> ExportToPdfAsync();
         Task<int> ImportFromExcelAsync(Stream fileStream, string fileName);
+
+        Task<List<EmployeeDto>> GetTeamScopedManageableEmployeesAsync();
+        Task<EmployeeDetailDto?> GetTeamScopedManageableEmployeeAsync(int id);
+        Task<bool> UpdateTeamScopedManageableEmployeeAsync(int id, UpdateEmployeeRequest request);
+        Task<bool> DeleteTeamScopedManageableEmployeeAsync(int id);
     }
 }

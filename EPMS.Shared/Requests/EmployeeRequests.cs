@@ -34,12 +34,14 @@ public class CreateLevelRequest
     public string LevelId { get; set; } = null!;
     public string LevelName { get; set; } = null!;
     public string? LevelDescription { get; set; }
+    public bool IsActive { get; set; } = true;
 }
 
 public class UpdateLevelRequest
 {
     public string LevelName { get; set; } = null!;
     public string? LevelDescription { get; set; }
+    public bool IsActive { get; set; }
 }
 
 public class CreatePositionRequest

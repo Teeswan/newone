@@ -3,6 +3,7 @@
 @using EPMS.Blazor.Services
 @inject IAppraisalCycleBlazorService AppraisalCycleService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -15,13 +16,44 @@
         <MudForm @ref="form" Model="request">
             <MudGrid Spacing="4">
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="request.CycleName" Label="Cycle Name" Required="true" RequiredError="Cycle name is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.CycleName" 
+                                  Label="Cycle Name" 
+                                  Required="true" 
+                                  RequiredError="Cycle name is required!" 
+                                  Validation="@(new Func<string, string?>(ValidateCycleName))"
+                                  Variant="Variant.Outlined" 
+                                  Immediate="true"
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Title" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudDatePicker Label="Start Date" @bind-Date="startDate" Required="true" RequiredError="Start date is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CalendarToday" Class="rounded-lg" />
+                    <MudDatePicker Label="Start Date" 
+                                   @bind-Date="startDate" 
+                                   @bind-Date:after="() => form.Validate()"
+                                   DateFormat="dd/MM/yyyy" 
+                                   Required="true" 
+                                   RequiredError="Start date is required!" 
+                                   Variant="Variant.Outlined" 
+                                   ImmediateText="true"
+                                   Adornment="Adornment.Start" 
+                                   AdornmentIcon="@Icons.Material.Filled.CalendarToday" 
+                                   Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudDatePicker Label="End Date" @bind-Date="endDate" Required="true" RequiredError="End date is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Event" Class="rounded-lg" />
+                    <MudDatePicker Label="End Date" 
+                                   @bind-Date="endDate" 
+                                   @bind-Date:after="() => form.Validate()"
+                                   DateFormat="dd/MM/yyyy" 
+                                   MinDate="@(startDate?.AddDays(1))" 
+                                   Validation="@(new Func<DateTime?, string?>(ValidateEndDate))"
+                                   Required="true" 
+                                   RequiredError="End date is required!" 
+                                   Variant="Variant.Outlined" 
+                                   ImmediateText="true"
+                                   Adornment="Adornment.Start" 
+                                   AdornmentIcon="@Icons.Material.Filled.Event" 
+                                   Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudSelect @bind-Value="request.CycleStatus" Label="Status" Variant="Variant.Outlined" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Flag" Class="rounded-lg">
@@ -47,6 +79,22 @@
     private DateTime? startDate;
     private DateTime? endDate;
     private MudForm form = null!;
+
+    private string? ValidateCycleName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Cycle name is required";
+        if (name.Length < 3) return "Cycle name must be at least 3 characters";
+        if (name.Length > 100) return "Cycle name must not exceed 100 characters";
+        return null;
+    }
+
+    private string? ValidateEndDate(DateTime? end)
+    {
+        if (end == null) return "End date is required";
+        if (startDate.HasValue && end.Value.Date <= startDate.Value.Date)
+            return "End Date must be after the Start Date! They cannot be the same day.";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,7 +147,10 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                await DialogService.ShowMessageBox(
+                    "Error", 
+                    (MarkupString)$"<b>Operation failed:</b><br />{ex.Message}", 
+                    yesText: "OK");
             }
         }
     }

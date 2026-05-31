@@ -1,6 +1,7 @@
 @page "/performanceevaluations/details/{Id:int}"
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
+@using EPMS.Domain.Enums
 @using Microsoft.AspNetCore.Components.Authorization
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
@@ -15,25 +16,130 @@
         <MudPaper Class="pa-0 mb-6" Elevation="3" Style="overflow: hidden;">
             <div style="background-color: #FDE9D9; padding: 16px; border-bottom: 1px solid #e0e0e0;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                    <MudText Typo="Typo.h5" Style="font-weight: bold;">Performance Evaluation</MudText>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">@eval.Status.ToString()</MudChip>
+                    <MudText Typo="Typo.h5" Style="font-weight: bold;">@GetTypeName(eval.FormType) Details</MudText>
+                    <MudChip T="string" Color="GetEvalStatusColor(eval.Status)" Variant="Variant.Filled">@eval.Status.ToString()</MudChip>
                 </MudStack>
             </div>
 
             <div class="pa-8">
                 <MudGrid>
+                    <!-- Employee Info Section -->
                     <MudItem xs="12">
-                        <MudText Typo="Typo.body1">Employee: @eval.EmployeeName</MudText>
-                        <MudText Typo="Typo.body1">Status: @eval.Status</MudText>
-                        <MudText Typo="Typo.body2">Creator: @eval.CreatedByName</MudText>
+                        <MudPaper Outlined="true" Class="pa-4 mb-4">
+                            <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-4">Employee Information</MudText>
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudField Label="Employee Name" Variant="Variant.Outlined">@eval.EmployeeName</MudField>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudField Label="Employee ID" Variant="Variant.Outlined">@eval.EmployeeCode</MudField>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudField Label="Current Position" Variant="Variant.Outlined">@eval.PositionTitle</MudField>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudField Label="Department" Variant="Variant.Outlined">@eval.DepartmentName</MudField>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudField Label="Appraisal Cycle" Variant="Variant.Outlined">@eval.CycleName</MudField>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudField Label="Finalized Date" Variant="Variant.Outlined">@(eval.FinalizedAt?.ToString("dd MMM yyyy") ?? "Pending")</MudField>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- Evaluator Ratings Section -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h5" Class="mb-4">Evaluator Ratings</MudText>
+                        
+                        @if (GetUniqueEvaluators().Any())
+                        {
+                            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                                @foreach (var evaluator in GetUniqueEvaluators())
+                                {
+                                    <MudTabPage Text="@($"{evaluator.Name} ({evaluator.Role})")">
+                                        <MudTable Items="@GetResponsesForEvaluator(evaluator.Id, evaluator.Role)" Hover="true" Elevation="0" Dense="true">
+                                            <HeaderContent>
+                                                <MudTh Style="width: 50px">No</MudTh>
+                                                <MudTh>Category</MudTh>
+                                                <MudTh>Criteria</MudTh>
+                                                <MudTh Style="width: 250px">Rating (1-5)</MudTh>
+                                                <MudTh>Comments</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate Context="resp">
+                                                <MudTd>@resp.SortOrder</MudTd>
+                                                <MudTd>@resp.QuestionCategory</MudTd>
+                                                <MudTd>@resp.QuestionText</MudTd>
+                                                <MudTd>
+                                                    <MudRating SelectedValue="@(resp.RatingValue ?? 0)" MaxValue="5" ReadOnly="true" />
+                                                    <MudText Typo="Typo.caption" Class="ml-2">@(resp.RatingValue > 0 ? resp.RatingValue.ToString() : "None")</MudText>
+                                                </MudTd>
+                                                <MudTd>@resp.AnswerText</MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    </MudTabPage>
+                                }
+                            </MudTabs>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">No ratings recorded for this evaluation.</MudAlert>
+                        }
+                    </MudItem>
+
+                    <!-- Summary Section -->
+                    <MudItem xs="12">
+                        <MudExpansionPanels>
+                            <MudExpansionPanel Text="Final Summary & Comments" IsExpanded="true">
+                                <MudGrid>
+                                    @if (eval.FormType != AppraisalFormType.Feedback360)
+                                    {
+                                        <MudItem xs="12" sm="4">
+                                            <MudField Label="Total Self Rating" Variant="Variant.Outlined">@eval.SelfRating</MudField>
+                                        </MudItem>
+
+                                        @if (eval.FormType != AppraisalFormType.SelfAssessment)
+                                        {
+                                            <MudItem xs="12" sm="4">
+                                                <MudField Label="Total Manager Rating" Variant="Variant.Outlined">@eval.ManagerRating</MudField>
+                                            </MudItem>
+                                            <MudItem xs="12" sm="4">
+                                                <MudField Label="Final Score (%)" Variant="Variant.Outlined">@(eval.FinalRatingScore?.ToString("N2") ?? "0.00")%</MudField>
+                                            </MudItem>
+                                        }
+                                    }
+
+                                    <MudItem xs="12" sm="12">
+                                        <MudField Label="Employee Overall Remarks" Variant="Variant.Outlined" Lines="3">@eval.SelfComments</MudField>
+                                    </MudItem>
+
+                                    @if (eval.FormType != AppraisalFormType.SelfAssessment)
+                                    {
+                                        <MudItem xs="12" sm="12">
+                                            <MudField Label="Appraiser Overall Remarks" Variant="Variant.Outlined" Lines="3">@eval.ManagerComments</MudField>
+                                        </MudItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(eval.CalibrationComments))
+                                    {
+                                        <MudItem xs="12">
+                                            <MudField Label="Senior Management Calibration Comments" Variant="Variant.Outlined" Lines="3">@eval.CalibrationComments</MudField>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
                     </MudItem>
 
                     <MudItem xs="12" Class="d-flex justify-end mt-8 gap-4">
                         <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">Back to List</MudButton>
 
-                        @if (eval.Status != EPMS.Domain.Enums.PerformanceEvaluationStatus.Finalized && eval.CreatedByEmployeeId == currentEmployeeId)
+                        @if (eval.Status != PerformanceEvaluationStatus.Finalized && eval.CreatedByEmployeeId == currentEmployeeId)
                         {
                             <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="FinalizeEvaluation" StartIcon="@Icons.Material.Filled.Lock">Check & Finalize</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="NavigateToEdit" StartIcon="@Icons.Material.Filled.Edit">Edit Evaluation</MudButton>
                         }
                     </MudItem>
                 </MudGrid>
@@ -67,7 +173,42 @@
         eval = await PerformanceEvaluationService.GetPerformanceEvaluationByIdAsync(Id);
     }
 
-    private void BackToList() => NavigationManager.NavigateTo("/performanceevaluations");
+    private IEnumerable<(int Id, string Role, string Name)> GetUniqueEvaluators()
+    {
+        if (eval?.Responses == null) return Enumerable.Empty<(int, string, string)>();
+
+        return eval.Responses
+            .Where(r => r.RespondentId.HasValue)
+            .Select(r => (r.RespondentId!.Value, r.RespondentRole ?? "Unknown", r.RespondentName ?? "Unknown"))
+            .Distinct();
+    }
+
+    private IEnumerable<AppraisalResponseDto> GetResponsesForEvaluator(int id, string role)
+    {
+        return eval?.Responses?.Where(r => r.RespondentId == id && r.RespondentRole == role) ?? Enumerable.Empty<AppraisalResponseDto>();
+    }
+
+    private string GetTypeName(AppraisalFormType type) => type switch
+    {
+        AppraisalFormType.PerformanceAppraisal => "Performance Appraisal",
+        AppraisalFormType.SelfAssessment => "Self Assessment",
+        AppraisalFormType.Feedback360 => "360 Feedback",
+        AppraisalFormType.CalibrationReview => "Calibration & Review",
+        _ => "Performance Evaluation"
+    };
+
+    private Color GetEvalStatusColor(PerformanceEvaluationStatus status) => status switch
+    {
+        PerformanceEvaluationStatus.Draft => Color.Default,
+        PerformanceEvaluationStatus.SelfSubmitted => Color.Info,
+        PerformanceEvaluationStatus.ManagerReviewed => Color.Primary,
+        PerformanceEvaluationStatus.AwaitingCalibration => Color.Warning,
+        PerformanceEvaluationStatus.Finalized => Color.Success,
+        _ => Color.Default
+    };
+
+    private void BackToList() => NavigationManager.NavigateTo("/performance-hub");
+    private void NavigateToEdit() => NavigationManager.NavigateTo($"/performanceevaluations/edit/{Id}");
 
     private async Task FinalizeEvaluation()
     {

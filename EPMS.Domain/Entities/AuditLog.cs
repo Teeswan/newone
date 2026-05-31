@@ -13,4 +13,6 @@ public partial class AuditLog
     public string? NewData { get; set; }
     public int? ChangedByEmployeeId { get; set; } // Now perfectly matches the database!
     public DateTimeOffset? ChangedAt { get; set; }
+
+    public virtual Employee? ChangedByEmployee { get; set; }
 }
