@@ -1,3 +1,5 @@
+@inject IPermissionCheckerService PermissionChecker
+
 <MudNavMenu>
     <div class="nav-header px-4 py-4">
         <div class="d-flex align-items-center">
@@ -13,50 +15,117 @@
     <MudDivider Class="my-2" />
     <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">Home</MudNavLink>
     <MudNavLink Href="/debug" Icon="@Icons.Material.Filled.BugReport">Debug</MudNavLink>
-    <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Organization</MudText>
-    <MudNavLink Href="/organization-hub" Icon="@Icons.Material.Filled.AccountTree" Match="NavLinkMatch.All">Organization Hub</MudNavLink>
-    <MudNavLink Href="/departments" Icon="@Icons.Material.Filled.Domain" Match="NavLinkMatch.All">Departments</MudNavLink>
-    @* <MudNavLink Href="/departments" Icon="@Icons.Material.Filled.Domain">Departments</MudNavLink>
-    <MudNavLink Href="/teams" Icon="@Icons.Material.Filled.Groups">Teams</MudNavLink>
-    <MudNavLink href="/employees" Icon="@Icons.Material.Filled.Badge">Employees</MudNavLink>
-    <MudNavLink Href="/levels" Icon="@Icons.Material.Filled.SignalCellularAlt">Levels</MudNavLink>
-    <MudNavLink Href="/positions" Icon="@Icons.Material.Filled.Work">Positions</MudNavLink> *@
-    <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Performance</MudText>
-    <MudNavLink Href="/performance-hub" Icon="@Icons.Material.Filled.Assessment" Match="NavLinkMatch.All">Performance Hub</MudNavLink>
-    <MudNavLink Href="/appraisal-hub" Icon="@Icons.Material.Filled.EventNote">Appraisal Hub</MudNavLink>
-    <MudNavLink Href="/development-hub" Icon="@Icons.Material.Filled.AutoGraph">Development Hub</MudNavLink>
-    <MudNavGroup Title="KPI Management" Icon="@Icons.Material.Filled.BarChart" Expanded="true">
-        <MudNavLink Href="/kpi-hierarchy/master" Icon="@Icons.Material.Filled.LibraryBooks">Master KPI Library</MudNavLink>
-        <MudNavLink Href="/kpi-hierarchy/department" Icon="@Icons.Material.Filled.AccountBalance">Department KPIs</MudNavLink>
-        <MudNavLink Href="/kpi-hierarchy/team" Icon="@Icons.Material.Filled.Groups">Team KPIs</MudNavLink>
-        <MudNavLink Href="/kpi-hierarchy/employee" Icon="@Icons.Material.Filled.Person">Employee KPIs</MudNavLink>
-        <MudNavLink Href="/position-kpi" Icon="@Icons.Material.Filled.ListAlt">Position KPI List</MudNavLink>
-        @* <MudNavLink Href="/employee-kpi" Icon="@Icons.Material.Filled.Person">Employee KPIs (Legacy)</MudNavLink> *@
-    </MudNavGroup>
-  @*<MudNavGroup Title="KPI Analytics" Icon="@Icons.Material.Filled.PieChart">
-        <MudNavLink Href="/kpi-views/employee" Icon="@Icons.Material.Filled.PersonSearch">Employee KPI View</MudNavLink>
-        <MudNavLink Href="/kpi-views/department" Icon="@Icons.Material.Filled.AccountBalance">Department KPI View</MudNavLink>
-        <MudNavLink Href="/kpi-views/team" Icon="@Icons.Material.Filled.GroupWork">Team KPI View</MudNavLink>
-        <MudNavLink Href="/kpi-views/position" Icon="@Icons.Material.Filled.WorkHistory">Position KPI View</MudNavLink>
-    </MudNavGroup> *@
+    
+    @if (ShowOrganizationSection)
+    {
+        <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Organization</MudText>
+        <MudNavLink Href="/organization-hub" Icon="@Icons.Material.Filled.AccountTree" Match="NavLinkMatch.All">Organization Hub</MudNavLink>
+        @if (_canViewDepartments)
+        {
+            <MudNavLink Href="/departments" Icon="@Icons.Material.Filled.Domain" Match="NavLinkMatch.All">Departments</MudNavLink>
+        }
+        @if (_canManageTeamEmployees)
+        {
+            <MudNavLink Href="/employees/team-scoped" Icon="@Icons.Material.Filled.Groups">My Team Members</MudNavLink>
+        }
+    }
+    
+    @if (ShowPerformanceSection)
+    {
+        <MudText Typo="Typo.subtitle2" Class="px-4 py-2 text-grey">Performance</MudText>
+        @if (_canViewPerformanceEvaluations)
+        {
+            <MudNavLink Href="/performance-hub" Icon="@Icons.Material.Filled.Assessment" Match="NavLinkMatch.All">Performance Hub</MudNavLink>
+        }
+        @if (_canViewAppraisalCycles)
+        {
+            <MudNavLink Href="/appraisal-hub" Icon="@Icons.Material.Filled.EventNote">Appraisal Hub</MudNavLink>
+        }
+        @if (_canViewMeetings)
+        {
+            <MudNavLink Href="/development-hub" Icon="@Icons.Material.Filled.AutoGraph">Development Hub</MudNavLink>
+        }
+    }
+    
+    @if (ShowKpiSection)
+    {
+        <MudNavGroup Title="KPI Management" Icon="@Icons.Material.Filled.BarChart" Expanded="true">
+            @if (_canViewKpis)
+            {
+                <MudNavLink Href="/kpi-hierarchy/master" Icon="@Icons.Material.Filled.LibraryBooks">Master KPI Library</MudNavLink>
+                <MudNavLink Href="/kpi-hierarchy/department" Icon="@Icons.Material.Filled.AccountBalance">Department KPIs</MudNavLink>
+                <MudNavLink Href="/kpi-hierarchy/team" Icon="@Icons.Material.Filled.Groups">Team KPIs</MudNavLink>
+                <MudNavLink Href="/kpi-hierarchy/employee" Icon="@Icons.Material.Filled.Person">Employee KPIs</MudNavLink>
+                <MudNavLink Href="/position-kpi" Icon="@Icons.Material.Filled.ListAlt">Position KPI List</MudNavLink>
+            }
+        </MudNavGroup>
+    }
+    
     <MudNavGroup Title="RDLC Reports" Icon="@Icons.Material.Filled.PictureAsPdf" Expanded="true">
         <MudNavLink Href="/reports" Icon="@Icons.Material.Filled.Dashboard">Reports Dashboard</MudNavLink>
-        <MudNavLink Href="/reports/employee" Icon="@Icons.Material.Filled.Person">Employee Performance Summary</MudNavLink>
-        <MudNavLink Href="/reports/department" Icon="@Icons.Material.Filled.Domain">Department Performance Comparison</MudNavLink>
+        @if (_canViewEmployees)
+        {
+            <MudNavLink Href="/reports/employee" Icon="@Icons.Material.Filled.Person">Employee Performance Summary</MudNavLink>
+        }
+        @if (_canViewDepartments)
+        {
+            <MudNavLink Href="/reports/department" Icon="@Icons.Material.Filled.Domain">Department Performance Comparison</MudNavLink>
+        }
         <MudNavLink Href="/reports/performers" Icon="@Icons.Material.Filled.Leaderboard">High & Low Performers</MudNavLink>
         <MudNavLink Href="/reports/promotion" Icon="@Icons.Material.Filled.TrendingUp">Promotion Recommendations</MudNavLink>
     </MudNavGroup>
+    
     <MudNavGroup Title="Reports & Analytics" Icon="@Icons.Material.Filled.Assessment">
         <MudNavLink Href="/reports/employee-performance" Icon="@Icons.Material.Filled.PictureAsPdf">Employee Performance Report</MudNavLink>
     </MudNavGroup>
-    <MudNavGroup Title="Security" Icon="@Icons.Material.Filled.Security">
-        <MudNavLink href="/users/manage-roles" Icon="@Icons.Material.Filled.AdminPanelSettings">User Access</MudNavLink>
-        <MudNavLink Href="/security/audit-logs" Icon="@Icons.Material.Filled.History">Audit Logs</MudNavLink>
-        <MudNavLink Href="/system-settings" Icon="@Icons.Material.Filled.Settings">System Settings</MudNavLink>
-    </MudNavGroup>
+
+
+    
+    @if (ShowSecuritySection)
+    {
+        <MudNavGroup Title="Security" Icon="@Icons.Material.Filled.Security">
+            @if (_canViewSecurity)
+            {
+                <MudNavLink href="/users/manage-roles" Icon="@Icons.Material.Filled.AdminPanelSettings">User Access</MudNavLink>
+                <MudNavLink Href="/system-settings" Icon="@Icons.Material.Filled.Settings">System Settings</MudNavLink>
+            }
+        </MudNavGroup>
+    }
+
 </MudNavMenu>
 
 @code {
     [Parameter]
     public Action? CloseDrawer { get; set; }
+
+    private bool ShowOrganizationSection => _canViewDepartments || _canManageTeamEmployees;
+    private bool ShowPerformanceSection => _canViewPerformanceEvaluations || _canViewAppraisalCycles || _canViewMeetings;
+    private bool ShowKpiSection => _canViewKpis;
+    private bool ShowSecuritySection => _canViewSecurity;
+
+    private bool _canViewDepartments = false;
+    private bool _canViewEmployees = false;
+    private bool _canViewPerformanceEvaluations = false;
+    private bool _canViewAppraisalCycles = false;
+    private bool _canViewMeetings = false;
+    private bool _canViewKpis = false;
+    private bool _canViewSecurity = false;
+    private bool _canManageTeamEmployees = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPermissions();
+    }
+
+    private async Task LoadPermissions()
+    {
+        _canViewDepartments = await PermissionChecker.HasViewPermissionAsync("Departments");
+        _canViewEmployees = await PermissionChecker.HasViewPermissionAsync("Employees");
+        _canViewPerformanceEvaluations = await PermissionChecker.HasViewPermissionAsync("PerformanceEvaluations");
+        _canViewAppraisalCycles = await PermissionChecker.HasViewPermissionAsync("AppraisalCycles");
+        _canViewMeetings = await PermissionChecker.HasViewPermissionAsync("Meetings");
+        _canViewKpis = await PermissionChecker.HasViewPermissionAsync("Kpis");
+        _canViewSecurity = await PermissionChecker.HasViewPermissionAsync("Security");
+        _canManageTeamEmployees = await PermissionChecker.HasTeamEmployeeManagementAsync();
+    }
 }

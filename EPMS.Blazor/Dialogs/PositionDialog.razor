@@ -4,6 +4,7 @@
 @inject IPositionBlazorService PositionService
 @inject ILevelBlazorService LevelService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -16,10 +17,30 @@
         <MudForm @ref="form" Model="request">
             <MudGrid Spacing="4">
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="request.PositionTitle" Label="Position Title" Required="true" RequiredError="Position title is required!" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Work" Class="rounded-lg" />
+                    <MudTextField @bind-Value="request.PositionTitle" 
+                                  Label="Position Title" 
+                                  Placeholder="e.g., Software Engineer, HR Manager"
+                                  HelperText="The official title of the position"
+                                  Required="true" 
+                                  RequiredError="Position title is required!" 
+                                  Validation="@(new Func<string, string?>(ValidatePositionTitle))"
+                                  Variant="Variant.Outlined" 
+                                  Immediate="true"
+                                  Adornment="Adornment.Start" 
+                                  AdornmentIcon="@Icons.Material.Filled.Work" 
+                                  Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect @bind-Value="request.LevelId" Label="Level" Variant="Variant.Outlined" T="string" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Grade" Class="rounded-lg">
+                    <MudSelect @bind-Value="request.LevelId" 
+                               Label="Level" 
+                               Placeholder="Select the seniority level"
+                               HelperText="Assign a career level to this position"
+                               Variant="Variant.Outlined" 
+                               T="string" 
+                               Adornment="Adornment.Start" 
+                               AdornmentIcon="@Icons.Material.Filled.Grade" 
+                               Class="rounded-lg"
+                               AnchorOrigin="Origin.BottomCenter">
                         <MudSelectItem T="string" Value="@((string?)null)">Select Level</MudSelectItem>
                         @foreach (var level in allLevels)
                         {
@@ -43,6 +64,13 @@
     private UpdatePositionRequest request = new();
     private List<LevelDto> allLevels = new();
     private MudForm form = null!;
+
+    private string? ValidatePositionTitle(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return "Position title is required";
+        if (title.Length > 100) return "Position title must not exceed 100 characters";
+        return null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,7 +116,10 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                await DialogService.ShowMessageBox(
+                    "Error", 
+                    (MarkupString)$"<b>Operation failed:</b><br />{ex.Message}", 
+                    yesText: "OK");
             }
         }
     }

@@ -42,16 +42,13 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             return;
         }
 
-        // Handle "Manage" permission logic (CUD = Manage)
-        // If the required permission is a Create, Edit, or Delete permission,
+        // Handle "Manage" permission logic (View/CUD = Manage)
+        // If the required permission is a View, Create, Edit, or Delete permission,
         // check if the user has the corresponding "Manage" permission.
-        if (IsCudPermission(requirement.Permission))
+        var managePermission = GetManagePermission(requirement.Permission);
+        if (!string.IsNullOrEmpty(managePermission) && userPermissions.Any(p => p == managePermission))
         {
-            var managePermission = GetManagePermission(requirement.Permission);
-            if (userPermissions.Any(p => p == managePermission))
-            {
-                context.Succeed(requirement);
-            }
+            context.Succeed(requirement);
         }
     }
 

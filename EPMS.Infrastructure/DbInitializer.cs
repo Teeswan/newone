@@ -64,6 +64,7 @@ public static class DbInitializer
         // Define specific order for scripts to ensure dependencies are met
         var orderedScripts = new List<string>
         {
+            "010_AddTeamIdToEmployees.sql",
             "OrgSecurity_StoredProcedures.sql",
             "EmployeePersonnel_StoredProcedures.sql",
             "AppraisalCycles_StoredProcedures.sql",

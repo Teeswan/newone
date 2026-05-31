@@ -9,6 +9,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IPermissionCheckerService PermissionChecker
 
 <PageTitle>Departments</PageTitle>
 
@@ -25,12 +26,15 @@
             <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="ExportToPdfAsync" Class="rounded-lg">
                 PDF
             </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenImportDialog" Class="rounded-lg">
-                Import
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDepartmentAddDialog" Class="rounded-lg">
-                Add Department
-            </MudButton>
+            @if (_canCreate)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenImportDialog" Class="rounded-lg">
+                    Import
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDepartmentAddDialog" Class="rounded-lg">
+                    Add Department
+                </MudButton>
+            }
         </div>
     </div>
 
@@ -54,19 +58,37 @@
                     <MudTh>Code</MudTh>
                     <MudTh>Name</MudTh>
                     <MudTh>Parent</MudTh>
-                    <MudTh Style="text-align: right;">Actions</MudTh>
+                    <MudTh Style="width: 150px;">Status</MudTh>
+                    <MudTh Style="width: 250px; text-align: right;">Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Code">@context.DepartmentIdName</MudTd>
                     <MudTd DataLabel="Name">@context.DepartmentName</MudTd>
                     <MudTd DataLabel="Parent">@context.ParentDepartmentName</MudTd>
-                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                    <MudTd DataLabel="Status">
+                        @if (context.IsActive)
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">Active</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Inactive</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right; white-space: nowrap;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Small" OnClick="@(() => ViewDepartmentDetails(context))" Title="View Details" />
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => NavigateToTeams(context))">
-                            <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-2" />
+                            <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" />
                             View Teams
                         </MudButton>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
+                        @if (_canEdit)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => OpenDepartmentEditDialog(context))" />
+                        }
+                        @if (_canDelete)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDepartment(context.DepartmentId))" />
+                        }
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -81,10 +103,21 @@
     private List<DepartmentDto> _departments = new();
     private bool _isLoading = true;
     private string _search = "";
+    private bool _canCreate = false;
+    private bool _canEdit = false;
+    private bool _canDelete = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadPermissions();
         await LoadDepartments();
+    }
+
+    private async Task LoadPermissions()
+    {
+        _canCreate = await PermissionChecker.CanCreateAsync("Departments");
+        _canEdit = await PermissionChecker.CanEditAsync("Departments");
+        _canDelete = await PermissionChecker.CanDeleteAsync("Departments");
     }
 
     private async Task LoadDepartments()
@@ -109,6 +142,13 @@
 
     private void NavigateToTeams(DepartmentDto dept) => Navigation.NavigateTo($"/departments/{dept.DepartmentId}/teams");
     
+    private async Task ViewDepartmentDetails(DepartmentDto dept)
+    {
+        var parameters = new DialogParameters { ["Department"] = dept };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        DialogService.Show<DepartmentDetailsDialog>("Department Details", parameters, options);
+    }
+
     private bool Filter(DepartmentDto dept) => 
         string.IsNullOrWhiteSpace(_search) || 
         dept.DepartmentName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||

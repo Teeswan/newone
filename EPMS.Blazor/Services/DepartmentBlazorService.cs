@@ -1,5 +1,6 @@
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using EPMS.Shared.Common;
 using System.Net.Http.Json;
 
 namespace EPMS.Blazor.Services
@@ -22,29 +23,49 @@ namespace EPMS.Blazor.Services
         public async Task<IEnumerable<DepartmentDto>> GetAllDepartmentsAsync()
         {
             var response = await _httpClient.GetAsync(BaseUrl);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<DepartmentDto>>() ?? new List<DepartmentDto>();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<IEnumerable<DepartmentDto>>>();
+                return result?.Data ?? new List<DepartmentDto>();
+            }
+            return new List<DepartmentDto>();
         }
 
         public async Task<DepartmentDto?> GetDepartmentByIdAsync(int id)
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<DepartmentDto>();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<DepartmentDto>>();
+                return result?.Data;
+            }
+            return null;
         }
 
         public async Task<DepartmentDto> CreateDepartmentAsync(CreateDepartmentRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync(BaseUrl, request);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<DepartmentDto>() ?? throw new InvalidOperationException("Could not create department.");
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<DepartmentDto>>();
+            
+            if (response.IsSuccessStatusCode && result != null && result.Success)
+            {
+                return result.Data!;
+            }
+            
+            throw new InvalidOperationException(result?.Message ?? "Could not create department.");
         }
 
         public async Task<DepartmentDto?> UpdateDepartmentAsync(int id, UpdateDepartmentRequest request)
         {
             var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", request);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<DepartmentDto>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<DepartmentDto>>();
+            
+            if (response.IsSuccessStatusCode && result != null && result.Success)
+            {
+                return result.Data;
+            }
+            
+            throw new InvalidOperationException(result?.Message ?? "Could not update department.");
         }
 
         public async Task<bool> DeleteDepartmentAsync(int id)
