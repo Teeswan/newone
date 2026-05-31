@@ -13,12 +13,10 @@ public class AppraisalResponseDto
     public string? RespondentDepartment { get; set; }
     public int? RatingValue { get; set; }
     public bool? IsAnonymous { get; set; }
+    public string? AnswerText { get; set; }
 
     // Navigation info for reports
     public string? QuestionText { get; set; }
     public string? QuestionCategory { get; set; }
-    public string? RespondentName { get; set; }
-    public string? RespondentPosition { get; set; }
-    public string? RespondentDepartment { get; set; }
     public int? SortOrder { get; set; }
 }
