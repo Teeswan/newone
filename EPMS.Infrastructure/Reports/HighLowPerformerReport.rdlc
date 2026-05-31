@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition">
-  <Width>6in</Width>
-  <Body>
-    <ReportItems>
-      <Textbox Name="Title">
-        <CanGrow>true</CanGrow>
-        <Value>High and Low Performer Report</Value>
-        <Style>
-          <FontSize>18pt</FontSize>
-          <FontWeight>Bold</FontWeight>
-        </Style>
-        <Height>0.5in</Height>
-        <Width>6in</Width>
-        <Left>0in</Left>
-        <Top>0in</Top>
-      </Textbox>
-    </ReportItems>
-    <Height>8in</Height>
-  </Body>
-  <Page>
-    <LeftMargin>1in</LeftMargin>
-    <RightMargin>1in</RightMargin>
-    <TopMargin>1in</TopMargin>
-    <BottomMargin>1in</BottomMargin>
-    <PageHeight>11in</PageHeight>
-    <PageWidth>8.5in</PageWidth>
-  </Page>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSets>
+    <DataSet Name="RankingData">
+      <Query>
+        <DataSourceName>EPMS</DataSourceName>
+        <CommandText>/* Local Query */</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="Rank"><DataField>Rank</DataField><rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="EmployeeCode"><DataField>EmployeeCode</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FullName"><DataField>FullName</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="DepartmentName"><DataField>DepartmentName</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="PerformanceScore"><DataField>PerformanceScore</DataField><rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="Category"><DataField>Category</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Textbox Name="Title">
+            <Paragraphs><Paragraph><TextRuns><TextRun><Value>High &amp; Low Performer Report</Value><Style><FontSize>18pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+            <Height>0.4in</Height><Width>6in</Width>
+          </Textbox>
+        </ReportItems>
+        <Height>4in</Height>
+      </Body>
+      <Width>6.5in</Width>
+      <Page>
+        <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+        <LeftMargin>1in</LeftMargin><RightMargin>1in</RightMargin><TopMargin>1in</TopMargin><BottomMargin>1in</BottomMargin>
+      </Page>
+    </ReportSection>
+  </ReportSections>
 </Report>

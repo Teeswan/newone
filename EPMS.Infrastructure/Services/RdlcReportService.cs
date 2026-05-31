@@ -215,8 +215,24 @@ public class RdlcReportService : IRdlcReportService
             using var reportStream = GetReportStream(reportName);
             report.LoadReportDefinition(reportStream);
 
-            report.DataSources.Add(new ReportDataSource("AppraisalData", new[] { reportData }));
             report.DataSources.Add(new ReportDataSource("Responses", reportData.Responses));
+
+            report.SetParameters(new[]
+            {
+                new ReportParameter("EmployeeName", reportData.EmployeeName ?? ""),
+                new ReportParameter("EmployeeCode", reportData.EmployeeCode ?? ""),
+                new ReportParameter("DepartmentName", reportData.DepartmentName ?? ""),
+                new ReportParameter("PositionTitle", reportData.PositionTitle ?? ""),
+                new ReportParameter("ManagerName", reportData.ManagerName ?? ""),
+                new ReportParameter("CycleName", reportData.CycleName ?? ""),
+                new ReportParameter("AssessmentDate", reportData.AssessmentDate?.ToString("d") ?? ""),
+                new ReportParameter("EffectiveDate", reportData.EffectiveDate?.ToString("d") ?? ""),
+                new ReportParameter("FinalScore", reportData.FinalScore?.ToString("N2") ?? "0.00"),
+                new ReportParameter("PerformanceBand", reportData.PerformanceBand ?? ""),
+                new ReportParameter("TotalPoints", reportData.TotalPoints.ToString() ?? "0"),
+                new ReportParameter("AnsweredQuestionsCount", reportData.AnsweredQuestionsCount.ToString() ?? "0"),
+                new ReportParameter("MaxPoints", reportData.MaxPoints.ToString() ?? "0")
+            });
 
             return report.Render("PDF");
         });
