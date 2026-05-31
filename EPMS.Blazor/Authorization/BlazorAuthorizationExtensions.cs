@@ -17,6 +17,9 @@ public static class BlazorAuthorizationExtensions
 
             options.AddPolicy(Permissions.Employees.TeamEmployeeManagement, policy =>
                 policy.RequireClaim(AuthClaimTypes.Permission, Permissions.Employees.TeamEmployeeManagement));
+
+            options.AddPolicy(Permissions.GlobalAdminManagement, policy =>
+                policy.RequireClaim(AuthClaimTypes.Permission, Permissions.GlobalAdminManagement));
         });
 
         return services;

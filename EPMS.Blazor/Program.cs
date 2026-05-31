@@ -100,6 +100,9 @@ builder.Services.AddHttpClient<INotificationBlazorService, NotificationBlazorSer
 builder.Services.AddHttpClient<IAuditLogBlazorService, AuditLogBlazorService>(client => client.BaseAddress = apiBaseUrl)
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
+builder.Services.AddHttpClient<IGlobalAdminBlazorService, GlobalAdminBlazorService>(client => client.BaseAddress = apiBaseUrl)
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+
 
 // AuthBlazorService should NOT use AuthenticationHeaderHandler (no token needed for login/change password)
 builder.Services.AddHttpClient<IAuthBlazorService, AuthBlazorService>(client => client.BaseAddress = apiBaseUrl);

@@ -1,0 +1,209 @@
+@page "/admin/teams"
+@attribute [Authorize(Policy = Permissions.GlobalAdminManagement)]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IGlobalAdminBlazorService GlobalAdminService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Admin — Teams</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4" />
+
+    <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+        <div>
+            <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827;">
+                <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-3 mb-2" Color="Color.Info" />
+                All Teams
+            </MudText>
+            <MudText Typo="Typo.body2" Class="text-secondary mt-1">
+                Step 2 of 3 — View all teams across every department
+                @if (_filterDepartmentId.HasValue && !string.IsNullOrEmpty(_filterDepartmentName))
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="ml-2" OnClose="ClearDepartmentFilter">
+                        @_filterDepartmentName
+                    </MudChip>
+                }
+            </MudText>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => Navigation.NavigateTo("/admin/departments"))">
+                Departments
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => GoToEmployees(null, null))">
+                View Employees
+            </MudButton>
+        </div>
+    </div>
+
+    <AuthorizeView Policy="@Permissions.GlobalAdminManagement">
+        <Authorized>
+            @if (_isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            }
+            else if (!FilteredTeams.Any())
+            {
+                <MudAlert Severity="Severity.Info">No teams found.</MudAlert>
+                <MudButton Class="mt-4" Variant="Variant.Outlined" Color="Color.Primary"
+                           OnClick="@(() => Navigation.NavigateTo("/admin/departments"))">
+                    Back to Departments
+                </MudButton>
+            }
+            else
+            {
+                <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background: #F9FAFB; border-radius: 12px;">
+                    <MudTextField @bind-Value="_search" Placeholder="Search teams..."
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+                </MudPaper>
+
+                <MudPaper Elevation="2" Class="pa-6 rounded-xl">
+                    <MudTable Items="FilteredTeams" T="TeamDto" Hover="true" Breakpoint="Breakpoint.Sm">
+                        <HeaderContent>
+                            <MudTh>Code</MudTh>
+                            <MudTh>Name</MudTh>
+                            <MudTh>Department</MudTh>
+                            <MudTh>Manager</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh Style="text-align: right;">Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="team">
+                            <MudTd>@team.TeamIdName</MudTd>
+                            <MudTd>
+                                <MudLink Typo="Typo.body2" Color="Color.Primary" Underline="Underline.Hover"
+                                         OnClick="@(() => GoToEmployees(team.TeamId, team.TeamName))"
+                                         Style="cursor: pointer;">
+                                    @team.TeamName
+                                </MudLink>
+                            </MudTd>
+                            <MudTd>
+                                <MudLink Typo="Typo.body2" Color="Color.Secondary" Underline="Underline.Hover"
+                                         OnClick="@(() => Navigation.NavigateTo($"/admin/teams?departmentId={team.DepartmentId}&departmentName={Uri.EscapeDataString(team.DepartmentName ?? "")}"))"
+                                         Style="cursor: pointer;">
+                                    @team.DepartmentName
+                                </MudLink>
+                            </MudTd>
+                            <MudTd>@(team.ManagerName ?? "—")</MudTd>
+                            <MudTd>
+                                <MudChip T="string" Size="Size.Small" Color="@(team.IsActive ? Color.Success : Color.Error)">
+                                    @(team.IsActive ? "Active" : "Inactive")
+                                </MudChip>
+                            </MudTd>
+                            <MudTd Style="text-align: right;">
+                                <MudTooltip Text="View team members">
+                                    <MudIconButton Icon="@Icons.Material.Filled.People" Color="Color.Info" Size="Size.Small"
+                                                   OnClick="@(() => GoToEmployees(team.TeamId, team.TeamName))" />
+                                </MudTooltip>
+                                <MudTooltip Text="Team details">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Default" Size="Size.Small"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/teams/details/{team.TeamId}"))" />
+                                </MudTooltip>
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent><MudTablePager /></PagerContent>
+                    </MudTable>
+                </MudPaper>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <MudAlert Severity="Severity.Error">Access Denied.</MudAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudContainer>
+
+@code {
+    private List<TeamDto> _teams = new();
+    private bool _isLoading = true;
+    private string _search = "";
+    private int? _filterDepartmentId;
+    private string? _filterDepartmentName;
+
+    private List<BreadcrumbItem> _breadcrumbs
+    {
+        get
+        {
+            var items = new List<BreadcrumbItem>
+            {
+                new("Admin Dashboard", "/admin/dashboard"),
+                new("Departments", "/admin/departments"),
+                new("Teams", "/admin/teams", disabled: true)
+            };
+            return items;
+        }
+    }
+
+    private IEnumerable<TeamDto> FilteredTeams => _teams
+        .Where(t => !_filterDepartmentId.HasValue || t.DepartmentId == _filterDepartmentId.Value)
+        .Where(t => string.IsNullOrWhiteSpace(_search)
+            || t.TeamName.Contains(_search, StringComparison.OrdinalIgnoreCase)
+            || (t.DepartmentName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (t.TeamIdName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    protected override async Task OnInitializedAsync()
+    {
+        ParseQueryFilters();
+        await LoadData();
+    }
+
+    protected override void OnParametersSet() => ParseQueryFilters();
+
+    private void ParseQueryFilters()
+    {
+        _filterDepartmentId = null;
+        _filterDepartmentName = null;
+
+        var queryIndex = Navigation.Uri.IndexOf('?', StringComparison.Ordinal);
+        if (queryIndex < 0) return;
+
+        foreach (var part in Navigation.Uri[(queryIndex + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length != 2) continue;
+
+            if (kv[0].Equals("departmentId", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(Uri.UnescapeDataString(kv[1]), out var deptId))
+            {
+                _filterDepartmentId = deptId;
+            }
+            else if (kv[0].Equals("departmentName", StringComparison.OrdinalIgnoreCase))
+            {
+                _filterDepartmentName = Uri.UnescapeDataString(kv[1]);
+            }
+        }
+    }
+
+    private void ClearDepartmentFilter() => Navigation.NavigateTo("/admin/teams");
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            _teams = await GlobalAdminService.GetTeamsAsync();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _teams = new List<TeamDto>();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void GoToEmployees(int? teamId, string? teamName)
+    {
+        if (teamId.HasValue)
+            Navigation.NavigateTo($"/admin/employees?teamId={teamId}&teamName={Uri.EscapeDataString(teamName ?? "")}");
+        else
+            Navigation.NavigateTo("/admin/employees");
+    }
+}

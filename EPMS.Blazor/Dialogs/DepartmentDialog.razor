@@ -2,6 +2,7 @@
 @using EPMS.Shared.Requests
 @using EPMS.Blazor.Services
 @inject IDepartmentBlazorService DepartmentService
+@inject IGlobalAdminBlazorService GlobalAdminService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -77,6 +78,7 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public int? Id { get; set; }
+    [Parameter] public bool GlobalAdmin { get; set; }
 
     private UpdateDepartmentRequest request = new() { IsActive = true };
     private IEnumerable<DepartmentDto>? allDepartments;
@@ -98,10 +100,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        allDepartments = await DepartmentService.GetAllDepartmentsAsync();
+        allDepartments = GlobalAdmin
+            ? await GlobalAdminService.GetDepartmentsAsync()
+            : (await DepartmentService.GetAllDepartmentsAsync()).ToList();
+
         if (Id.HasValue)
         {
-            var dept = await DepartmentService.GetDepartmentByIdAsync(Id.Value);
+            var dept = GlobalAdmin
+                ? (await GlobalAdminService.GetDepartmentsAsync()).FirstOrDefault(d => d.DepartmentId == Id.Value)
+                : await DepartmentService.GetDepartmentByIdAsync(Id.Value);
             if (dept != null)
             {
                 request = new UpdateDepartmentRequest
@@ -124,7 +131,14 @@
             {
                 if (Id.HasValue)
                 {
-                    await DepartmentService.UpdateDepartmentAsync(Id.Value, request);
+                    if (GlobalAdmin)
+                    {
+                        await GlobalAdminService.UpdateDepartmentAsync(Id.Value, request);
+                    }
+                    else
+                    {
+                        await DepartmentService.UpdateDepartmentAsync(Id.Value, request);
+                    }
                     Snackbar.Add("Department updated successfully!", Severity.Success);
                 }
                 else
@@ -136,7 +150,14 @@
                         ParentDepartmentId = request.ParentDepartmentId,
                         IsActive = request.IsActive
                     };
-                    await DepartmentService.CreateDepartmentAsync(createRequest);
+                    if (GlobalAdmin)
+                    {
+                        await GlobalAdminService.CreateDepartmentAsync(createRequest);
+                    }
+                    else
+                    {
+                        await DepartmentService.CreateDepartmentAsync(createRequest);
+                    }
                     Snackbar.Add("Department created successfully!", Severity.Success);
                 }
                 MudDialog.Close(DialogResult.Ok(true));

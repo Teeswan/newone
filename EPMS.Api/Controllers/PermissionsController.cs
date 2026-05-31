@@ -83,6 +83,7 @@ public class PermissionsController : ControllerBase
             ("Permissions.Employees.Manage", "Manage Employees"),
             ("Permissions.Employees.TeamEmployeeManagement", "Team-Scoped Employee Management"),
             ("Permissions.DepartmentScopedManagement", "Department-Scoped Management (teams + employee view)"),
+            ("Permissions.GlobalAdminManagement", "Global Admin Management (full organization hierarchy)"),
             ("Permissions.Departments.View", "View Departments"),
             ("Permissions.Departments.Manage", "Manage Departments"),
             ("Permissions.Teams.View", "View Teams"),

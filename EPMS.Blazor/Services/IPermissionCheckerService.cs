@@ -7,6 +7,7 @@ public interface IPermissionCheckerService
     Task<bool> HasManagePermissionAsync(string category);
     Task<bool> HasTeamEmployeeManagementAsync();
     Task<bool> HasDepartmentScopedManagementAsync();
+    Task<bool> HasGlobalAdminManagementAsync();
     Task<bool> CanCreateAsync(string category);
     Task<bool> CanEditAsync(string category);
     Task<bool> CanDeleteAsync(string category);

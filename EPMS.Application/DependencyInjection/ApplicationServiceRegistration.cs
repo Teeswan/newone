@@ -40,6 +40,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<ITeamScopedEmployeeService, TeamScopedEmployeeService>();
         services.AddScoped<IDepartmentScopedManagementService, DepartmentScopedManagementService>();
+        services.AddScoped<IGlobalAdminManagementService, GlobalAdminManagementService>();
         services.AddScoped<ILevelService, LevelService>();
         services.AddScoped<IPositionService, PositionService>();
         services.AddScoped<ITokenService, TokenService>();

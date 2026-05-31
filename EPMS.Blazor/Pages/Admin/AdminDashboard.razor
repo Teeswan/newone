@@ -1,0 +1,188 @@
+@page "/admin/dashboard"
+@attribute [Authorize(Policy = Permissions.GlobalAdminManagement)]
+@using EPMS.Shared.DTOs
+@using EPMS.Blazor.Services
+@inject IGlobalAdminBlazorService GlobalAdminService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4" />
+
+    <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
+        <div>
+            <MudText Typo="Typo.h3" Style="font-weight: 800; color: #111827;">
+                <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-3 mb-2" Color="Color.Primary" />
+                Admin Dashboard
+            </MudText>
+            <MudText Typo="Typo.body2" Class="text-secondary mt-1">
+                Global organization overview — select a section to manage or browse
+            </MudText>
+        </div>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
+                   Disabled="_isLoading" OnClick="LoadSummary">
+            Refresh
+        </MudButton>
+    </div>
+
+    <AuthorizeView Policy="@Permissions.GlobalAdminManagement">
+        <Authorized>
+            @if (_isLoading)
+            {
+                <MudGrid>
+                    @for (var i = 0; i < 3; i++)
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudSkeleton Animation="Animation.Wave" Height="180px" Class="rounded-xl" />
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+            else if (_summary == null)
+            {
+                <MudAlert Severity="Severity.Warning">Unable to load organization summary.</MudAlert>
+            }
+            else
+            {
+                <MudGrid Class="mb-8">
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudPaper Elevation="2" Class="pa-4 rounded-xl" Style="border-left: 4px solid var(--mud-palette-primary);">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Departments</MudText>
+                            <MudText Typo="Typo.h4" Style="font-weight: 700;">@_summary.DepartmentCount</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudPaper Elevation="2" Class="pa-4 rounded-xl" Style="border-left: 4px solid var(--mud-palette-info);">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Teams</MudText>
+                            <MudText Typo="Typo.h4" Style="font-weight: 700;">@_summary.TeamCount</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudPaper Elevation="2" Class="pa-4 rounded-xl" Style="border-left: 4px solid var(--mud-palette-success);">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Employees</MudText>
+                            <MudText Typo="Typo.h4" Style="font-weight: 700;">@_summary.EmployeeCount</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudPaper Elevation="2" Class="pa-4 rounded-xl" Style="border-left: 4px solid var(--mud-palette-warning);">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Active Employees</MudText>
+                            <MudText Typo="Typo.h4" Style="font-weight: 700;">@_summary.ActiveEmployeeCount</MudText>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+
+                <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">Organization Sections</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudCard Elevation="3" Class="rounded-xl" Style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/admin/departments"))">
+                            <MudCardContent Class="pa-6">
+                                <div class="d-flex align-center mb-3">
+                                    <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mr-4">
+                                        <MudIcon Icon="@Icons.Material.Filled.Domain" />
+                                    </MudAvatar>
+                                    <div>
+                                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Departments</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Step 1 — Full read/write</MudText>
+                                    </div>
+                                </div>
+                                <MudText Typo="Typo.body2" Class="mb-4">
+                                    Manage all departments across the organization. Create, edit, and delete without department scoping.
+                                </MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward"
+                                           OnClick="@(() => Navigation.NavigateTo("/admin/departments"))">
+                                    Open Departments
+                                </MudButton>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudCard Elevation="3" Class="rounded-xl" Style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/admin/teams"))">
+                            <MudCardContent Class="pa-6">
+                                <div class="d-flex align-center mb-3">
+                                    <MudAvatar Color="Color.Info" Size="Size.Large" Class="mr-4">
+                                        <MudIcon Icon="@Icons.Material.Filled.Groups" />
+                                    </MudAvatar>
+                                    <div>
+                                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Teams</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Step 2 — View all teams</MudText>
+                                    </div>
+                                </div>
+                                <MudText Typo="Typo.body2" Class="mb-4">
+                                    Browse every team in every department. Click a team to view its members.
+                                </MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" EndIcon="@Icons.Material.Filled.ArrowForward"
+                                           OnClick="@(() => Navigation.NavigateTo("/admin/teams"))">
+                                    Open Teams
+                                </MudButton>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudCard Elevation="3" Class="rounded-xl" Style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/admin/employees"))">
+                            <MudCardContent Class="pa-6">
+                                <div class="d-flex align-center mb-3">
+                                    <MudAvatar Color="Color.Success" Size="Size.Large" Class="mr-4">
+                                        <MudIcon Icon="@Icons.Material.Filled.People" />
+                                    </MudAvatar>
+                                    <div>
+                                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Employees</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Step 3 — View all employees</MudText>
+                                    </div>
+                                </div>
+                                <MudText Typo="Typo.body2" Class="mb-4">
+                                    View every employee across all teams and departments. Open profiles for full details.
+                                </MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" EndIcon="@Icons.Material.Filled.ArrowForward"
+                                           OnClick="@(() => Navigation.NavigateTo("/admin/employees"))">
+                                    Open Employees
+                                </MudButton>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+                Assign <strong>Global Admin Management</strong> to your position to access this dashboard.
+            </MudAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudContainer>
+
+@code {
+    private GlobalAdminOrganizationSummary? _summary;
+    private bool _isLoading = true;
+
+    private List<BreadcrumbItem> _breadcrumbs => new()
+    {
+        new BreadcrumbItem("Admin Dashboard", "/admin/dashboard", disabled: true)
+    };
+
+    protected override async Task OnInitializedAsync() => await LoadSummary();
+
+    private async Task LoadSummary()
+    {
+        try
+        {
+            _isLoading = true;
+            var org = await GlobalAdminService.GetOrganizationAsync();
+            _summary = org?.Summary;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _summary = null;
+            Snackbar.Add("Access Denied — Global Admin permission required.", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load summary: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

@@ -40,6 +40,12 @@ public static class Permissions
     /// </summary>
     public const string DepartmentScopedManagement = "Permissions.DepartmentScopedManagement";
 
+    /// <summary>
+    /// Global administrative access: full organization hierarchy visibility and department management,
+    /// bypassing department-level scoping filters.
+    /// </summary>
+    public const string GlobalAdminManagement = "Permissions.GlobalAdminManagement";
+
     public static class Levels
     {
         public const string View = "Permissions.Levels.View";

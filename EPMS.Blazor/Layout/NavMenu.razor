@@ -122,6 +122,19 @@
         </MudNavGroup>
     }
 
+    <AuthorizeView Policy="@Permissions.GlobalAdminManagement">
+        <Authorized>
+            <MudNavGroup Title="Administration" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="false">
+                <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">
+                    Admin Dashboard
+                </MudNavLink>
+                <MudNavLink Href="/admin/departments" Icon="@Icons.Material.Filled.Domain">Departments</MudNavLink>
+                <MudNavLink Href="/admin/teams" Icon="@Icons.Material.Filled.Groups">Teams</MudNavLink>
+                <MudNavLink Href="/admin/employees" Icon="@Icons.Material.Filled.People">Employees</MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
 </MudNavMenu>
 
 @code {
