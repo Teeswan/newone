@@ -88,6 +88,9 @@ public class PermissionCheckerService : IPermissionCheckerService
     public Task<bool> HasTeamEmployeeManagementAsync()
         => HasPermissionAsync(Permissions.Employees.TeamEmployeeManagement);
 
+    public Task<bool> HasDepartmentScopedManagementAsync()
+        => HasPermissionAsync(Permissions.DepartmentScopedManagement);
+
     public async Task<bool> CanCreateAsync(string category)
     {
         return await HasPermissionAsync($"Permissions.{category}.Create") || 

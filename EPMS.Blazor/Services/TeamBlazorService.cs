@@ -9,6 +9,7 @@ namespace EPMS.Blazor.Services
     {
         private readonly HttpClient _httpClient;
         private const string BaseUrl = "api/Teams";
+        private const string DepartmentScopedBase = "api/department-scoped";
 
         public TeamBlazorService(HttpClient httpClient)
         {
@@ -123,6 +124,48 @@ namespace EPMS.Blazor.Services
             
             var result = await response.Content.ReadFromJsonAsync<ImportResponse>();
             return result?.Imported ?? 0;
+        }
+
+        public async Task<List<TeamDto>> GetDepartmentScopedManageableTeamsAsync()
+        {
+            var response = await _httpClient.GetAsync($"{DepartmentScopedBase}/teams");
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<List<TeamDto>>() ?? new List<TeamDto>();
+        }
+
+        public async Task<TeamDto?> GetDepartmentScopedManageableTeamAsync(int id)
+        {
+            var response = await _httpClient.GetAsync($"{DepartmentScopedBase}/teams/{id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return null;
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<TeamDto>();
+        }
+
+        public async Task<bool> UpdateDepartmentScopedManageableTeamAsync(int id, UpdateTeamRequest request)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{DepartmentScopedBase}/teams/{id}", request);
+            await EnsureSuccessOrThrowAsync(response);
+            return true;
+        }
+
+        public async Task<DepartmentScopedAccessDto?> GetDepartmentScopedAccessAsync()
+        {
+            var response = await _httpClient.GetAsync(DepartmentScopedBase);
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<DepartmentScopedAccessDto>();
+        }
+
+        private static async Task EnsureSuccessOrThrowAsync(HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode)
+                return;
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                throw new UnauthorizedAccessException(string.IsNullOrWhiteSpace(errorContent) ? "Access Denied" : errorContent);
+
+            throw new HttpRequestException(errorContent ?? response.ReasonPhrase, null, response.StatusCode);
         }
     }
 }

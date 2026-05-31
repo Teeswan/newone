@@ -14,5 +14,10 @@ namespace EPMS.Blazor.Services
         Task<byte[]> ExportToExcelAsync();
         Task<byte[]> ExportToPdfAsync();
         Task<int> ImportFromExcelAsync(Stream fileStream, bool skipFirstRow = true, string sheetName = "", bool skipExisting = false);
+
+        Task<List<TeamDto>> GetDepartmentScopedManageableTeamsAsync();
+        Task<TeamDto?> GetDepartmentScopedManageableTeamAsync(int id);
+        Task<bool> UpdateDepartmentScopedManageableTeamAsync(int id, UpdateTeamRequest request);
+        Task<DepartmentScopedAccessDto?> GetDepartmentScopedAccessAsync();
     }
 }

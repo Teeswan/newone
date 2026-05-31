@@ -73,5 +73,11 @@ public class CachedTeamRepository : CachedBaseRepository<Team, int>, ITeamReposi
         return await _innerRepository.GetByIdNoTrackingAsync(id);
     }
 
+    public Task<IReadOnlyList<Team>> GetDepartmentTeamsAsync(int departmentId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetDepartmentTeamsAsync(departmentId, cancellationToken);
+
+    public Task<Team?> GetByIdInDepartmentAsync(int teamId, int departmentId, CancellationToken cancellationToken = default)
+        => _innerRepository.GetByIdInDepartmentAsync(teamId, departmentId, cancellationToken);
+
     private static string GetDepartmentCacheKey(int departmentId) => $"Team_GetByDepartment_{departmentId}";
 }

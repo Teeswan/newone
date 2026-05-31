@@ -237,6 +237,47 @@ public class EmployeeRepository : BaseRepository<Employee, int>, IEmployeeReposi
             .AnyAsync(e => e.TeamsNavigation.Any(t => currentUserTeamIds.Contains(t.TeamId)), cancellationToken);
     }
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// Department → Teams → Employees: members of any team where Team.DepartmentId matches.
+    /// </remarks>
+    public async Task<IReadOnlyList<Employee>> GetDepartmentEmployeesAsync(
+        int departmentId,
+        CancellationToken cancellationToken = default)
+    {
+        var employees = await _dbSet
+            .AsNoTracking()
+            .Where(e => !e.IsDeleted)
+            .Where(e => e.TeamsNavigation.Any(t => !t.IsDeleted && t.DepartmentId == departmentId))
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .Include(e => e.ReportsToNavigation)
+            .Include(e => e.TeamsNavigation.Where(t => !t.IsDeleted && t.DepartmentId == departmentId))
+            .ToListAsync(cancellationToken);
+
+        return employees
+            .DistinctBy(e => e.EmployeeId)
+            .OrderBy(e => e.FullName)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<Employee?> GetByIdInDepartmentTeamsReadOnlyAsync(
+        int employeeId,
+        int departmentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(e => e.EmployeeId == employeeId && !e.IsDeleted)
+            .Where(e => e.TeamsNavigation.Any(t => !t.IsDeleted && t.DepartmentId == departmentId))
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .Include(e => e.ReportsToNavigation)
+            .Include(e => e.TeamsNavigation.Where(t => !t.IsDeleted && t.DepartmentId == departmentId))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
 }
 
 public class LevelRepository : BaseRepository<Level, string>, ILevelRepository

@@ -39,6 +39,7 @@ public static class ApplicationServiceRegistration
         // Employee & Personnel Services
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<ITeamScopedEmployeeService, TeamScopedEmployeeService>();
+        services.AddScoped<IDepartmentScopedManagementService, DepartmentScopedManagementService>();
         services.AddScoped<ILevelService, LevelService>();
         services.AddScoped<IPositionService, PositionService>();
         services.AddScoped<ITokenService, TokenService>();

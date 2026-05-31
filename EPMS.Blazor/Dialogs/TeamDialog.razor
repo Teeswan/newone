@@ -95,6 +95,7 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public int? Id { get; set; }
     [Parameter] public int? DefaultDepartmentId { get; set; }
+    [Parameter] public bool DepartmentScoped { get; set; }
 
     private UpdateTeamRequest request = new() { IsActive = true };
     private List<DepartmentDto> allDepartments = new();
@@ -122,7 +123,9 @@
         
         if (Id.HasValue)
         {
-            var team = await TeamService.GetTeamByIdAsync(Id.Value);
+            var team = DepartmentScoped
+                ? await TeamService.GetDepartmentScopedManageableTeamAsync(Id.Value)
+                : await TeamService.GetTeamByIdAsync(Id.Value);
             if (team != null)
             {
                 request = new UpdateTeamRequest
@@ -150,7 +153,14 @@
             {
                 if (Id.HasValue)
                 {
-                    await TeamService.UpdateTeamAsync(Id.Value, request);
+                    if (DepartmentScoped)
+                    {
+                        await TeamService.UpdateDepartmentScopedManageableTeamAsync(Id.Value, request);
+                    }
+                    else
+                    {
+                        await TeamService.UpdateTeamAsync(Id.Value, request);
+                    }
                     Snackbar.Add("Team updated successfully!", Severity.Success);
                 }
                 else

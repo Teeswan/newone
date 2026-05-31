@@ -8,6 +8,7 @@ namespace EPMS.Blazor.Services
     {
         private readonly HttpClient _httpClient;
         private const string TeamScopedBase = "api/employees/team-scoped/manageable";
+        private const string DepartmentScopedBase = "api/department-scoped";
 
         public EmployeeBlazorService(HttpClient httpClient)
         {
@@ -139,6 +140,22 @@ namespace EPMS.Blazor.Services
                 return false;
             await EnsureSuccessOrThrowAsync(response);
             return true;
+        }
+
+        public async Task<List<EmployeeDto>> GetDepartmentScopedViewableEmployeesAsync()
+        {
+            var response = await _httpClient.GetAsync($"{DepartmentScopedBase}/employees");
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<List<EmployeeDto>>() ?? new List<EmployeeDto>();
+        }
+
+        public async Task<EmployeeDetailDto?> GetDepartmentScopedViewableEmployeeAsync(int id)
+        {
+            var response = await _httpClient.GetAsync($"{DepartmentScopedBase}/employees/{id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return null;
+            await EnsureSuccessOrThrowAsync(response);
+            return await response.Content.ReadFromJsonAsync<EmployeeDetailDto>();
         }
 
         private static async Task EnsureSuccessOrThrowAsync(HttpResponseMessage response)

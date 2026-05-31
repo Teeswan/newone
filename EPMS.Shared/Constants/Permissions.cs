@@ -18,6 +18,7 @@ public static class Permissions
         public const string Edit = "Permissions.Teams.Edit";
         public const string Delete = "Permissions.Teams.Delete";
         public const string Manage = "Permissions.Teams.Manage";
+
     }
 
     public static class Employees
@@ -32,6 +33,12 @@ public static class Permissions
         /// </summary>
         public const string TeamEmployeeManagement = "Permissions.Employees.TeamEmployeeManagement";
     }
+
+    /// <summary>
+    /// Unified department-scoped access: manage teams in the user's department and read-only view of
+    /// employees on those teams (Department → Teams → Employees).
+    /// </summary>
+    public const string DepartmentScopedManagement = "Permissions.DepartmentScopedManagement";
 
     public static class Levels
     {

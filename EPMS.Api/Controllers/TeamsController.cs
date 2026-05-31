@@ -4,6 +4,7 @@ using EPMS.Shared.Common;
 using EPMS.Shared.Constants;
 using EPMS.Shared.DTOs;
 using EPMS.Shared.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EPMS.Api.Controllers;
@@ -106,4 +107,5 @@ public class TeamsController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
 }
