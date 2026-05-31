@@ -28,11 +28,11 @@
         {
             <MudNavLink Href="/employees/team-scoped" Icon="@Icons.Material.Filled.Groups">My Team Members</MudNavLink>
         }
-        @if (_canDepartmentScopedManagement)
-        {
-            <MudNavLink Href="/teams/department-scoped" Icon="@Icons.Material.Filled.Groups">My Department Teams</MudNavLink>
-            <MudNavLink Href="/employees/department-scoped" Icon="@Icons.Material.Filled.People">Department Team Members</MudNavLink>
-        }
+        <AuthorizeView Policy="@Permissions.DepartmentScopedManagement">
+            <Authorized>
+                <MudNavLink Href="/teams/department-scoped" Icon="@Icons.Material.Filled.Groups">My Department Teams</MudNavLink>
+            </Authorized>
+        </AuthorizeView>
     }
     
     @if (ShowPerformanceSection)

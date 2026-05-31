@@ -71,7 +71,7 @@ public class AuthService : IAuthService
             FullName = employee.FullName,
             Email = employee.Email,
             IsFirstLogin = employee.IsFirstLogin,
-            Token = _tokenService.CreateToken(employee, user)
+            Token = await _tokenService.CreateTokenAsync(employee, user)
         };
     }
 }

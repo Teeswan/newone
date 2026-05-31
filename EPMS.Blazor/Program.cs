@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using EPMS.Blazor;
+using EPMS.Blazor.Authorization;
 using EPMS.Blazor.Services;
 using EPMS.Client.Identity;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -24,7 +25,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Register LocalStorage and Auth State
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddAuthorizationCore();
+builder.Services.AddEpmsAuthorizationPolicies();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
 builder.Services.AddScoped<ICurrentEmployeeStateService, CurrentEmployeeStateService>();
 builder.Services.AddScoped<IPermissionCheckerService, PermissionCheckerService>();

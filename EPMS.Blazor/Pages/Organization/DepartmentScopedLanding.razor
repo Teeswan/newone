@@ -1,0 +1,9 @@
+@page "/department-scoped"
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/teams/department-scoped", replace: true);
+    }
+}

@@ -1,90 +1,95 @@
 @page "/employees/department-scoped/details/{Id:int}"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permissions.DepartmentScopedManagement)]
 @using EPMS.Shared.DTOs
 @using EPMS.Blazor.Services
 @inject IEmployeeBlazorService EmployeeService
-@inject IPermissionCheckerService PermissionChecker
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
+<PageTitle>Colleague Profile</PageTitle>
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4" />
+
     <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
-        <div class="d-flex align-center">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           OnClick="@(() => Navigation.NavigateTo("/employees/department-scoped"))"
-                           Color="Color.Primary" Size="Size.Large" Class="mr-3" />
-            <MudText Typo="Typo.h4" Style="font-weight: 700;">
-                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2 mb-n1" Color="Color.Primary" />
-                Colleague Profile
-                <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="ml-2">Read-only</MudChip>
-            </MudText>
-        </div>
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2 mb-n1" Color="Color.Primary" />
+            Colleague Profile
+            <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="ml-2">Read-only</MudChip>
+        </MudText>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo("/employees/department-scoped"))">
+            Back to Members
+        </MudButton>
     </div>
 
-    @if (_accessDenied)
-    {
-        <MudAlert Severity="Severity.Error">Access Denied — you cannot view this employee.</MudAlert>
-    }
-    else if (detail == null && !_loading)
-    {
-        <MudAlert Severity="Severity.Warning">Employee not found or not in your department.</MudAlert>
-    }
-    else if (_loading)
-    {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-    }
-    else if (detail != null)
-    {
-        <MudGrid>
-            <MudItem xs="12" md="4">
-                <MudCard Elevation="2" Style="border-radius: 16px;">
-                    <MudCardContent Class="d-flex flex-column align-center py-8">
-                        <MudAvatar Style="height: 120px; width: 120px; font-size: 3rem;" Color="Color.Primary">
-                            @detail.FullName[0]
-                        </MudAvatar>
-                        <MudText Typo="Typo.h5" Class="mt-4 fw-bold">@detail.FullName</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@detail.EmployeeCode</MudText>
-                        <MudChip T="string" Class="mt-2" Color="@(detail.IsActive == true ? Color.Success : Color.Error)" Size="Size.Small">
-                            @(detail.IsActive == true ? "Active" : "Inactive")
-                        </MudChip>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-            <MudItem xs="12" md="8">
-                <MudCard Elevation="2" Style="border-radius: 16px;">
-                    <MudCardContent Class="pa-6">
-                        <MudText Typo="Typo.h6" Class="mb-4">Organization</MudText>
-                        <MudGrid Spacing="3">
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Department</MudText>
-                                <MudText Typo="Typo.body1">@detail.DepartmentName</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Team</MudText>
-                                <MudText Typo="Typo.body1">@(detail.TeamName ?? "—")</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Position</MudText>
-                                <MudText Typo="Typo.body1">@detail.PositionTitle</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
-                                <MudText Typo="Typo.body1">@detail.Email</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Phone</MudText>
-                                <MudText Typo="Typo.body1">@(detail.Phone ?? "—")</MudText>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Join Date</MudText>
-                                <MudText Typo="Typo.body1">@detail.JoinDate?.ToString("dd MMM yyyy")</MudText>
-                            </MudItem>
-                        </MudGrid>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-        </MudGrid>
-    }
+    <AuthorizeView Policy="@Permissions.DepartmentScopedManagement">
+        <Authorized>
+            @if (_loading)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else if (detail == null)
+            {
+                <MudAlert Severity="Severity.Warning">Employee not found or not in your department.</MudAlert>
+            }
+            else
+            {
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudCard Elevation="2" Style="border-radius: 16px;">
+                            <MudCardContent Class="d-flex flex-column align-center py-8">
+                                <MudAvatar Style="height: 120px; width: 120px; font-size: 3rem;" Color="Color.Primary">
+                                    @detail.FullName[0]
+                                </MudAvatar>
+                                <MudText Typo="Typo.h5" Class="mt-4 fw-bold">@detail.FullName</MudText>
+                                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@detail.EmployeeCode</MudText>
+                                <MudChip T="string" Class="mt-2" Color="@(detail.IsActive == true ? Color.Success : Color.Error)" Size="Size.Small">
+                                    @(detail.IsActive == true ? "Active" : "Inactive")
+                                </MudChip>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" md="8">
+                        <MudCard Elevation="2" Style="border-radius: 16px;">
+                            <MudCardContent Class="pa-6">
+                                <MudText Typo="Typo.h6" Class="mb-4">Organization</MudText>
+                                <MudGrid Spacing="3">
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Department</MudText>
+                                        <MudText Typo="Typo.body1">@detail.DepartmentName</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Team</MudText>
+                                        <MudText Typo="Typo.body1">@(detail.TeamName ?? "—")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Position</MudText>
+                                        <MudText Typo="Typo.body1">@detail.PositionTitle</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
+                                        <MudText Typo="Typo.body1">@detail.Email</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Phone</MudText>
+                                        <MudText Typo="Typo.body1">@(detail.Phone ?? "—")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Join Date</MudText>
+                                        <MudText Typo="Typo.body1">@detail.JoinDate?.ToString("dd MMM yyyy")</MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <MudAlert Severity="Severity.Error">Access Denied.</MudAlert>
+        </NotAuthorized>
+    </AuthorizeView>
 </MudContainer>
 
 @code {
@@ -92,18 +97,22 @@
 
     private EmployeeDetailDto? detail;
     private bool _loading = true;
-    private bool _accessDenied;
 
-    protected override async Task OnInitializedAsync()
+    private List<BreadcrumbItem> _breadcrumbs => new()
     {
-        if (!await PermissionChecker.HasDepartmentScopedManagementAsync())
-        {
-            _accessDenied = true;
-            _loading = false;
-            return;
-        }
+        new BreadcrumbItem("My Department Teams", "/teams/department-scoped"),
+        new BreadcrumbItem("Team Members", "/employees/department-scoped"),
+        new BreadcrumbItem("Profile", null, disabled: true)
+    };
 
-        await LoadDetail();
+    protected override async Task OnInitializedAsync() => await LoadDetail();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id > 0)
+        {
+            await LoadDetail();
+        }
     }
 
     private async Task LoadDetail()
@@ -115,7 +124,7 @@
         }
         catch (UnauthorizedAccessException)
         {
-            _accessDenied = true;
+            detail = null;
         }
         catch (Exception ex)
         {

@@ -59,6 +59,12 @@ public class PermissionCheckerService : IPermissionCheckerService
 
     public async Task<bool> HasPermissionAsync(string permissionCode)
     {
+        var authState = await _authStateProvider.GetAuthenticationStateAsync();
+        if (HasPermissionClaim(authState.User, permissionCode))
+        {
+            return true;
+        }
+
         var permissions = await GetCurrentUserPermissionsAsync();
         
         if (permissions.Contains(permissionCode))
@@ -73,6 +79,34 @@ public class PermissionCheckerService : IPermissionCheckerService
         }
         
         return false;
+    }
+
+    private static bool HasPermissionClaim(ClaimsPrincipal user, string permissionCode)
+    {
+        if (user.HasClaim(AuthClaimTypes.Permission, permissionCode))
+        {
+            return true;
+        }
+
+        var managePermission = GetManagePermissionStatic(permissionCode);
+        return !string.IsNullOrEmpty(managePermission)
+            && user.HasClaim(AuthClaimTypes.Permission, managePermission);
+    }
+
+    private static string GetManagePermissionStatic(string permission)
+    {
+        if (permission.Contains(".Security."))
+        {
+            return Permissions.Security.Manage;
+        }
+
+        var parts = permission.Split('.');
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0]}.{parts[1]}.Manage";
+        }
+
+        return string.Empty;
     }
 
     public async Task<bool> HasViewPermissionAsync(string category)
@@ -126,17 +160,6 @@ public class PermissionCheckerService : IPermissionCheckerService
 
     private string GetManagePermission(string permission)
     {
-        if (permission.Contains(".Security."))
-        {
-            return Permissions.Security.Manage;
-        }
-
-        var parts = permission.Split('.');
-        if (parts.Length >= 2)
-        {
-            return $"{parts[0]}.{parts[1]}.Manage";
-        }
-
-        return string.Empty;
+        return GetManagePermissionStatic(permission);
     }
 }

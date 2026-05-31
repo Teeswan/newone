@@ -1,5 +1,6 @@
 using EPMS.Domain.Entities;
 using EPMS.Domain.Interfaces;
+using EPMS.Shared.Constants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,19 +11,24 @@ namespace EPMS.Application.Services;
 
 public interface ITokenService
 {
-    string CreateToken(Employee employee, User? user = null);
+    Task<string> CreateTokenAsync(Employee employee, User? user = null, CancellationToken cancellationToken = default);
 }
 
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _config;
+    private readonly IPositionPermissionRepository _positionPermissionRepository;
 
-    public TokenService(IConfiguration config)
+    public TokenService(IConfiguration config, IPositionPermissionRepository positionPermissionRepository)
     {
         _config = config;
+        _positionPermissionRepository = positionPermissionRepository;
     }
 
-    public string CreateToken(Employee employee, User? user = null)
+    public async Task<string> CreateTokenAsync(
+        Employee employee,
+        User? user = null,
+        CancellationToken cancellationToken = default)
     {
         var jwtSettings = _config.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
@@ -30,12 +36,12 @@ public class TokenService : ITokenService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, employee.FullName ?? employee.Email ?? ""),
-            new Claim(ClaimTypes.Email, employee.Email ?? ""),
-            new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString()),
-            new Claim("EmployeeId", employee.EmployeeId.ToString()),
-            new Claim("name", employee.FullName ?? ""),
-            new Claim("role", user?.EmployeeId != null ? "User" : "Guest") // Placeholder for roles if needed
+            new(ClaimTypes.Name, employee.FullName ?? employee.Email ?? ""),
+            new(ClaimTypes.Email, employee.Email ?? ""),
+            new(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString()),
+            new("EmployeeId", employee.EmployeeId.ToString()),
+            new("name", employee.FullName ?? ""),
+            new("role", user?.EmployeeId != null ? "User" : "Guest")
         };
 
         if (user != null)
@@ -46,6 +52,15 @@ public class TokenService : ITokenService
         if (employee.PositionId != null)
         {
             claims.Add(new Claim("PositionId", employee.PositionId.Value.ToString()));
+
+            var permissions = await _positionPermissionRepository.GetPermissionsByPositionAsync(employee.PositionId.Value);
+            foreach (var permission in permissions)
+            {
+                if (!string.IsNullOrWhiteSpace(permission.PermissionCode))
+                {
+                    claims.Add(new Claim(AuthClaimTypes.Permission, permission.PermissionCode));
+                }
+            }
         }
 
         var token = new JwtSecurityToken(
